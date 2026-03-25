@@ -1,0 +1,182 @@
+/* Palette Olive Harvest */
+:root {
+  --olive-dark: #4A5C2F;
+  --olive: #6B7F4A;
+  --olive-light: #A4B97C;
+  --harvest-gold: #D4A017;
+  --earth-brown: #8C6F4E;
+  --beige: #F5EDE3;
+  --cream: #FAF6F0;
+}
+
+.container.olive-harvest {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--cream);
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(74, 92, 47, 0.12);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid var(--olive-light);
+}
+
+.header h2 {
+  color: var(--olive-dark);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.olive-icon {
+  font-size: 2.2rem;
+}
+
+.btn-add {
+  background: var(--harvest-gold);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+  background: #b88a12;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(212, 160, 23, 0.4);
+}
+
+/* Grid des cartes */
+.workers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.worker-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(74, 92, 47, 0.15);
+  border: 1px solid var(--olive-light);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.worker-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(74, 92, 47, 0.25);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--olive-light);
+}
+
+.card-header strong {
+  color: var(--olive-dark);
+  font-size: 1.25rem;
+}
+
+.worker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.worker-meta {
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+/* Badges statut */
+.badge-actif {
+  background: #4A5C2F;
+  color: white;
+  padding: 5px 14px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badge-suspendu {
+  background: #A67C5D;
+  color: white;
+  padding: 5px 14px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--olive-dark);
+}
+
+.olive-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--olive-light);
+  border-top: 5px solid var(--harvest-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--olive-dark);
+}
+
+.empty-icon {
+  font-size: 4.5rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* Error */
+.error-box {
+  background: #ffe6e6;
+  color: #9c2a2a;
+  padding: 15px 20px;
+  border-radius: 10px;
+  border-left: 5px solid #c53a3a;
+  margin-top: 20px;
+}
+
+/* Debug box */
+.debug-box {
+  background: #fff8e1;
+  border: 2px dashed #d4a017;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}

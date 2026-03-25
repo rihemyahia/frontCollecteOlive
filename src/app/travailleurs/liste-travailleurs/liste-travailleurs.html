@@ -1,0 +1,55 @@
+<div class="container olive-harvest">
+  <div class="header">
+    <h2>
+      <span class="olive-icon">🌿</span>
+      Gestion des Travailleurs
+    </h2>
+    <a routerLink="/travailleurs/creer" class="btn-add">
+      + Nouveau travailleur
+    </a>
+  </div>
+
+  <!-- DEBUG (à supprimer en production) -->
+
+
+  <!-- Liste des travailleurs -->
+  <div *ngIf="!isLoading && travailleurs.length > 0" class="workers-grid">
+    <div *ngFor="let t of travailleurs" class="worker-card">
+      <div class="card-header">
+        <strong>{{ t.nom }} {{ t.prenom }}</strong>
+        <span [class]="getStatutClass(t.statut || 'SUSPENDU')">
+          {{ t.statut || 'SUSPENDU' }}
+        </span>
+      </div>
+
+      <div class="worker-info">
+        <span class="worker-meta">
+          <i>✉️</i> {{ t.email }}
+        </span>
+        <span class="worker-meta">
+          <i>🛠️</i> {{ t.specialite }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner olive-spinner"></div>
+    <p>Chargement de la récolte...</p>
+  </div>
+
+  <!-- Aucun résultat -->
+  <div class="empty" *ngIf="!isLoading && travailleurs.length === 0">
+    <div class="empty-icon">🌳</div>
+    <p>Aucun travailleur enregistré pour le moment</p>
+    <a routerLink="/travailleurs/creer" class="btn-add">
+      Ajouter un travailleur
+    </a>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="errorMessage" class="error-box">
+    {{ errorMessage }}
+  </div>
+</div>

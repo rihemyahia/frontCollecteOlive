@@ -1,0 +1,14 @@
+<div class="dashboard">
+  <nav>
+    <h1>🌿 Dashboard</h1>
+    <div class="nav-links">
+      <button (click)="goToTravailleurs()" class="nav-btn">👷 Gestion des travailleurs</button>
+      <button (click)="logout()" class="btn-logout">Déconnexion</button>
+    </div>
+  </nav>
+  <div class="content">
+    <h2>Bienvenue, {{ user?.prenom }} {{ user?.nom }}!</h2>
+    <p>Email: {{ user?.email }}</p>
+    <p>Rôle: {{ user?.role }}</p>
+  </div>
+</div>
