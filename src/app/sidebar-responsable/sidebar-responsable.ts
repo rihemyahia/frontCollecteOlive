@@ -129,7 +129,10 @@ export class SideBarResponsable implements OnInit {
       this.setDefaultProfile();
     }
   }
-
+// ==================== YOUR ORIGINAL METHODS ====================
+  goToTravailleurs(): void {
+    this.router.navigate(['/travailleurs']);
+  }
   setDefaultProfile(): void {
     this.userProfile = {
       prenom: 'Utilisateur',

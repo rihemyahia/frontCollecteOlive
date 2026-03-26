@@ -63,6 +63,16 @@ export class Dashboard implements OnInit {
   // ==================== YOUR ORIGINAL METHODS ====================
   goToTravailleurs(): void {
     this.router.navigate(['/travailleurs']);
+  }  goToVergers(): void {
+    this.router.navigate(['/vergers']);
+  }
+
+  goToTournees(): void {
+    this.router.navigate(['/tournees']);
+  }
+
+  goToAlertes(): void {
+    this.router.navigate(['/alertes']);
   }
 
   logout(): void {
