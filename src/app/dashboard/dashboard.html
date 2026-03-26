@@ -1,14 +1,79 @@
-<div class="dashboard">
-  <nav>
-    <h1>🌿 Dashboard</h1>
-    <div class="nav-links">
-      <button (click)="goToTravailleurs()" class="nav-btn">👷 Gestion des travailleurs</button>
-      <button (click)="logout()" class="btn-logout">Déconnexion</button>
+<!-- app-layout wrapper -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+
+    <!-- Mobile menu toggle -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+
+      <!-- Top nav bar -->
+      <nav class="topbar">
+        <div class="topbar-brand">
+          <span class="brand-leaf">🌿</span>
+          <span class="brand-text">Dashboard</span>
+        </div>
+        <div class="topbar-actions">
+          <button (click)="goToTravailleurs()" class="nav-btn">
+            <span class="nav-btn-icon">👷</span>
+            <span class="nav-btn-label">Gestion des travailleurs</span>
+          </button>
+          <button (click)="logout()" class="btn-logout">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Déconnexion
+          </button>
+        </div>
+      </nav>
+
+      <!-- Main content area -->
+      <div class="content-area">
+
+        <!-- Welcome card -->
+        <div class="welcome-card">
+          <div class="welcome-card-bg"></div>
+          <div class="welcome-avatar">
+            {{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}
+          </div>
+          <div class="welcome-info">
+            <p class="welcome-greeting">Bienvenue,</p>
+            <h2 class="welcome-name">{{ user?.prenom }} {{ user?.nom }}</h2>
+            <span class="role-badge">{{ user?.role }}</span>
+          </div>
+        </div>
+
+        <!-- Info cards row -->
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-card-icon">✉️</div>
+            <div class="info-card-body">
+              <p class="info-card-label">Adresse email</p>
+              <p class="info-card-value">{{ user?.email }}</p>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">🔑</div>
+            <div class="info-card-body">
+              <p class="info-card-label">Rôle</p>
+              <p class="info-card-value">{{ user?.role }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
-  </nav>
-  <div class="content">
-    <h2>Bienvenue, {{ user?.prenom }} {{ user?.nom }}!</h2>
-    <p>Email: {{ user?.email }}</p>
-    <p>Rôle: {{ user?.role }}</p>
-  </div>
+  </main>
 </div>
