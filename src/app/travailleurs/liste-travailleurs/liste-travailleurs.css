@@ -1,0 +1,322 @@
+/* liste-travailleurs.component.css — Premium Olive Harvest Theme */
+/* Refined & Aesthetic Action Buttons */
+
+.oh-scene {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(145deg, #EDE8D2 0%, #F5F0E0 45%, #E8E0C8 100%);
+  padding: 2.5rem 1.5rem 4rem;
+  overflow: hidden;
+  font-family: 'Georgia', 'Palatino Linotype', 'Book Antiqua', serif;
+  color: #2C2A1A;
+}
+
+/* Ambient Orbs */
+.oh-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.amb-orb--1 {
+  width: 680px; height: 680px;
+  background: radial-gradient(circle, #A8B84B, transparent 65%);
+  top: -220px; right: -180px;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.25;
+}
+
+.amb-orb--2 {
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, #7A6845, transparent 70%);
+  bottom: -160px; left: -140px;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.25;
+}
+
+/* Main Card */
+.oh-card {
+  position: relative;
+  z-index: 2;
+  max-width: 1180px;
+  margin: 0 auto;
+  background: #FFFFF8;
+  border-radius: 28px;
+  box-shadow: 0 20px 60px rgba(44, 42, 26, 0.18);
+  border: 1px solid rgba(168, 184, 75, 0.25);
+  overflow: hidden;
+}
+
+.oh-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #3A4A12, #5A6E1A, #7A9422, #A8B84B);
+}
+
+/* Header */
+.header-section {
+  padding: 2.4rem 2.8rem 1.8rem;
+  background: linear-gradient(180deg, #FAFAF0, #FFFFF8);
+  border-bottom: 1px solid rgba(168,184,75,0.18);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.oh-header__eyebrow {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #7A6845;
+  margin: 0 0 0.4rem 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow-dash {
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: #B89A6A;
+  opacity: 0.6;
+}
+
+.header-section h2 {
+  font-size: 2.35rem;
+  font-weight: 700;
+  color: #2C2A1A;
+  margin: 0;
+  letter-spacing: -0.6px;
+}
+
+.header-subtitle {
+  color: #7A6845;
+  font-size: 1.12rem;
+  margin: 0.3rem 0 0;
+}
+
+/* Main Add Button */
+.btn-add {
+  background: linear-gradient(135deg, #5A6E1A, #A8B84B);
+  color: white;
+  border: none;
+  padding: 0.9rem 2.1rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(90, 110, 26, 0.35);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-add:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(90, 110, 26, 0.45);
+}
+
+.btn-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.btn-add-small {
+  background: linear-gradient(135deg, #5A6E1A, #A8B84B);
+  color: white;
+  border: none;
+  padding: 0.95rem 2.3rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+/* ====================== AESTHETIC ACTION BUTTONS ====================== */
+.action-buttons {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.btn-edit, .btn-delete {
+  padding: 0.48rem 1.15rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 2px 6px rgba(44, 42, 26, 0.1);
+  white-space: nowrap;
+}
+
+/* Edit Button - Warm Olive */
+.btn-edit {
+  background: linear-gradient(135deg, #E8F0E0, #DCE8CE);
+  color: #2C3A22;
+  border: 1px solid rgba(122, 148, 34, 0.25);
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #D4E4C8, #C8D8B8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(90, 110, 26, 0.28);
+  color: #2C3A22;
+}
+
+/* Delete Button - Soft Terracotta */
+.btn-delete {
+  background: linear-gradient(135deg, #FFEDE5, #F8E0D5);
+  color: #8A3F2E;
+  border: 1px solid rgba(138, 42, 26, 0.2);
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #FFDDD0, #F5C9B8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(138, 42, 26, 0.25);
+  color: #8A2A1A;
+}
+
+/* Table Styles */
+.table-container {
+  margin: 0 2.8rem 2.2rem;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(44, 42, 26, 0.12);
+  border: 1px solid rgba(168,184,75,0.2);
+}
+
+.table th {
+  background: #F8F4EB;
+  color: #2C2A1A;
+  font-weight: 700;
+  padding: 1.4rem 1.2rem;
+  text-transform: uppercase;
+  font-size: 0.93rem;
+  letter-spacing: 0.6px;
+  border-bottom: 3px solid #D4C9A8;
+}
+
+.table td {
+  padding: 1.3rem 1.2rem;
+  border-bottom: 1px solid #F0EBDA;
+  color: #3F4A35;
+  vertical-align: middle;
+}
+
+.table tr:hover {
+  background-color: #FBF9F2;
+}
+
+/* Badges */
+.specialite-badge {
+  background: #DFE9B0;
+  color: #3A4A12;
+  padding: 0.45rem 1rem;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.93rem;
+}
+
+.badge {
+  padding: 0.5rem 1.15rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge-actif { background: #E8F2D8; color: #4A7A2A; }
+.badge-inactif, .badge-desactive { background: #EEEBE0; color: #5A5A48; }
+
+.type-badge-permanent   { background: #C8D8B8; color: #2F4621; }
+.type-badge-saisonnier  { background: #F4E8C8; color: #8B6A2E; }
+.type-badge-occasionnel { background: #E8E0F0; color: #5C3F7A; }
+
+/* Empty State & Loading */
+.empty-state {
+  text-align: center;
+  padding: 6rem 2rem;
+  background: linear-gradient(to bottom, #F8F4EB, #F0E9D9);
+  border-radius: 24px;
+  margin: 0 2.8rem 2rem;
+  border: 3px dashed #C8B89A;
+}
+
+.empty-icon {
+  font-size: 6rem;
+  margin-bottom: 1.2rem;
+}
+
+.empty-state p {
+  font-size: 1.35rem;
+  color: #7A6845;
+  margin-bottom: 2rem;
+}
+
+.loading-container {
+  padding: 5rem 2rem;
+  text-align: center;
+  color: #5A6E1A;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #EDE9D8;
+  border-top-color: #A8B84B;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.footer-note {
+  text-align: center;
+  color: #7A8A5F;
+  font-style: italic;
+  padding: 1rem 0 2.5rem;
+  font-size: 1.02rem;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .action-buttons {
+    gap: 0.5rem;
+  }
+
+  .btn-edit, .btn-delete {
+    padding: 0.45rem 1rem;
+    font-size: 0.87rem;
+  }
+}

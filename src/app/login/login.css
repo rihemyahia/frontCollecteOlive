@@ -1,0 +1,386 @@
+/* ============================================
+   COOPÉRATIVE OLÉICOLE DE SFAX
+   Login Interface - Esthétique Méditerranéenne Organique
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #1e2a1a;
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ========== TEXTURE DE FOND ========== */
+:host::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 80% at 30% 20%, #2c4524 0%, #0f1a0c 100%),
+    repeating-linear-gradient(45deg, rgba(210, 180, 90, 0.02) 0px, rgba(210, 180, 90, 0.02) 2px, transparent 2px, transparent 8px);
+  z-index: 0;
+}
+
+/* Terrain texturé */
+:host::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(to top, rgba(30, 42, 26, 0.9), transparent);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Motifs d'oliviers stylisés */
+.olive-pattern {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='none' stroke='%23d4b85a' stroke-width='0.8' d='M98,48 Q110,38 122,48 T146,58 M100,52 L100,88 M92,88 L108,88 M88,96 L112,96 M85,104 L115,104 M82,112 L118,112 M80,120 L120,120'/%3E%3Ccircle cx='100' cy='58' r='4' fill='%23d4b85a'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 48px 48px;
+}
+
+/* Grain artisanal */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+/* ========== CONTAINER PRINCIPAL ========== */
+.login-container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* ========== CARTE AUTHENTIQUE ========== */
+.login-card {
+  background: rgba(20, 28, 18, 0.88);
+  backdrop-filter: blur(16px);
+  border-radius: 48px 32px 48px 32px;
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 460px;
+  box-shadow:
+    0 32px 64px -24px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(210, 180, 90, 0.15),
+    0 0 0 1px rgba(210, 180, 90, 0.2);
+  transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  position: relative;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: 16px;
+  border: 1px solid rgba(210, 180, 90, 0.12);
+  border-radius: 32px 20px 32px 20px;
+  pointer-events: none;
+}
+
+.login-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 40px 72px -28px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(210, 180, 90, 0.2),
+    0 0 0 1px rgba(210, 180, 90, 0.35);
+}
+
+/* ========== EN-TÊTE ========== */
+.login-card h1 {
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+  font-size: 2.75rem;
+  font-weight: 500;
+  color: #f7f3e8;
+  text-align: center;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.login-card h1::before,
+.login-card h1::after {
+  content: '🫒';
+  font-size: 1.5rem;
+  opacity: 0.5;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.login-card h1::before {
+  content: '🫒';
+  margin-right: 12px;
+}
+
+.login-card h1::after {
+  content: '🫒';
+  margin-left: 12px;
+}
+
+.login-card p {
+  text-align: center;
+  color: #b8cf9a;
+  font-family: 'Jost', 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed rgba(210, 180, 90, 0.3);
+  position: relative;
+}
+
+.login-card p::after {
+  content: '⚘';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 42, 26, 0.9);
+  padding: 0 8px;
+  color: #d4b85a;
+  font-size: 10px;
+  letter-spacing: normal;
+}
+
+/* ========== FORMULAIRE ========== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Champs de saisie */
+input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(210, 180, 90, 0.25);
+  border-radius: 48px;
+  font-family: 'Jost', 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #f7f3e8;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+input::placeholder {
+  color: rgba(200, 190, 160, 0.4);
+  font-weight: 300;
+  font-style: italic;
+}
+
+input:focus {
+  border-color: #d4b85a;
+  background: rgba(210, 180, 90, 0.05);
+  box-shadow: 0 0 0 3px rgba(210, 180, 90, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ========== BOUTON ========== */
+button {
+  margin-top: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #3c6e3c, #2a502a);
+  border: none;
+  border-radius: 48px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #f7f3e8;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 225, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4e824e, #3c6e3c);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+}
+
+button:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner de chargement */
+button .spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 248, 225, 0.3);
+  border-top-color: #f7f3e8;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========== MESSAGE D'ERREUR ========== */
+.error {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(180, 70, 50, 0.12);
+  border-left: 3px solid #c97e5a;
+  border-radius: 12px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #e8bc9a;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  position: relative;
+}
+
+.error::before {
+  content: '⚠';
+  margin-right: 8px;
+  font-size: 0.9rem;
+}
+
+/* ========== LIEN MOT DE PASSE OUBLIÉ ========== */
+.forgot-link {
+  display: block;
+  text-align: center;
+  margin-top: 1.5rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  color: #9ab87a;
+  text-decoration: none;
+  letter-spacing: 0.8px;
+  transition: color 0.2s ease;
+  position: relative;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.forgot-link::before {
+  content: '—';
+  margin-right: 8px;
+  opacity: 0.5;
+}
+
+.forgot-link::after {
+  content: '—';
+  margin-left: 8px;
+  opacity: 0.5;
+}
+
+.forgot-link:hover {
+  color: #d4b85a;
+}
+
+/* ========== ÉLÉMENTS DÉCORATIFS SUPPLÉMENTAIRES ========== */
+/* Ambre mouvante */
+@keyframes amber-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.05); }
+}
+
+/* Petite feuille d'olivier flottante */
+.deco-leaf {
+  position: fixed;
+  bottom: 40px;
+  left: 40px;
+  width: 80px;
+  height: auto;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 560px) {
+  .login-card {
+    padding: 2rem 1.5rem;
+    border-radius: 36px 24px 36px 24px;
+  }
+
+  .login-card h1 {
+    font-size: 2rem;
+  }
+
+  .login-card h1::before,
+  .login-card h1::after {
+    font-size: 1.2rem;
+  }
+
+  input {
+    padding: 0.85rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  button {
+    padding: 0.85rem 1.2rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .login-card h1::before,
+  .login-card h1::after {
+    display: none;
+  }
+
+  .login-card {
+    padding: 1.75rem 1.25rem;
+  }
+}

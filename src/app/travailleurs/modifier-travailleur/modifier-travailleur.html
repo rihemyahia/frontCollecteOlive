@@ -1,0 +1,108 @@
+<!-- modifier-travailleur.html — Olive Harvest Theme -->
+<div class="oh-scene">
+
+  <!-- Ambient soft lighting -->
+  <div class="oh-ambient" aria-hidden="true">
+    <div class="amb-orb amb-orb--1"></div>
+    <div class="amb-orb amb-orb--2"></div>
+  </div>
+
+  <!-- Main Premium Card -->
+  <div class="oh-card">
+
+    <!-- Header -->
+    <div class="form-header">
+      <div>
+        <p class="oh-header__eyebrow">
+          <span class="eyebrow-dash"></span>
+          SAISON DE RÉCOLTE
+          <span class="eyebrow-dash"></span>
+        </p>
+        <h2>Modifier le Travailleur</h2>
+        <p class="header-subtitle">Mettre à jour les informations</p>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Chargement des données...</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="oh-error">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="oh-success">
+      {{ successMessage }}
+    </div>
+
+    <!-- Form -->
+    <div *ngIf="!isLoading" class="oh-card__body">
+      <form (ngSubmit)="onSubmit()" class="oh-form">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="travailleur.nom" name="nom" required>
+          </div>
+
+          <div class="form-group">
+            <label>Prénom <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="travailleur.prenom" name="prenom" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Téléphone <span class="required">*</span></label>
+          <input type="tel" [(ngModel)]="travailleur.telephone" name="telephone" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Spécialité</label>
+            <select [(ngModel)]="travailleur.specialite" name="specialite">
+              <option value="">-- Sélectionnez une spécialité --</option>
+              <option *ngFor="let s of specialites" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Type de travailleur</label>
+            <select [(ngModel)]="travailleur.typeTravailleur" name="typeTravailleur">
+              <option value="">-- Sélectionnez le type --</option>
+              <option *ngFor="let t of typeTravailleurs" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Salaire journalier (DT)</label>
+            <input type="number" [(ngModel)]="travailleur.salaireJournalier"
+                   name="salaireJournalier" min="0" step="0.01" placeholder="0.00">
+          </div>
+
+          <div class="form-group">
+            <label>Statut</label>
+            <select [(ngModel)]="travailleur.statut" name="statut">
+              <option value="DISPONIBLE">Disponible</option>
+              <option value="EN_MAINTENANCE">En maintenance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" routerLink="/travailleurs">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

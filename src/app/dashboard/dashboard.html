@@ -1,0 +1,727 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green-deep: #1a3d2b;
+  --green-mid: #2d6a4f;
+  --green-soft: #52b788;
+  --green-pale: #d8f3dc;
+  --gold: #c9a84c;
+  --sand: #f7f3ed;
+  --ink: #1c1c1c;
+  --ink-muted: #6b6b6b;
+  --white: #ffffff;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+/* ── App Layout ── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--sand);
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  margin-left: 260px;
+  transition: margin-left 0.3s ease;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 72px;
+}
+
+/* ── Mobile Toggle ── */
+.mobile-menu-toggle {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--green-deep);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-toggle svg {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+}
+
+/* ── Dashboard Container ── */
+.dashboard-container {
+  padding: 2rem 2.5rem 3rem;
+  max-width: 1200px;
+}
+
+/* ── Top Bar ── */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.season-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--green-pale);
+  color: var(--green-mid);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #b7e4c7;
+  letter-spacing: 0.03em;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green-soft);
+}
+
+.avatar-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1px solid #e5e0d8;
+  border-radius: 24px;
+  padding: 5px 14px 5px 5px;
+}
+
+.avatar-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.avatar-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* ── Alert Strip ── */
+.alert-strip {
+  background: linear-gradient(135deg, #fffbec, #fff8e1);
+  border: 1px solid #f0d97a;
+  border-radius: var(--radius-sm);
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 13px;
+  color: #7a5c00;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Hero Section ── */
+.hero-section {
+  background: var(--green-deep);
+  border-radius: 24px;
+  padding: 2.5rem;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 80% -20%, rgba(82,183,136,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse at -10% 110%, rgba(201,168,76,0.18) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2rem;
+}
+
+.hero-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-soft);
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+}
+
+.hero-name {
+  color: var(--gold);
+}
+
+.hero-subtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 380px;
+}
+
+.hero-pills {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+}
+
+.hero-pill strong {
+  color: var(--white);
+  font-weight: 500;
+}
+
+.hero-orb {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 56px;
+}
+
+/* ── Stat Cards ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  border: 1px solid #ece8e0;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.stat-card.green::before { background: linear-gradient(90deg, var(--green-mid), var(--green-soft)); }
+.stat-card.gold::before  { background: linear-gradient(90deg, #c9a84c, #e8cc7a); }
+.stat-card.teal::before  { background: linear-gradient(90deg, #1e7a8a, #45b6c5); }
+
+.stat-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 0.875rem;
+}
+
+.stat-card.green .stat-icon-wrap { background: var(--green-pale); }
+.stat-card.gold  .stat-icon-wrap { background: #fef3d0; }
+.stat-card.teal  .stat-icon-wrap { background: #e0f5f8; }
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 4px;
+}
+
+/* ── Lower Grid ── */
+.lower-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1rem;
+}
+
+/* ── Quick Actions ── */
+.actions-panel {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid #ece8e0;
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0.875rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid #f0ece4;
+  background: var(--sand);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+
+.action-card:last-child { margin-bottom: 0; }
+
+.action-card:hover {
+  background: var(--green-pale);
+  border-color: #b7e4c7;
+  transform: translateX(3px);
+}
+
+.action-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  background: var(--white);
+  border: 1px solid #e8e3db;
+}
+
+.action-content { flex: 1; min-width: 0; }
+
+.action-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.action-desc {
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-link {
+  color: var(--green-soft);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Right Column ── */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── User Info Card ── */
+.user-info-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid #ece8e0;
+}
+
+.user-avatar-lg {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 auto 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.user-full-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.role-pill {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.role-pill span {
+  background: var(--green-pale);
+  color: var(--green-mid);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 12px;
+  border-radius: 12px;
+  border: 1px solid #b7e4c7;
+}
+
+.info-divider {
+  height: 1px;
+  background: #f0ece4;
+  margin: 0.5rem 0 0.875rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0;
+  font-size: 13px;
+}
+
+.info-key { color: var(--ink-muted); }
+
+.info-val {
+  color: var(--ink);
+  font-weight: 500;
+  text-align: right;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Season Card ── */
+.season-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid #ece8e0;
+}
+
+.progress-wrap { margin: 0.875rem 0; }
+
+.prog-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 0.5rem;
+}
+
+.prog-head span:first-child { color: var(--ink-muted); }
+.prog-pct { font-weight: 500; color: var(--green-mid); }
+
+.prog-track {
+  height: 8px;
+  background: #f0ece4;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--green-mid), var(--green-soft));
+  width: 45%;
+}
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.mini-stat {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  background: var(--sand);
+  border-radius: var(--radius-sm);
+  border: 1px solid #ece8e0;
+}
+
+.mini-val {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: 'Playfair Display', serif;
+}
+
+.mini-lbl {
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .lower-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-orb { display: none; }
+  .hero-content { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .main-content { margin-left: 0; }
+  .main-content.sidebar-collapsed { margin-left: 0; }
+  .dashboard-container { padding: 1rem 1rem 2rem; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<!-- app-layout wrapper -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+
+    <!-- Mobile menu toggle -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="season-badge">
+          <div class="badge-dot"></div>
+          🌿 Saison 2025 · Active
+        </div>
+        <div class="avatar-pill">
+          <div class="avatar-circle">
+            {{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}
+          </div>
+          <span class="avatar-name">{{ user?.prenom }} {{ user?.nom }}</span>
+        </div>
+      </div>
+
+      <!-- Alert Strip -->
+      <div class="alert-strip">
+        <span>⚠️</span>
+        <span>Consultez les <strong>alertes & notifications</strong> pour les rappels importants.</span>
+      </div>
+
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-content">
+          <div class="hero-text">
+            <div class="hero-eyebrow">Tableau de bord · Récolte d'olives</div>
+            <h1 class="hero-title">
+              Bon retour,<br>
+              <span class="hero-name">{{ user?.prenom }} {{ user?.nom }}</span>
+            </h1>
+            <p class="hero-subtitle">
+              Prêt à gérer la récolte d'olives ? Voici votre espace de travail.
+            </p>
+            <div class="hero-pills">
+              <div class="hero-pill"><strong>0</strong>&nbsp;Travailleurs actifs</div>
+              <div class="hero-pill"><strong>0</strong>&nbsp;Vergers</div>
+              <div class="hero-pill"><strong>0</strong>&nbsp;Tournées</div>
+            </div>
+          </div>
+          <div class="hero-orb">🫒</div>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card green">
+          <div class="stat-icon-wrap">👥</div>
+          <div class="stat-value">0</div>
+          <div class="stat-label">Travailleurs actifs</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-icon-wrap">🌳</div>
+          <div class="stat-value">0</div>
+          <div class="stat-label">Vergers enregistrés</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-icon-wrap">🚜</div>
+          <div class="stat-value">0</div>
+          <div class="stat-label">Tournées effectuées</div>
+        </div>
+      </div>
+
+      <!-- Lower Grid -->
+      <div class="lower-grid">
+
+        <!-- Quick Actions -->
+        <div class="actions-panel">
+          <div class="panel-title">Actions rapides</div>
+
+          <div class="action-card" (click)="goToTravailleurs()">
+            <div class="action-icon-wrapper">👷‍♂️</div>
+            <div class="action-content">
+              <div class="action-title">Gestion des travailleurs</div>
+              <div class="action-desc">Ajoutez, modifiez ou gérez les membres de votre équipe de récolte</div>
+            </div>
+            <span class="action-link">→</span>
+          </div>
+
+          <div class="action-card" (click)="goToVergers()">
+            <div class="action-icon-wrapper">🌳</div>
+            <div class="action-content">
+              <div class="action-title">Gestion des vergers</div>
+              <div class="action-desc">Suivez l'état des oliveraies et planifiez les récoltes</div>
+            </div>
+            <span class="action-link">→</span>
+          </div>
+
+          <div class="action-card" (click)="goToTournees()">
+            <div class="action-icon-wrapper">🚛</div>
+            <div class="action-content">
+              <div class="action-title">Gestion des tournées</div>
+              <div class="action-desc">Organisez les circuits de collecte et assignez les équipes</div>
+            </div>
+            <span class="action-link">→</span>
+          </div>
+
+          <div class="action-card" (click)="goToAlertes()">
+            <div class="action-icon-wrapper">⚠️</div>
+            <div class="action-content">
+              <div class="action-title">Alertes & notifications</div>
+              <div class="action-desc">Consultez les alertes importantes et les rappels</div>
+            </div>
+            <span class="action-link">→</span>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+
+          <!-- User Info -->
+          <div class="user-info-card">
+            <div class="user-avatar-lg">
+              {{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}
+            </div>
+            <div class="user-full-name">{{ user?.prenom }} {{ user?.nom }}</div>
+            <div class="role-pill">
+              <span>{{ user?.role }}</span>
+            </div>
+            <div class="info-divider"></div>
+            <div class="info-row">
+              <span class="info-key">Email</span>
+              <span class="info-val">{{ user?.email }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Rôle</span>
+              <span class="info-val">{{ user?.role }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-key">Membre depuis</span>
+              <span class="info-val">{{ user?.dateCreation | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+
+          <!-- Season Overview -->
+          <div class="season-card">
+            <div class="panel-title">Aperçu de la saison</div>
+            <div class="progress-wrap">
+              <div class="prog-head">
+                <span>Récolte en cours</span>
+                <span class="prog-pct">45%</span>
+              </div>
+              <div class="prog-track">
+                <div class="prog-fill" style="width: 45%"></div>
+              </div>
+            </div>
+            <div class="mini-stats">
+              <div class="mini-stat">
+                <div class="mini-val">0</div>
+                <div class="mini-lbl">Tonnes récoltées</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-val">0</div>
+                <div class="mini-lbl">Équipiers</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-val">0</div>
+                <div class="mini-lbl">Tournées</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

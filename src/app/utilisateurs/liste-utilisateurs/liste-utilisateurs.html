@@ -1,0 +1,285 @@
+<div class="app-layout">
+  <!-- Sidebar Component -->
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <!-- Main Content -->
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <!-- ░░ AMBIENT LAYER ░░ -->
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
+      </div>
+
+      <!-- ░░ GRAND CARD ░░ -->
+      <div class="oh-card">
+        <!-- Card inner glow border -->
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <!-- ▸ CARD HEADER ◂ -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <circle cx="32" cy="13" r="3.5" fill="#C8D880"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  Gestion des utilisateurs
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Liste des Utilisateurs</h2>
+              </div>
+            </div>
+
+            <div class="oh-header__right">
+              <div class="oh-stats-pill" *ngIf="!isLoading">
+                <svg class="stats-pill__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.2"/>
+                  <path d="M2.5 14C2.5 11 5 9 8 9C11 9 13.5 11 13.5 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                <strong class="stats-pill__count">{{ utilisateurs.length }}</strong>
+                <span class="stats-pill__label">{{ utilisateurs.length === 1 ? 'utilisateur' : 'utilisateurs' }}</span>
+              </div>
+
+              <button class="oh-btn-primary" (click)="toggleAddForm()">
+                <span class="oh-btn-primary__icon">
+                  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <span>{{ showAddForm ? 'Annuler' : 'Ajouter un utilisateur' }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true">...</div>
+        </div>
+
+        <!-- Form to add a new user -->
+        <div *ngIf="showAddForm" class="oh-card__body">
+          <form (ngSubmit)="addUtilisateur()" class="add-user-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" [(ngModel)]="newUtilisateur.nom" name="nom" required>
+              </div>
+              <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" [(ngModel)]="newUtilisateur.prenom" name="prenom" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" [(ngModel)]="newUtilisateur.email" name="email" required>
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" [(ngModel)]="newUtilisateur.telephone" name="telephone">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Adresse</label>
+              <input type="text" [(ngModel)]="newUtilisateur.adresse" name="adresse">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Rôle</label>
+                <select [(ngModel)]="newUtilisateur.role" name="role">
+                  <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Statut</label>
+                <select [(ngModel)]="newUtilisateur.estActif" name="estActif">
+                  <option [value]="true">Actif</option>
+                  <option [value]="false">Inactif</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Mot de passe *</label>
+              <input type="password" [(ngModel)]="newUtilisateur.motDePasse" name="motDePasse" required>
+            </div>
+
+            <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-submit">
+                {{ isLoading ? 'Ajout en cours...' : 'Ajouter' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Form to edit a user -->
+        <div *ngIf="showEditForm && editUtilisateur" class="oh-card__body">
+          <form (ngSubmit)="updateUtilisateur()" class="add-user-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" [(ngModel)]="editUtilisateur.nom" name="nom" required>
+              </div>
+              <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" [(ngModel)]="editUtilisateur.prenom" name="prenom" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" [(ngModel)]="editUtilisateur.email" name="email" required>
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" [(ngModel)]="editUtilisateur.telephone" name="telephone">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Adresse</label>
+              <input type="text" [(ngModel)]="editUtilisateur.adresse" name="adresse">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Rôle</label>
+                <select [(ngModel)]="editUtilisateur.role" name="role">
+                  <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Statut</label>
+                <select [(ngModel)]="editUtilisateur.estActif" name="estActif">
+                  <option [value]="true">Actif</option>
+                  <option [value]="false">Inactif</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-cancel" (click)="showEditForm = false">Annuler</button>
+              <button type="submit" class="btn-submit">
+                {{ isLoading ? 'Modification en cours...' : 'Modifier' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ▸ CARD BODY ◂ -->
+        <div class="oh-card__body">
+          <!-- Users Grid -->
+          <div *ngIf="!isLoading && utilisateurs.length > 0 && !showAddForm && !showEditForm" class="oh-grid">
+            <div *ngFor="let u of utilisateurs; let i = index"
+                 class="oh-worker"
+                 [style.animation-delay]="(i * 0.08) + 's'">
+
+              <!-- Top section -->
+              <div class="oh-worker__top">
+                <div class="oh-avatar">
+                  <span class="oh-avatar__initials">
+                    {{ (u.prenom || '').charAt(0) }}{{ (u.nom || '').charAt(0) }}
+                  </span>
+                  <svg class="oh-avatar__leaf" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="26" cy="26" r="24" stroke="#A8B84B" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.5"/>
+                  </svg>
+                </div>
+
+                <div class="oh-worker__info">
+                  <strong class="oh-worker__name">{{ u.nom }} {{ u.prenom }}</strong>
+                  <span class="oh-worker__role">{{ u.role }}</span>
+                </div>
+
+                <span class="oh-badge oh-badge--actif">
+                  <span class="oh-badge__dot"></span>
+                  {{ u.estActif ? 'ACTIF' : 'INACTIF' }}
+                </span>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="oh-worker__actions">
+                <button class="oh-action-btn oh-action-btn--edit"
+                        (click)="prepareEditUtilisateur(u)"
+                        title="Modifier">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <path d="M11 2L14 5L5 14H2V11L11 2Z" stroke="currentColor" stroke-width="1.2"/>
+                  </svg>
+                </button>
+
+                <button class="oh-action-btn oh-action-btn--delete"
+                        (click)="deleteUtilisateur(u.id)"
+                        title="Supprimer"
+                        *ngIf="u.id">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <path d="M3 4H13M6 4V2H10V4M5 14H11C11.5 14 12 13.5 12 13V5H4V13C4 13.5 4.5 14 5 14Z"
+                          stroke="currentColor" stroke-width="1.2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading and Empty states -->
+          <div *ngIf="isLoading && !showAddForm && !showEditForm" class="oh-state oh-state--loading">
+            <div class="oh-spinner">
+              <div class="oh-spinner__ring oh-spinner__ring--outer"></div>
+              <div class="oh-spinner__ring oh-spinner__ring--inner"></div>
+              <svg class="oh-spinner__leaf" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+              </svg>
+            </div>
+            <h3 class="oh-state__title">Chargement...</h3>
+          </div>
+
+          <div *ngIf="!isLoading && utilisateurs.length === 0 && !showAddForm && !showEditForm" class="oh-state">
+            <svg class="oh-empty__art" viewBox="0 0 140 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M120 100C120 100 100 80 80 80C60 80 40 100 40 100L20 110H120V100Z" fill="#A8B84B" opacity="0.3"/>
+              <path d="M100 20C100 20 120 40 120 60C120 80 100 100 80 100C60 100 40 80 40 60C40 40 60 20 80 20C100 20 100 20 100 20Z" fill="#A8B84B" opacity="0.2"/>
+              <circle cx="80" cy="60" r="12" fill="#A8B84B" opacity="0.4"/>
+            </svg>
+            <h3 class="oh-state__title">Aucun utilisateur trouvé</h3>
+            <p class="oh-state__desc">Commencez par ajouter un nouvel utilisateur.</p>
+          </div>
+
+          <div *ngIf="errorMessage && !showAddForm && !showEditForm" class="oh-error">
+            <svg class="oh-error__icon" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8V12M12 16V12M12 12H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>{{ errorMessage }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

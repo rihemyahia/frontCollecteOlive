@@ -1,0 +1,114 @@
+<!-- liste-travailleurs.html — Premium Olive Harvest Theme -->
+<div class="oh-scene">
+
+  <!-- Ambient soft lighting orbs -->
+  <div class="oh-ambient" aria-hidden="true">
+    <div class="amb-orb amb-orb--1"></div>
+    <div class="amb-orb amb-orb--2"></div>
+  </div>
+
+  <!-- Main Premium Card -->
+  <div class="oh-card">
+
+    <!-- Header -->
+    <div class="header-section">
+      <div>
+        <p class="oh-header__eyebrow">
+          <span class="eyebrow-dash"></span>
+          SAISON DE RÉCOLTE
+          <span class="eyebrow-dash"></span>
+        </p>
+        <h2>Gestion des Travailleurs</h2>
+        <p class="header-subtitle">Registre de l'équipe de récolte</p>
+      </div>
+
+      <a routerLink="/travailleurs/creer" class="btn-add">
+        <span class="btn-icon">+</span>
+        Nouveau Travailleur
+      </a>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="errorMessage" class="oh-error">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Chargement des travailleurs...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!isLoading" class="oh-card__body">
+
+      <!-- Table -->
+      <div *ngIf="travailleurs.length > 0" class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Prénom</th>
+              <th>Téléphone</th>
+              <th>Spécialité</th>
+              <th>Statut</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of travailleurs">
+              <td data-label="Nom">{{ t.nom }}</td>
+              <td data-label="Prénom">{{ t.prenom }}</td>
+              <td data-label="Téléphone">{{ t.telephone }}</td>
+              <td data-label="Spécialité">
+                <span class="specialite-badge">{{ t.specialite }}</span>
+              </td>
+              <td data-label="Statut">
+                <span class="badge" [ngClass]="getBadgeClass(t.statut)">
+                  {{ t.statut }}
+                </span>
+              </td>
+              <td data-label="Type">
+                <span class="type-badge" [ngClass]="getTypeBadgeClass(t.typeTravailleur)">
+                  {{ getTypeTravailleurLabel(t.typeTravailleur) }}
+                </span>
+              </td>
+              <td data-label="Actions">
+                <div class="action-buttons">
+                  <button
+                    class="btn-edit"
+                    [routerLink]="['/travailleurs/modifier', t.id]"
+                    title="Modifier">
+                     Modifier
+                  </button>
+                  <button
+                    class="btn-delete"
+                    (click)="deleteTravailleur(t.id!, t.nom)"
+                    title="Supprimer">
+                     Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="travailleurs.length === 0" class="empty-state">
+        <div class="empty-icon">🌿</div>
+        <p>Aucun travailleur enregistré pour le moment</p>
+        <a routerLink="/travailleurs/creer" class="btn-add-small">
+          + Ajouter un travailleur
+        </a>
+      </div>
+
+      <!-- Footer count -->
+      <p class="footer-note" *ngIf="travailleurs.length > 0">
+        {{ travailleurs.length }} travailleur(s) dans l'équipe de récolte
+      </p>
+
+    </div>
+  </div>
+</div>
