@@ -1,13 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+// liste-travailleurs.ts
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { TravailleurService, Travailleur } from '../../services/travailleur';
-import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 
 @Component({
   selector: 'app-liste-travailleurs',
   standalone: true,
-  imports: [CommonModule, RouterModule, SideBarResponsable],
+  imports: [CommonModule, RouterModule],
   templateUrl: './liste-travailleurs.html',
   styleUrls: ['./liste-travailleurs.css']
 })
@@ -16,41 +16,13 @@ export class ListeTravailleurs implements OnInit {
   isLoading = true;
   errorMessage = '';
 
-  // Sidebar state
-  isSidebarCollapsed = false;
-  isMobile = false;
-  userRole = '';
-
   constructor(
     private travailleurService: TravailleurService,
-    private cdr: ChangeDetectorRef,
-    private router: Router
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.checkMobile();
-    this.loadUserRole();
     this.loadTravailleurs();
-  }
-
-  @HostListener('window:resize')
-  checkMobile(): void {
-    this.isMobile = window.innerWidth <= 768;
-    if (!this.isMobile) {
-      this.isSidebarCollapsed = false;
-    }
-  }
-
-  loadUserRole(): void {
-    const user = localStorage.getItem('user');
-    if (user) {
-      try {
-        const userData = JSON.parse(user);
-        this.userRole = userData.role?.toUpperCase() || '';
-      } catch (e) {
-        console.error('Error parsing user data', e);
-      }
-    }
   }
 
   loadTravailleurs(): void {
@@ -59,61 +31,76 @@ export class ListeTravailleurs implements OnInit {
 
     this.travailleurService.getAll().subscribe({
       next: (data) => {
-        console.log('🟢 COMPONENT next() called, data:', data);
-        this.travailleurs = data;
+        console.log('✅ Réponse reçue avec', data.length, 'travailleurs');
+
+        // Mise à jour en dehors de la zone puis force le change detection
+        this.travailleurs = [...data];
         this.isLoading = false;
-        this.cdr.markForCheck();
+
+        // Force fortement la détection de changement
+        setTimeout(() => {
+          this.cdr.detectChanges();
+          console.log('✅ isLoading = false + Change Detection forcée avec setTimeout');
+        }, 0);
       },
       error: (err) => {
-        console.error('❌ COMPONENT error():', err);
-        this.errorMessage = 'Erreur lors du chargement des travailleurs';
+        console.error('❌ Erreur lors du chargement:', err);
+        this.errorMessage = err.error?.message || 'Erreur lors du chargement';
         this.isLoading = false;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     });
   }
-deleteTravailleur(id: string | undefined): void {
-  if (!id) return;
 
-  if (confirm('Voulez-vous vraiment supprimer ce travailleur ?')) {
-    this.travailleurService.delete(id).subscribe({
-      next: () => {
-        this.loadTravailleurs(); // or refresh the list
-      },
-      error: (err) => {
-        console.error(err);
-        // show error message
-      }
-    });
-  }
-}
-viewTravailleur(id?: string): void {
-  if (!id) return;
-  this.router.navigate(['/travailleurs', id]);
-}
+  deleteTravailleur(id: string, nom: string): void {
+    if (!id) {
+      this.errorMessage = 'ID du travailleur non valide';
+      this.cdr.detectChanges();
+      return;
+    }
 
-editTravailleur(id?: string): void {
-  if (!id) return;
-  this.router.navigate(['/travailleurs/modifier', id]);
-}
-
-  getStatutClass(statut: string): string {
-    const statutUpper = statut?.toUpperCase() || '';
-    switch (statutUpper) {
-      case 'ACTIF':
-        return 'actif';
-      case 'INACTIF':
-        return 'inactif';
-      case 'SUSPENDU':
-        return 'suspendu';
-      case 'CONGE':
-        return 'conge';
-      default:
-        return 'inactif';
+    if (confirm(`Supprimer ${nom} ?`)) {
+      this.travailleurService.delete(id).subscribe({
+        next: () => {
+          this.loadTravailleurs();
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.message || 'Erreur lors de la suppression';
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  getBadgeClass(statut: string): string {
+    return statut === 'DISPONIBLE' ? 'badge-success' : 'badge-warning';
+  }
+// liste-travailleurs.ts
+getTypeBadgeClass(type: string | undefined): string {
+  switch(type) {
+    case 'PERMANENT': return 'type-permanent';
+    case 'SAISONNIER': return 'type-saisonnier';
+    case 'CDD': return 'type-cdd';
+    default: return 'type-permanent';
+  }
+  }
+  getInitials(prenom: string, nom: string): string {
+  return ((prenom?.[0] ?? '') + (nom?.[0] ?? '')).toUpperCase();
+}
+
+getCountByStatut(statut: string): number {
+  return this.travailleurs.filter(t => t.statut === statut).length;
+}
+
+getCountByType(type: string): number {
+  return this.travailleurs.filter(t => t.typeTravailleur === type).length;
+}
+  getTypeTravailleurLabel(type: string | undefined): string {
+    switch(type) {
+      case 'PERMANENT': return 'Permanent';
+      case 'SAISONNIER': return 'Saisonnier';
+      case 'CDD': return 'CDD';
+      default: return type || 'Non défini';
+    }
   }
 }

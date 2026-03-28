@@ -1,13 +1,14 @@
+// modifier-travailleur.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TravailleurService, Travailleur } from '../../services/travailleur';
 
 @Component({
   selector: 'app-modifier-travailleur',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './modifier-travailleur.html',
   styleUrls: ['./modifier-travailleur.css']
 })
@@ -16,35 +17,35 @@ export class ModifierTravailleur implements OnInit {
     nom: '',
     prenom: '',
     telephone: '',
-    adresse: '',
-    email: '',
-    specialite: 'recolte',
-    statut: 'ACTIF',
-    salaireJournalier: 40
+    specialite: 'RECOLTEUR',
+    statut: 'DISPONIBLE',
+    salaireJournalier: 40,
+    typeTravailleur: 'SAISONNIER'
   };
 
-  isLoading = true;
-  isSaving = false;
+  isLoading = false;
   errorMessage = '';
   successMessage = '';
-  id: string = '';
 
-  specialites = ['recolte', 'transport', 'taille', 'traitement'];
+  specialites = ['RECOLTEUR', 'CONDUCTEUR', 'CHEF_EQUIPE'];
+  typeTravailleurs = ['PERMANENT', 'SAISONNIER', 'CDD'];
 
   constructor(
     private route: ActivatedRoute,
-    public router: Router,
+    private router: Router,
     private travailleurService: TravailleurService
   ) {}
 
   ngOnInit(): void {
-    this.id = this.route.snapshot.params['id'];
-    this.loadTravailleur();
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.loadTravailleur(id);
+    }
   }
 
-  loadTravailleur(): void {
+  loadTravailleur(id: string): void {
     this.isLoading = true;
-    this.travailleurService.getById(this.id).subscribe({
+    this.travailleurService.getById(id).subscribe({
       next: (data) => {
         this.travailleur = data;
         this.isLoading = false;
@@ -58,27 +59,26 @@ export class ModifierTravailleur implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.travailleur.nom || !this.travailleur.prenom || !this.travailleur.email) {
+    if (!this.travailleur.nom || !this.travailleur.prenom || !this.travailleur.telephone) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
 
-    this.isSaving = true;
+    this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.travailleurService.update(this.id, this.travailleur).subscribe({
+    this.travailleurService.update(this.travailleur.id!, this.travailleur).subscribe({
       next: () => {
-        this.isSaving = false;
+        this.isLoading = false;
         this.successMessage = 'Travailleur modifié avec succès !';
         setTimeout(() => {
           this.router.navigate(['/travailleurs']);
         }, 1500);
       },
       error: (err) => {
-        this.isSaving = false;
+        this.isLoading = false;
         this.errorMessage = err.error?.message || 'Erreur lors de la modification';
-        console.error(err);
       }
     });
   }

@@ -1,168 +1,114 @@
-<div class="app-layout">
+<!-- liste-travailleurs.html — Premium Olive Harvest Theme -->
+<div class="oh-scene">
 
-  <!-- Sidebar Component -->
-  <app-sidebar
-    [isCollapsed]="isSidebarCollapsed"
-    (toggleSidebar)="toggleSidebar()"
-    [userRole]="userRole">
-  </app-sidebar>
+  <!-- Ambient soft lighting orbs -->
+  <div class="oh-ambient" aria-hidden="true">
+    <div class="amb-orb amb-orb--1"></div>
+    <div class="amb-orb amb-orb--2"></div>
+  </div>
 
-  <!-- Main Content -->
-  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <!-- Main Premium Card -->
+  <div class="oh-card">
 
-    <!-- Mobile Menu Toggle Button -->
-    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
-
-    <div class="oh-scene">
-
-      <!-- ░░ AMBIENT LAYER ░░ -->
-      <div class="oh-ambient" aria-hidden="true">
-        <div class="amb-orb amb-orb--1"></div>
-        <div class="amb-orb amb-orb--2"></div>
-        <div class="amb-orb amb-orb--3"></div>
-        <div class="amb-stripe"></div>
+    <!-- Header -->
+    <div class="header-section">
+      <div>
+        <p class="oh-header__eyebrow">
+          <span class="eyebrow-dash"></span>
+          SAISON DE RÉCOLTE
+          <span class="eyebrow-dash"></span>
+        </p>
+        <h2>Gestion des Travailleurs</h2>
+        <p class="header-subtitle">Registre de l'équipe de récolte</p>
       </div>
 
-      <!-- ░░ GRAND CARD ░░ -->
-      <div class="oh-card">
-
-        <!-- Card inner glow border -->
-        <div class="oh-card__glow" aria-hidden="true"></div>
-
-        <!-- ▸ CARD HEADER ◂ -->
-        <div class="oh-card__header">
-
-          <!-- Decorative corner vines ... (keep your decorative SVGs) -->
-          <!-- ... your existing header SVGs and content ... -->
-
-          <!-- Header content (your existing code) -->
-          <div class="oh-header__inner">
-            <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
-                    <circle cx="32" cy="13" r="3.5" fill="#C8D880" opacity="0.8"/>
-                    <circle cx="27" cy="32" r="2.5" fill="#C8D880" opacity="0.65"/>
-                    <circle cx="17" cy="37" r="1.8" fill="#C8D880" opacity="0.5"/>
-                  </svg>
-                </div>
-                <div class="oh-brand__rings" aria-hidden="true">
-                  <span></span><span></span>
-                </div>
-              </div>
-
-              <div class="oh-header__text">
-                <p class="oh-header__eyebrow">
-                  <span class="eyebrow-dash"></span>
-                  Saison de récolte
-                  <span class="eyebrow-dash"></span>
-                </p>
-                <h2 class="oh-header__title">Gestion des Travailleurs</h2>
-              </div>
-            </div>
-
-            <div class="oh-header__right">
-              <div class="oh-stats-pill" *ngIf="!isLoading">
-                <svg class="stats-pill__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.2"/>
-                  <path d="M2.5 14C2.5 11 5 9 8 9C11 9 13.5 11 13.5 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-                </svg>
-                <strong class="stats-pill__count">{{ travailleurs.length }}</strong>
-                <span class="stats-pill__label">{{ travailleurs.length === 1 ? 'travailleur' : 'travailleurs' }}</span>
-              </div>
-
-              <a routerLink="/travailleurs/creer" class="oh-btn-primary">
-                <span class="oh-btn-primary__icon">
-                  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </span>
-                <span>Nouveau travailleur</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Keep your header rule if you want -->
-          <div class="oh-header__rule" aria-hidden="true">...</div>
-
-        </div>
-
-        <!-- ▸ CARD BODY ◂ -->
-        <div class="oh-card__body">
-
-          <!-- Workers Grid -->
-          <div *ngIf="!isLoading && travailleurs.length > 0" class="oh-grid">
-            <div *ngFor="let t of travailleurs; let i = index"
-                 class="oh-worker"
-                 [style.animation-delay]="(i * 0.08) + 's'">
-
-              <!-- Top section -->
-              <div class="oh-worker__top">
-                <div class="oh-avatar">
-                  <span class="oh-avatar__initials">
-                    {{ (t.prenom || '').charAt(0) }}{{ (t.nom || '').charAt(0) }}
-                  </span>
-                  <svg class="oh-avatar__leaf" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="26" cy="26" r="24" stroke="#A8B84B" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.5"/>
-                  </svg>
-                </div>
-
-                <div class="oh-worker__info">
-                  <strong class="oh-worker__name">{{ t.nom }} {{ t.prenom }}</strong>
-                  <span class="oh-worker__role">{{ t.specialite }}</span>
-                </div>
-
-                <span [class]="'oh-badge oh-badge--' + getStatutClass(t.statut || 'SUSPENDU')">
-                  <span class="oh-badge__dot"></span>
-                  {{ t.statut || 'SUSPENDU' }}
-                </span>
-              </div>
-
-              <!-- ... rest of your card (divider, bottom section, watermark) ... -->
-
-              <!-- Action buttons - FIXED -->
-              <div class="oh-worker__actions">
-                <button class="oh-action-btn oh-action-btn--view"
-                        (click)="viewTravailleur(t.id)"
-                        title="Voir détails">
-                  <svg viewBox="0 0 16 16" fill="none">
-                    <path d="M8 3C3 3 1 8 1 8C1 8 3 13 8 13C13 13 15 8 15 8C15 8 13 3 8 3Z" stroke="currentColor" stroke-width="1.2"/>
-                    <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
-                  </svg>
-                </button>
-
-                <button class="oh-action-btn oh-action-btn--edit"
-                        (click)="editTravailleur(t.id)"
-                        title="Modifier">
-                  <svg viewBox="0 0 16 16" fill="none">
-                    <path d="M11 2L14 5L5 14H2V11L11 2Z" stroke="currentColor" stroke-width="1.2"/>
-                  </svg>
-                </button>
-
-                <button class="oh-action-btn oh-action-btn--delete"
-                        (click)="deleteTravailleur(t.id)"
-                        title="Supprimer"
-                        *ngIf="t.id">
-                  <svg viewBox="0 0 16 16" fill="none">
-                    <path d="M3 4H13M6 4V2H10V4M5 14H11C11.5 14 12 13.5 12 13V5H4V13C4 13.5 4.5 14 5 14Z"
-                          stroke="currentColor" stroke-width="1.2"/>
-                  </svg>
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Loading and Empty states remain the same -->
-
-        </div>
-      </div>
+      <a routerLink="/travailleurs/creer" class="btn-add">
+        <span class="btn-icon">+</span>
+        Nouveau Travailleur
+      </a>
     </div>
-  </main>
+
+    <!-- Error message -->
+    <div *ngIf="errorMessage" class="oh-error">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Chargement des travailleurs...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!isLoading" class="oh-card__body">
+
+      <!-- Table -->
+      <div *ngIf="travailleurs.length > 0" class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Prénom</th>
+              <th>Téléphone</th>
+              <th>Spécialité</th>
+              <th>Statut</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of travailleurs">
+              <td data-label="Nom">{{ t.nom }}</td>
+              <td data-label="Prénom">{{ t.prenom }}</td>
+              <td data-label="Téléphone">{{ t.telephone }}</td>
+              <td data-label="Spécialité">
+                <span class="specialite-badge">{{ t.specialite }}</span>
+              </td>
+              <td data-label="Statut">
+                <span class="badge" [ngClass]="getBadgeClass(t.statut)">
+                  {{ t.statut }}
+                </span>
+              </td>
+              <td data-label="Type">
+                <span class="type-badge" [ngClass]="getTypeBadgeClass(t.typeTravailleur)">
+                  {{ getTypeTravailleurLabel(t.typeTravailleur) }}
+                </span>
+              </td>
+              <td data-label="Actions">
+                <div class="action-buttons">
+                  <button
+                    class="btn-edit"
+                    [routerLink]="['/travailleurs/modifier', t.id]"
+                    title="Modifier">
+                     Modifier
+                  </button>
+                  <button
+                    class="btn-delete"
+                    (click)="deleteTravailleur(t.id!, t.nom)"
+                    title="Supprimer">
+                     Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="travailleurs.length === 0" class="empty-state">
+        <div class="empty-icon">🌿</div>
+        <p>Aucun travailleur enregistré pour le moment</p>
+        <a routerLink="/travailleurs/creer" class="btn-add-small">
+          + Ajouter un travailleur
+        </a>
+      </div>
+
+      <!-- Footer count -->
+      <p class="footer-note" *ngIf="travailleurs.length > 0">
+        {{ travailleurs.length }} travailleur(s) dans l'équipe de récolte
+      </p>
+
+    </div>
+  </div>
 </div>

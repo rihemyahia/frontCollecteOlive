@@ -1,18 +1,20 @@
+// travailleur.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators'; // ← add
+import { tap } from 'rxjs/operators';
 
 export interface Travailleur {
   id?: string;
   nom: string;
-  prenom: string;
-  telephone: string;
-  adresse: string;
-  email: string;
-  specialite: string;
+  prenom?: string;
+  telephone?: string;
+  specialite?: string;
   statut: string;
-  salaireJournalier: number;
+  salaireJournalier?: number;
+  typeTravailleur?: string;
+  dateEmbauche?: Date;
+  type?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,11 +25,10 @@ export class TravailleurService {
 
   getAll(): Observable<Travailleur[]> {
     const timestamp = new Date().getTime();
-    console.log('🔵 SERVICE - getAll appelé, timestamp:', timestamp);
     return this.http.get<Travailleur[]>(`${this.apiUrl}?_=${timestamp}`).pipe(
       tap({
-        next: (data) => console.log('✅ Réponse reçue:', data),       // ← confirm data shape
-        error: (err) => console.error('❌ Erreur HTTP:', err.status, err.error)
+        next: (data) => console.log('Réponse reçue:', data),
+        error: (err) => console.error('Erreur HTTP:', err.status, err.error)
       })
     );
   }
@@ -37,7 +38,12 @@ export class TravailleurService {
   }
 
   create(travailleur: Travailleur): Observable<Travailleur> {
-    return this.http.post<Travailleur>(this.apiUrl, travailleur);
+    const payload = {
+      ...travailleur,
+      type: 'TRAVAILLEUR',
+      statut: travailleur.statut || 'DISPONIBLE'
+    };
+    return this.http.post<Travailleur>(this.apiUrl, payload);
   }
 
   update(id: string, travailleur: Travailleur): Observable<Travailleur> {
@@ -46,5 +52,13 @@ export class TravailleurService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getDisponibles(): Observable<Travailleur[]> {
+    return this.http.get<Travailleur[]>(`${this.apiUrl}/disponibles`);
+  }
+
+  getBySpecialite(specialite: string): Observable<Travailleur[]> {
+    return this.http.get<Travailleur[]>(`${this.apiUrl}/specialite/${specialite}`);
   }
 }
