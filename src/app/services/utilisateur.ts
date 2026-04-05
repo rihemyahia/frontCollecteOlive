@@ -14,20 +14,31 @@ export interface Utilisateur {
   adresse: string;
   estActif: boolean;
   compteActif?: boolean;
-  motDePasse?: string;
+  motDePasse?: string;  // ← Ajoutez cette ligne (optionnel)
+
   // Pour agriculteur
   nomExploitation?: string;
   vergers?: any[];
-  // Pour travailleur
+
+  // Pour travailleur (EQUIPE_RECOLTE)
   cin?: string;
   specialites?: string[];
   dateEmbauche?: Date;
   salaire?: number;
   statutEmploye?: string;
+  collectesAssignees?: any[];
+
+  // Pour responsable
+  fonction?: string;
+  datePrisePoste?: Date;
+
   // Pour transporteur
   permis?: string;
   tarifKm?: number;
   anneesExperience?: number;
+  disponibleTransport?: boolean;
+  ressources?: any[];
+  tourneesAssignees?: any[];
 }
 
 export interface ActivationDTO {
@@ -48,15 +59,13 @@ export class UtilisateurService {
     });
   }
 
-  // ========== MÉTHODES EXISTANTES ==========
-
   getAll(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.apiUrl}/utilisateurs`, {
       headers: this.getHeaders()
     }).pipe(
       tap({
         next: (data) => console.log('Utilisateurs reçus:', data),
-        error: (err) => console.error('Erreur lors de la récupération des utilisateurs:', err)
+        error: (err) => console.error('Erreur:', err)
       })
     );
   }
@@ -67,12 +76,19 @@ export class UtilisateurService {
     });
   }
 
-  create(utilisateur: Utilisateur): Observable<Utilisateur> {
-    return this.http.post<Utilisateur>(`${this.apiUrl}/utilisateurs`, utilisateur, {
-      headers: this.getHeaders()
-    });
-  }
+// Dans utilisateur.service.ts
+creerUtilisateurParAdmin(utilisateur: Utilisateur): Observable<any> {
+  return this.http.post(`${this.apiUrl}/admin/utilisateurs`, utilisateur, {
+    headers: this.getHeaders()
+  });
+}
 
+// Si vous avez besoin de la méthode create pour d'autres usages
+create(utilisateur: Utilisateur): Observable<Utilisateur> {
+  return this.http.post<Utilisateur>(`${this.apiUrl}/utilisateurs`, utilisateur, {
+    headers: this.getHeaders()
+  });
+}
   update(id: string, utilisateur: Partial<Utilisateur>): Observable<Utilisateur> {
     return this.http.put<Utilisateur>(`${this.apiUrl}/utilisateurs/${id}`, utilisateur, {
       headers: this.getHeaders()
@@ -85,40 +101,18 @@ export class UtilisateurService {
     });
   }
 
-  // ========== NOUVELLES MÉTHODES POUR L'ADMIN ==========
-
-  // Récupérer les agriculteurs en attente
   getAgriculteursEnAttente(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/agriculteurs/en-attente`, {
-      headers: this.getHeaders()
-    }).pipe(
-      tap({
-        next: (data) => console.log('Agriculteurs en attente:', data),
-        error: (err) => console.error('Erreur:', err)
-      })
-    );
-  }
-
-  // Récupérer les travailleurs en attente
-  getTravailleursEnAttente(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/travailleurs/en-attente`, {
-      headers: this.getHeaders()
-    }).pipe(
-      tap({
-        next: (data) => console.log('Travailleurs en attente:', data),
-        error: (err) => console.error('Erreur:', err)
-      })
-    );
-  }
-
-  // Récupérer tous les utilisateurs en attente
-  getUtilisateursEnAttente(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/utilisateurs/en-attente`, {
       headers: this.getHeaders()
     });
   }
 
-  // Récupérer les statistiques
+  getTravailleursEnAttente(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/travailleurs/en-attente`, {
+      headers: this.getHeaders()
+    });
+  }
+
   getStatsAttente(): Observable<{ agriculteursEnAttente: number; travailleursEnAttente: number }> {
     return this.http.get<{ agriculteursEnAttente: number; travailleursEnAttente: number }>(
       `${this.apiUrl}/admin/stats/attente`,
@@ -126,35 +120,15 @@ export class UtilisateurService {
     );
   }
 
-  // Activer un agriculteur
   activerAgriculteur(id: string, nouveauMotDePasse: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/activer-agriculteur/${id}`,
       { nouveauMotDePasse } as ActivationDTO,
       { headers: this.getHeaders() }
-    ).pipe(
-      tap({
-        next: (res) => console.log('Agriculteur activé:', res),
-        error: (err) => console.error('Erreur activation:', err)
-      })
     );
   }
 
-  // Activer un travailleur
   activerTravailleur(id: string, nouveauMotDePasse: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/activer-travailleur/${id}`,
-      { nouveauMotDePasse } as ActivationDTO,
-      { headers: this.getHeaders() }
-    ).pipe(
-      tap({
-        next: (res) => console.log('Travailleur activé:', res),
-        error: (err) => console.error('Erreur activation:', err)
-      })
-    );
-  }
-
-  // Activer un compte générique
-  activerCompte(id: string, nouveauMotDePasse: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/admin/activer-compte/${id}`,
       { nouveauMotDePasse } as ActivationDTO,
       { headers: this.getHeaders() }
     );

@@ -12,6 +12,7 @@ import { ListeUtilisateurs } from './utilisateurs/liste-utilisateurs/liste-utili
 import { ActivationComptes } from './admin/activation-comptes/activation-comptes';
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
+import { CreerUtilisateur } from './utilisateurs/creer-utilisateur/creer-utilisateur';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -58,6 +59,12 @@ export const routes: Routes = [
     component: ModifierAgriculteur,
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'responsable' }
+  },
+  {
+    path: 'utilisateurs/creer',
+    component: CreerUtilisateur,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'admin' }
   },
 
   // Routes Utilisateurs (Admin)
