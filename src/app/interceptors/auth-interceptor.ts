@@ -1,6 +1,13 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // ⚠️ NOUVELLES LIGNES AJOUTÉES ↓↓↓
+  if (req.url.includes('/auth/login')) {
+    console.log('🔐 Requête login - pas de token ajouté');
+    return next(req);
+  }
+  // ↑↑↑ FIN DES NOUVELLES LIGNES
+
   const token = localStorage.getItem('token');
 
   console.log('🔐 INTERCEPTEUR ACTIF !');

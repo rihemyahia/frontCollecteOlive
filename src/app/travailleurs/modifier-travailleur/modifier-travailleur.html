@@ -1,108 +1,123 @@
-<!-- modifier-travailleur.html — Olive Harvest Theme -->
-<div class="oh-scene">
+<!-- src/app/agriculteurs/modifier-agriculteur/modifier-agriculteur.html -->
+<div class="container mt-4">
+  <div class="card shadow">
+    <div class="card-header bg-success text-white">
+      <h4 class="mb-0">
+        <i class="bi bi-pencil-square me-2"></i>
+        Modifier un agriculteur
+      </h4>
+    </div>
+    <div class="card-body">
 
-  <!-- Ambient soft lighting -->
-  <div class="oh-ambient" aria-hidden="true">
-    <div class="amb-orb amb-orb--1"></div>
-    <div class="amb-orb amb-orb--2"></div>
-  </div>
-
-  <!-- Main Premium Card -->
-  <div class="oh-card">
-
-    <!-- Header -->
-    <div class="form-header">
-      <div>
-        <p class="oh-header__eyebrow">
-          <span class="eyebrow-dash"></span>
-          SAISON DE RÉCOLTE
-          <span class="eyebrow-dash"></span>
-        </p>
-        <h2>Modifier le Travailleur</h2>
-        <p class="header-subtitle">Mettre à jour les informations</p>
+      <!-- Message de chargement -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="mt-2 text-muted">Chargement des informations...</p>
       </div>
-    </div>
 
-    <!-- Loading -->
-    <div *ngIf="isLoading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Chargement des données...</p>
-    </div>
+      <div *ngIf="!isLoading">
 
-    <!-- Error Message -->
-    <div *ngIf="errorMessage" class="oh-error">
-      {{ errorMessage }}
-    </div>
+        <!-- Message de succès -->
+        <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+          <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" (click)="successMessage = ''"></button>
+        </div>
 
-    <!-- Success Message -->
-    <div *ngIf="successMessage" class="oh-success">
-      {{ successMessage }}
-    </div>
+        <!-- Message d'erreur -->
+        <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" (click)="errorMessage = ''"></button>
+        </div>
 
-    <!-- Form -->
-    <div *ngIf="!isLoading" class="oh-card__body">
-      <form (ngSubmit)="onSubmit()" class="oh-form">
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nom <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="travailleur.nom" name="nom" required>
+        <!-- Informations non modifiables -->
+        <div class="alert alert-info mb-4">
+          <div class="row">
+            <div class="col-md-6">
+              <strong><i class="bi bi-envelope-fill me-2"></i>Email :</strong> {{ travailleurEmail }}
+            </div>
+            <div class="col-md-6">
+              <strong><i class="bi bi-person-badge-fill me-2"></i>ID :</strong> {{ travailleurId }}
+            </div>
           </div>
-
-          <div class="form-group">
-            <label>Prénom <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="travailleur.prenom" name="prenom" required>
+          <div class="mt-2 small text-muted">
+            <i class="bi bi-info-circle-fill me-1"></i> L'email et l'ID ne peuvent pas être modifiés
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Téléphone <span class="required">*</span></label>
-          <input type="tel" [(ngModel)]="travailleur.telephone" name="telephone" required>
-        </div>
+        <form [formGroup]="modificationForm" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <!-- Prénom -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Prénom *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                <input type="text" class="form-control" formControlName="prenom"
+                       [class.is-invalid]="modificationForm.get('prenom')?.invalid && modificationForm.get('prenom')?.touched">
+              </div>
+              <div class="invalid-feedback">Prénom requis (min 2 caractères)</div>
+            </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Spécialité</label>
-            <select [(ngModel)]="travailleur.specialite" name="specialite">
-              <option value="">-- Sélectionnez une spécialité --</option>
-              <option *ngFor="let s of specialites" [value]="s">{{ s }}</option>
-            </select>
+            <!-- Nom -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nom *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                <input type="text" class="form-control" formControlName="nom"
+                       [class.is-invalid]="modificationForm.get('nom')?.invalid && modificationForm.get('nom')?.touched">
+              </div>
+              <div class="invalid-feedback">Nom requis (min 2 caractères)</div>
+            </div>
+
+            <!-- Téléphone -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Téléphone *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                <input type="tel" class="form-control" formControlName="telephone" placeholder="12345678"
+                       [class.is-invalid]="modificationForm.get('telephone')?.invalid && modificationForm.get('telephone')?.touched">
+              </div>
+              <div class="invalid-feedback">Téléphone doit contenir 8 chiffres</div>
+            </div>
+
+            <!-- Nom de l'exploitation -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nom de l'exploitation *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tree-fill"></i></span>
+                <input type="text" class="form-control" formControlName="nomExploitation" placeholder="Domaine Les Oliviers"
+                       [class.is-invalid]="modificationForm.get('nomExploitation')?.invalid && modificationForm.get('nomExploitation')?.touched">
+              </div>
+              <div class="invalid-feedback">Nom d'exploitation requis (min 3 caractères)</div>
+            </div>
+
+            <!-- Adresse -->
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Adresse *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                <textarea class="form-control" formControlName="adresse" rows="3"
+                          [class.is-invalid]="modificationForm.get('adresse')?.invalid && modificationForm.get('adresse')?.touched"></textarea>
+              </div>
+              <div class="invalid-feedback">Adresse requise</div>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label>Type de travailleur</label>
-            <select [(ngModel)]="travailleur.typeTravailleur" name="typeTravailleur">
-              <option value="">-- Sélectionnez le type --</option>
-              <option *ngFor="let t of typeTravailleurs" [value]="t">{{ t }}</option>
-            </select>
+          <!-- Boutons -->
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-secondary" (click)="cancel()">
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+            <button type="submit" class="btn btn-success"
+                    [disabled]="modificationForm.invalid || saving">
+              <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-save me-2"></i>
+              {{ saving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+            </button>
           </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Salaire journalier (DT)</label>
-            <input type="number" [(ngModel)]="travailleur.salaireJournalier"
-                   name="salaireJournalier" min="0" step="0.01" placeholder="0.00">
-          </div>
-
-          <div class="form-group">
-            <label>Statut</label>
-            <select [(ngModel)]="travailleur.statut" name="statut">
-              <option value="DISPONIBLE">Disponible</option>
-              <option value="EN_MAINTENANCE">En maintenance</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" routerLink="/travailleurs">
-            Annuler
-          </button>
-          <button type="submit" class="btn-primary">
-            Enregistrer les modifications
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 </div>

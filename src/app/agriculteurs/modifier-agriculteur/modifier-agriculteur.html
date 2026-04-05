@@ -1,0 +1,84 @@
+<div class="container mt-4">
+  <div class="card shadow">
+    <div class="card-header bg-success text-white">
+      <h4 class="mb-0">
+        <i class="bi bi-pencil-square me-2"></i>
+        Modifier un agriculteur
+      </h4>
+    </div>
+    <div class="card-body">
+
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="mt-2 text-muted">Chargement des informations...</p>
+      </div>
+
+      <div *ngIf="!isLoading">
+
+        <div *ngIf="successMessage" class="alert alert-success">
+          <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+        </div>
+
+        <div class="alert alert-info mb-4">
+          <div class="row">
+            <div class="col-md-6">
+              <strong><i class="bi bi-envelope-fill me-2"></i>Email :</strong> {{ agriculteurEmail }}
+            </div>
+            <div class="col-md-6">
+              <strong><i class="bi bi-person-badge-fill me-2"></i>ID :</strong> {{ agriculteurId }}
+            </div>
+          </div>
+          <div class="mt-2 small text-muted">
+            <i class="bi bi-info-circle-fill me-1"></i> L'email et l'ID ne peuvent pas être modifiés
+          </div>
+        </div>
+
+        <form [formGroup]="modificationForm" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Prénom *</label>
+              <input type="text" class="form-control" formControlName="prenom">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nom *</label>
+              <input type="text" class="form-control" formControlName="nom">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Téléphone *</label>
+              <input type="tel" class="form-control" formControlName="telephone" placeholder="12345678">
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nom de l'exploitation *</label>
+              <input type="text" class="form-control" formControlName="nomExploitation">
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Adresse *</label>
+              <textarea class="form-control" formControlName="adresse" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-secondary" (click)="cancel()">
+              <i class="bi bi-x-circle me-2"></i>Annuler
+            </button>
+            <button type="submit" class="btn btn-success" [disabled]="modificationForm.invalid || saving">
+              <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+              <i class="bi bi-save me-2"></i>
+              {{ saving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

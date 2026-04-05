@@ -1,108 +1,205 @@
-<!-- creer-travailleur.html — Olive Harvest Theme -->
-<div class="oh-scene">
+<!-- src/app/travailleurs/creer-travailleur/creer-travailleur.html -->
+<div class="app-layout">
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+  <button (click)="testClick()" style="background: red; color: white; padding: 15px 20px; border-radius: 50px; font-weight: bold; border: none; cursor: pointer;">
+    🐛 TEST
+  </button>
+</div>
+  <!-- Sidebar Component -->
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
 
-  <!-- Ambient soft orbs -->
-  <div class="oh-ambient" aria-hidden="true">
-    <div class="amb-orb amb-orb--1"></div>
-    <div class="amb-orb amb-orb--2"></div>
-  </div>
+  <!-- Main Content -->
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
 
-  <!-- Main Premium Card -->
-  <div class="oh-card">
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
 
-    <!-- Header -->
-    <div class="form-header">
-      <div>
-        <p class="oh-header__eyebrow">
-          <span class="eyebrow-dash"></span>
-          SAISON DE RÉCOLTE
-          <span class="eyebrow-dash"></span>
-        </p>
-        <h2>Créer un Nouveau Travailleur</h2>
-        <p class="header-subtitle">Ajoutez un membre à l'équipe de récolte</p>
+    <div class="oh-scene">
+
+      <!-- Ambient soft orbs -->
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
+      </div>
+
+      <!-- Main Premium Card -->
+      <div class="oh-card">
+
+        <!-- Glow border -->
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  GESTION DES TRAVAILLEURS
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Inscription d'un travailleur</h2>
+                <p class="header-subtitle">Enregistrez un nouveau travailleur pour la récolte</p>
+              </div>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Message de succès -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          </div>
+
+          <!-- Message d'erreur -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+
+          <form [formGroup]="inscriptionForm" (ngSubmit)="onSubmit()" class="activation-form">
+            <div class="form-row">
+              <!-- Email -->
+              <div class="form-group">
+                <label class="form-label">Email <span class="required">*</span></label>
+                <input type="email" class="form-control" formControlName="email"
+                       [class.is-invalid]="inscriptionForm.get('email')?.invalid && inscriptionForm.get('email')?.touched">
+                <div class="invalid-feedback">
+                  <span *ngIf="inscriptionForm.get('email')?.errors?.['required']">Email requis</span>
+                  <span *ngIf="inscriptionForm.get('email')?.errors?.['email']">Email invalide</span>
+                </div>
+              </div>
+
+              <!-- Prénom -->
+              <div class="form-group">
+                <label class="form-label">Prénom <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="prenom"
+                       [class.is-invalid]="inscriptionForm.get('prenom')?.invalid && inscriptionForm.get('prenom')?.touched">
+                <div class="invalid-feedback">Prénom requis (min 2 caractères)</div>
+              </div>
+
+              <!-- Nom -->
+              <div class="form-group">
+                <label class="form-label">Nom <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="nom"
+                       [class.is-invalid]="inscriptionForm.get('nom')?.invalid && inscriptionForm.get('nom')?.touched">
+                <div class="invalid-feedback">Nom requis (min 2 caractères)</div>
+              </div>
+
+              <!-- Téléphone -->
+              <div class="form-group">
+                <label class="form-label">Téléphone <span class="required">*</span></label>
+                <input type="tel" class="form-control" formControlName="telephone" placeholder="12345678"
+                       [class.is-invalid]="inscriptionForm.get('telephone')?.invalid && inscriptionForm.get('telephone')?.touched">
+                <div class="invalid-feedback">Téléphone doit contenir 8 chiffres</div>
+              </div>
+
+              <!-- CIN -->
+              <div class="form-group">
+                <label class="form-label">CIN <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="cin" placeholder="12345678"
+                       [class.is-invalid]="inscriptionForm.get('cin')?.invalid && inscriptionForm.get('cin')?.touched">
+                <div class="invalid-feedback">CIN doit contenir 8 chiffres</div>
+              </div>
+
+              <!-- Salaire -->
+              <div class="form-group">
+                <label class="form-label">Salaire journalier (DT) <span class="required">*</span></label>
+                <input type="number" class="form-control" formControlName="salaire" step="0.5"
+                       [class.is-invalid]="inscriptionForm.get('salaire')?.invalid && inscriptionForm.get('salaire')?.touched">
+                <div class="invalid-feedback">Salaire entre 30 et 100 DT</div>
+              </div>
+
+              <!-- Adresse -->
+              <div class="form-group">
+                <label class="form-label">Adresse <span class="required">*</span></label>
+                <input type="text" class="form-control" formControlName="adresse"
+                       [class.is-invalid]="inscriptionForm.get('adresse')?.invalid && inscriptionForm.get('adresse')?.touched">
+                <div class="invalid-feedback">Adresse requise</div>
+              </div>
+
+              <!-- Date d'embauche -->
+              <div class="form-group">
+                <label class="form-label">Date d'embauche <span class="required">*</span></label>
+                <input type="date" class="form-control" formControlName="dateEmbauche"
+                       [class.is-invalid]="inscriptionForm.get('dateEmbauche')?.invalid && inscriptionForm.get('dateEmbauche')?.touched">
+                <div class="invalid-feedback">Date d'embauche requise</div>
+              </div>
+
+              <!-- Statut -->
+              <div class="form-group">
+                <label class="form-label">Statut <span class="required">*</span></label>
+                <select class="form-select" formControlName="statutEmploye"
+                        [class.is-invalid]="inscriptionForm.get('statutEmploye')?.invalid && inscriptionForm.get('statutEmploye')?.touched">
+                  <option value="">Sélectionner...</option>
+                  <option *ngFor="let statut of statuts" [value]="statut">{{ statut }}</option>
+                </select>
+                <div class="invalid-feedback">Statut requis</div>
+              </div>
+            </div>
+
+            <!-- Spécialités -->
+            <div class="form-group">
+              <label class="form-label">Spécialités <span class="required">*</span></label>
+              <div class="specialties-grid">
+                <div *ngFor="let spec of specialites" class="specialty-checkbox">
+                  <label class="checkbox-label">
+                    <input type="checkbox" [value]="spec" (change)="onSpecialiteChange($event, spec)">
+                    <span class="checkbox-custom"></span>
+                    {{ spec }}
+                  </label>
+                </div>
+              </div>
+              <div *ngIf="selectedSpecialites.length === 0 && inscriptionForm.touched" class="text-danger small mt-2">
+                Au moins une spécialité est requise
+              </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="form-actions">
+
+              <button type="submit" class="btn-primary"
+                      [disabled]="inscriptionForm.invalid || selectedSpecialites.length === 0 || isLoading">
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i class="bi bi-person-plus-fill me-2"></i>
+                {{ isLoading ? 'Inscription en cours...' : 'Inscrire le travailleur' }}
+              </button>
+            </div>
+          </form>
+
+          <!-- Info note -->
+          <div class="activation-info" style="margin-top: 1.5rem;">
+            <i class="bi bi-info-circle-fill"></i>
+            <p>Le compte sera créé sans mot de passe. L'administrateur activera le compte et définira le mot de passe ultérieurement.</p>
+          </div>
+
+        </div>
       </div>
     </div>
-
-    <!-- Loading -->
-    <div *ngIf="isLoading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Création en cours...</p>
-    </div>
-
-    <!-- Error Message -->
-    <div *ngIf="errorMessage" class="oh-error">
-      {{ errorMessage }}
-    </div>
-
-    <!-- Success Message -->
-    <div *ngIf="successMessage" class="oh-success">
-      {{ successMessage }}
-    </div>
-
-    <!-- Form -->
-    <div *ngIf="!isLoading" class="oh-card__body">
-      <form (ngSubmit)="onSubmit()" class="oh-form">
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nom <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="travailleur.nom" name="nom" required>
-          </div>
-
-          <div class="form-group">
-            <label>Prénom <span class="required">*</span></label>
-            <input type="text" [(ngModel)]="travailleur.prenom" name="prenom" required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Téléphone <span class="required">*</span></label>
-          <input type="tel" [(ngModel)]="travailleur.telephone" name="telephone" required>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Spécialité</label>
-            <select [(ngModel)]="travailleur.specialite" name="specialite">
-              <option value="">-- Sélectionnez une spécialité --</option>
-              <option *ngFor="let s of specialites" [value]="s">{{ s }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Type de travailleur</label>
-            <select [(ngModel)]="travailleur.typeTravailleur" name="typeTravailleur">
-              <option value="">-- Sélectionnez le type --</option>
-              <option *ngFor="let t of typeTravailleurs" [value]="t">{{ t }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Salaire journalier (DT)</label>
-            <input type="number" [(ngModel)]="travailleur.salaireJournalier"
-                   name="salaireJournalier" min="0" step="0.01" placeholder="0.00">
-          </div>
-
-          <div class="form-group">
-            <label>Statut</label>
-            <select [(ngModel)]="travailleur.statut" name="statut">
-              <option value="DISPONIBLE">Disponible</option>
-              <option value="EN_MAINTENANCE">En maintenance</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" routerLink="/travailleurs">
-            Annuler
-          </button>
-          <button type="submit" class="btn-primary">
-            Créer le Travailleur
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+  </main>
 </div>

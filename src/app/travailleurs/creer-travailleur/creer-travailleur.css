@@ -17,7 +17,30 @@
   pointer-events: none;
   z-index: 0;
 }
+/* Dans votre fichier activation-comptes.css ou le CSS principal */
 
+.oh-brand {
+  width: 40px;  /* Réduit de 60px à 40px */
+  height: 40px; /* Réduit de 60px à 40px */
+  flex-shrink: 0;
+  position: relative;
+}
+
+.oh-brand__icon {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #3A4A12, #5A6E1A);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(58, 74, 18, 0.35);
+}
+
+.oh-brand__icon svg {
+  width: 24px;  /* Ajoutez cette ligne pour réduire la taille de l'icône SVG */
+  height: 24px; /* Ajoutez cette ligne pour réduire la taille de l'icône SVG */
+}
 .amb-orb {
   position: absolute;
   border-radius: 50%;

@@ -1,85 +1,124 @@
-// modifier-travailleur.ts
+// src/app/travailleurs/modifier-travailleur/modifier-travailleur.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { TravailleurService, Travailleur } from '../../services/travailleur';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TravailleurService } from '../../services/travailleur';
 
 @Component({
   selector: 'app-modifier-travailleur',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './modifier-travailleur.html',
   styleUrls: ['./modifier-travailleur.css']
 })
 export class ModifierTravailleur implements OnInit {
-  travailleur: Travailleur = {
-    nom: '',
-    prenom: '',
-    telephone: '',
-    specialite: 'RECOLTEUR',
-    statut: 'DISPONIBLE',
-    salaireJournalier: 40,
-    typeTravailleur: 'SAISONNIER'
-  };
-
-  isLoading = false;
+  modificationForm: FormGroup;
+  travailleurId: string = '';
+  travailleurEmail: string = '';
+  isLoading = true;
+  saving = false;
   errorMessage = '';
   successMessage = '';
 
-  specialites = ['RECOLTEUR', 'CONDUCTEUR', 'CHEF_EQUIPE'];
-  typeTravailleurs = ['PERMANENT', 'SAISONNIER', 'CDD'];
+  specialitesOptions = ['cueillette', 'tamisage', 'secouage', 'ramassage', 'tri'];
+  statutsEmploye = ['SAISONNIER', 'PERMANENT'];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private fb: FormBuilder,
     private travailleurService: TravailleurService
-  ) {}
-
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadTravailleur(id);
-    }
+  ) {
+    this.modificationForm = this.fb.group({
+      prenom: ['', [Validators.required, Validators.minLength(2)]],
+      nom: ['', [Validators.required, Validators.minLength(2)]],
+      telephone: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
+      adresse: ['', Validators.required],
+      cin: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
+      specialites: [[], Validators.required],
+      dateEmbauche: ['', Validators.required],
+      salaire: ['', [Validators.required, Validators.min(30), Validators.max(100)]],
+      statutEmploye: ['', Validators.required]
+    });
   }
 
-  loadTravailleur(id: string): void {
+  ngOnInit(): void {
+    this.travailleurId = this.route.snapshot.params['id'];
+    this.loadTravailleur();
+  }
+
+  loadTravailleur(): void {
     this.isLoading = true;
-    this.travailleurService.getById(id).subscribe({
-      next: (data) => {
-        this.travailleur = data;
+    this.travailleurService.getById(this.travailleurId).subscribe({
+      next: (travailleur) => {
+        this.travailleurEmail = travailleur.email;
+        this.modificationForm.patchValue({
+          prenom: travailleur.prenom,
+          nom: travailleur.nom,
+          telephone: travailleur.telephone,
+          adresse: travailleur.adresse,
+          cin: travailleur.cin,
+          specialites: travailleur.specialites,
+          dateEmbauche: travailleur.dateEmbauche ? new Date(travailleur.dateEmbauche).toISOString().split('T')[0] : '',
+          salaire: travailleur.salaire,
+          statutEmploye: travailleur.statutEmploye
+        });
         this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = 'Erreur lors du chargement';
+        console.error('Erreur:', err);
+        this.errorMessage = 'Erreur lors du chargement du travailleur';
         this.isLoading = false;
-        console.error(err);
       }
     });
+  }
+
+  onSpecialiteChange(event: any, specialite: string): void {
+    const currentSpecialites = this.modificationForm.get('specialites')?.value || [];
+    if (event.target.checked) {
+      this.modificationForm.patchValue({
+        specialites: [...currentSpecialites, specialite]
+      });
+    } else {
+      this.modificationForm.patchValue({
+        specialites: currentSpecialites.filter((s: string) => s !== specialite)
+      });
+    }
+  }
+
+  isSpecialiteSelected(specialite: string): boolean {
+    const specialites = this.modificationForm.get('specialites')?.value || [];
+    return specialites.includes(specialite);
   }
 
   onSubmit(): void {
-    if (!this.travailleur.nom || !this.travailleur.prenom || !this.travailleur.telephone) {
-      this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+    if (this.modificationForm.invalid) {
+      this.errorMessage = 'Veuillez remplir tous les champs correctement';
       return;
     }
 
-    this.isLoading = true;
+    this.saving = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.travailleurService.update(this.travailleur.id!, this.travailleur).subscribe({
+    this.travailleurService.update(this.travailleurId, this.modificationForm.value).subscribe({
       next: () => {
-        this.isLoading = false;
-        this.successMessage = 'Travailleur modifié avec succès !';
+        this.successMessage = 'Travailleur modifié avec succès';
+        this.saving = false;
         setTimeout(() => {
           this.router.navigate(['/travailleurs']);
-        }, 1500);
+        }, 2000);
       },
       error: (err) => {
-        this.isLoading = false;
+        console.error('Erreur:', err);
         this.errorMessage = err.error?.message || 'Erreur lors de la modification';
+        this.saving = false;
       }
     });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/travailleurs']);
   }
 }

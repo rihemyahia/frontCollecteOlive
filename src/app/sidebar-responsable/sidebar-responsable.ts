@@ -51,6 +51,13 @@ export class SideBarResponsable implements OnInit {
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {
+      id: 'agriculteurs',
+      label: 'Agriculteurs',
+      icon: 'orchard',
+      route: '/agriculteurs',
+      roles: ['ADMIN', 'RESPONSABLE']
+    },
+    {
       id: 'vergers',
       label: 'Vergers',
       icon: 'orchard',
@@ -72,11 +79,18 @@ export class SideBarResponsable implements OnInit {
       roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR']
     },
     {
+      id: 'activation',
+      label: 'Activation des comptes',
+      icon: 'verified',
+      route: '/admin/activation',
+      roles: ['ADMIN']
+    },
+    {
       id: 'utilisateurs',
       label: 'Gestion des utilisateurs',
       icon: 'admin',
       route: '/utilisateurs',
-      roles: ['ADMIN'] // Seuls les administrateurs peuvent voir ce menu
+      roles: ['ADMIN']
     },
     {
       id: 'profile',
@@ -115,7 +129,6 @@ export class SideBarResponsable implements OnInit {
           role: user.role || this.userRole
         };
 
-        // Si userRole n'est pas passé en entrée, utilisez celui de localStorage
         if (!this.userRole && user.role) {
           this.userRole = user.role.toUpperCase();
         }
@@ -138,12 +151,10 @@ export class SideBarResponsable implements OnInit {
   }
 
   loadUnreadAlerts(): void {
-    // Vous pouvez implémenter ceci pour récupérer le nombre d'alertes non lues depuis votre service
     this.unreadAlerts = 0;
   }
 
   filterMenuByRole(): void {
-    // Si aucun userRole, essayez de le récupérer depuis localStorage
     if (!this.userRole) {
       const userStr = localStorage.getItem('currentUser');
       if (userStr) {
@@ -209,7 +220,8 @@ export class SideBarResponsable implements OnInit {
       route: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
       alert: 'M12 2L1 21h22L12 2zm1 16h-2v-2h2v2zm0-4h-2v-4h2v4z',
       admin: 'M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z',
-      profile: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'
+      profile: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+      verified: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
     };
     return icons[iconName] || icons['dashboard'];
   }

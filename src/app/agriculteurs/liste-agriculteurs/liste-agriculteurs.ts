@@ -1,23 +1,23 @@
-// src/app/travailleurs/liste-travailleurs/liste-travailleurs.ts
+// src/app/agriculteurs/liste-agriculteurs/liste-agriculteurs.ts
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { TravailleurService, Travailleur } from '../../services/travailleur';
+import { AgriculteurService, Agriculteur } from '../../services/agriculteur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 
 @Component({
-  selector: 'app-liste-travailleurs',
+  selector: 'app-liste-agriculteurs',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, SideBarResponsable],
-  templateUrl: './liste-travailleurs.html',
-  styleUrls: ['./liste-travailleurs.css']
+  templateUrl: './liste-agriculteurs.html',
+  styleUrls: ['./liste-agriculteurs.css']
 })
-export class ListeTravailleurs implements OnInit {
-  travailleurs: Travailleur[] = [];
+export class ListeAgriculteurs implements OnInit {
+  agriculteurs: Agriculteur[] = [];
   isLoading = true;
   errorMessage = '';
-  searchTerm = '';  // ← Assurez-vous que cette propriété existe
+  searchTerm = '';
 
   // Propriétés pour la sidebar
   isSidebarCollapsed = false;
@@ -26,14 +26,14 @@ export class ListeTravailleurs implements OnInit {
 
   constructor(
     public router: Router,
-    private travailleurService: TravailleurService,
+    private agriculteurService: AgriculteurService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadUserRole();
     this.checkMobile();
-    this.loadTravailleurs();
+    this.loadAgriculteurs();
   }
 
   loadUserRole(): void {
@@ -60,49 +60,37 @@ export class ListeTravailleurs implements OnInit {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
-  loadTravailleurs(): void {
+  loadAgriculteurs(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.travailleurService.getAll().subscribe({
+    this.agriculteurService.getAll().subscribe({
       next: (data) => {
-        this.travailleurs = data || [];
+        this.agriculteurs = data || [];
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur lors du chargement des travailleurs:', err);
-        this.errorMessage = 'Erreur lors du chargement des travailleurs. Veuillez réessayer.';
+        console.error('Erreur lors du chargement des agriculteurs:', err);
+        this.errorMessage = 'Erreur lors du chargement des agriculteurs. Veuillez réessayer.';
         this.isLoading = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  // ✅ AJOUTEZ CETTE MÉTHODE pour la recherche
-  get filteredTravailleurs(): Travailleur[] {
+  get filteredAgriculteurs(): Agriculteur[] {
     if (!this.searchTerm?.trim()) {
-      return this.travailleurs;
+      return this.agriculteurs;
     }
 
     const term = this.searchTerm.toLowerCase().trim();
-    return this.travailleurs.filter(t =>
-      t.nom?.toLowerCase().includes(term) ||
-      t.prenom?.toLowerCase().includes(term) ||
-      t.email?.toLowerCase().includes(term) ||
-      t.cin?.toLowerCase().includes(term)
+    return this.agriculteurs.filter(a =>
+      a.nom?.toLowerCase().includes(term) ||
+      a.prenom?.toLowerCase().includes(term) ||
+      a.email?.toLowerCase().includes(term) ||
+      a.nomExploitation?.toLowerCase().includes(term)
     );
-  }
-
-  getStatutBadgeClass(statut: string): string {
-    switch (statut?.toUpperCase()) {
-      case 'SAISONNIER':
-        return 'bg-warning text-dark';
-      case 'PERMANENT':
-        return 'bg-success';
-      default:
-        return 'bg-secondary';
-    }
   }
 
   getStatusBadgeClass(compteActif: boolean | undefined): string {
@@ -117,23 +105,19 @@ export class ListeTravailleurs implements OnInit {
     return 'Inconnu';
   }
 
-  getStatutCount(statut: string): number {
-    return this.travailleurs.filter(t => t.statutEmploye === statut).length;
+  modifierAgriculteur(id: string): void {
+    this.router.navigate(['/agriculteurs/modifier', id]);
   }
 
-  modifierTravailleur(id: string): void {
-    this.router.navigate(['/travailleurs/modifier', id]);
-  }
-
-  supprimerTravailleur(id: string, nom: string): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le travailleur ${nom} ?`)) {
-      this.travailleurService.delete(id).subscribe({
+  supprimerAgriculteur(id: string, nom: string): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'agriculteur ${nom} ?`)) {
+      this.agriculteurService.delete(id).subscribe({
         next: () => {
-          this.loadTravailleurs();
+          this.loadAgriculteurs();
         },
         error: (err) => {
           console.error('Erreur suppression:', err);
-          this.errorMessage = 'Erreur lors de la suppression du travailleur';
+          this.errorMessage = 'Erreur lors de la suppression de l\'agriculteur';
           this.cdr.detectChanges();
         }
       });

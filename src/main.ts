@@ -1,6 +1,6 @@
-import '@angular/compiler';  // ← ADD THIS LINE AT THE VERY TOP
+// main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
-import {  App } from './app/app';
+import { App } from './app/app';
 import { appConfig } from './app/app.config';
 
 bootstrapApplication(App, appConfig)
