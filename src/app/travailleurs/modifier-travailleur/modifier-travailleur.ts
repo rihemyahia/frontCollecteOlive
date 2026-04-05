@@ -1,14 +1,15 @@
 // src/app/travailleurs/modifier-travailleur/modifier-travailleur.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TravailleurService } from '../../services/travailleur';
+import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 
 @Component({
   selector: 'app-modifier-travailleur',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, SideBarResponsable],
   templateUrl: './modifier-travailleur.html',
   styleUrls: ['./modifier-travailleur.css']
 })
@@ -20,6 +21,11 @@ export class ModifierTravailleur implements OnInit {
   saving = false;
   errorMessage = '';
   successMessage = '';
+
+  // Sidebar properties
+  isSidebarCollapsed = false;
+  isMobile = false;
+  userRole = 'RESPONSABLE';
 
   specialitesOptions = ['cueillette', 'tamisage', 'secouage', 'ramassage', 'tri'];
   statutsEmploye = ['SAISONNIER', 'PERMANENT'];
@@ -44,8 +50,34 @@ export class ModifierTravailleur implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadUserRole();
+    this.checkMobile();
     this.travailleurId = this.route.snapshot.params['id'];
     this.loadTravailleur();
+  }
+
+  loadUserRole(): void {
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        this.userRole = user.role?.toUpperCase() || 'RESPONSABLE';
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+  }
+
+  @HostListener('window:resize')
+  checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile) {
+      this.isSidebarCollapsed = false;
+    }
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   loadTravailleur(): void {
@@ -59,7 +91,7 @@ export class ModifierTravailleur implements OnInit {
           telephone: travailleur.telephone,
           adresse: travailleur.adresse,
           cin: travailleur.cin,
-          specialites: travailleur.specialites,
+          specialites: travailleur.specialites || [],
           dateEmbauche: travailleur.dateEmbauche ? new Date(travailleur.dateEmbauche).toISOString().split('T')[0] : '',
           salaire: travailleur.salaire,
           statutEmploye: travailleur.statutEmploye
@@ -68,7 +100,7 @@ export class ModifierTravailleur implements OnInit {
       },
       error: (err) => {
         console.error('Erreur:', err);
-        this.errorMessage = 'Erreur lors du chargement du travailleur';
+        this.errorMessage = err.error?.message || 'Erreur lors du chargement';
         this.isLoading = false;
       }
     });
@@ -85,6 +117,7 @@ export class ModifierTravailleur implements OnInit {
         specialites: currentSpecialites.filter((s: string) => s !== specialite)
       });
     }
+    this.modificationForm.get('specialites')?.markAsTouched();
   }
 
   isSpecialiteSelected(specialite: string): boolean {
@@ -112,12 +145,22 @@ export class ModifierTravailleur implements OnInit {
       },
       error: (err) => {
         console.error('Erreur:', err);
-        this.errorMessage = err.error?.message || 'Erreur lors de la modification';
+        const errorBody = err.error?.error || err.error?.message || '';
+        if (errorBody.includes('duplicate key') && errorBody.includes('cin')) {
+          this.errorMessage = '❌ Ce CIN existe déjà. Veuillez utiliser un numéro différent.';
+        } else {
+          this.errorMessage = err.error?.message || 'Erreur lors de la modification';
+        }
         this.saving = false;
       }
     });
   }
-
+testClick(): void {
+  console.log('🖱️ TEST BUTTON CLICKED!');
+  alert('Test button works!');
+  console.log('Formulaire valide:', this.modificationForm.valid);
+  console.log('Valeurs:', this.modificationForm.value);
+}
   cancel(): void {
     this.router.navigate(['/travailleurs']);
   }

@@ -1,84 +1,170 @@
-<div class="container mt-4">
-  <div class="card shadow">
-    <div class="card-header bg-success text-white">
-      <h4 class="mb-0">
-        <i class="bi bi-pencil-square me-2"></i>
-        Modifier un agriculteur
-      </h4>
-    </div>
-    <div class="card-body">
+<!-- src/app/agriculteurs/modifier-agriculteur/modifier-agriculteur.html -->
+<div class="app-layout">
 
-      <div *ngIf="isLoading" class="text-center py-5">
-        <div class="spinner-border text-success" role="status">
-          <span class="visually-hidden">Chargement...</span>
-        </div>
-        <p class="mt-2 text-muted">Chargement des informations...</p>
+  <!-- Sidebar Component -->
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <!-- Main Content -->
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+
+      <!-- Ambient soft orbs -->
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
       </div>
 
-      <div *ngIf="!isLoading">
+      <!-- Main Premium Card -->
+      <div class="oh-card">
 
-        <div *ngIf="successMessage" class="alert alert-success">
-          <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+        <!-- Glow border -->
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  MODIFICATION
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Modifier un agriculteur</h2>
+                <p class="header-subtitle">Modifiez les informations de l'agriculteur</p>
+              </div>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
         </div>
 
-        <div *ngIf="errorMessage" class="alert alert-danger">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Chargement -->
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des informations...</p>
+          </div>
+
+          <!-- Message de succès -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          </div>
+
+          <!-- Message d'erreur -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+
+          <!-- Formulaire -->
+          <div *ngIf="!isLoading" class="oh-form">
+
+            <!-- Informations fixes -->
+            <div class="oh-info-box" style="margin-bottom: 1.5rem;">
+              <i class="bi bi-info-circle-fill info-icon"></i>
+              <div class="info-content">
+                <strong>Informations non modifiables</strong>
+                <div class="row mt-2">
+                  <div class="col-md-6">
+                    <i class="bi bi-envelope-fill me-1"></i> Email : <strong>{{ agriculteurEmail }}</strong>
+                  </div>
+                  <div class="col-md-6">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <form [formGroup]="modificationForm" (ngSubmit)="onSubmit()">
+              <div class="form-row">
+                <!-- Prénom -->
+                <div class="form-group">
+                  <label class="form-label">Prénom <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="prenom"
+                         [class.is-invalid]="modificationForm.get('prenom')?.invalid && modificationForm.get('prenom')?.touched">
+                  <div class="invalid-feedback">Prénom requis (min 2 caractères)</div>
+                </div>
+
+                <!-- Nom -->
+                <div class="form-group">
+                  <label class="form-label">Nom <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="nom"
+                         [class.is-invalid]="modificationForm.get('nom')?.invalid && modificationForm.get('nom')?.touched">
+                  <div class="invalid-feedback">Nom requis (min 2 caractères)</div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Téléphone -->
+                <div class="form-group">
+                  <label class="form-label">Téléphone <span class="required">*</span></label>
+                  <input type="tel" class="form-control" formControlName="telephone" placeholder="12345678"
+                         [class.is-invalid]="modificationForm.get('telephone')?.invalid && modificationForm.get('telephone')?.touched">
+                  <div class="invalid-feedback">Téléphone doit contenir 8 chiffres</div>
+                </div>
+
+                <!-- Nom exploitation -->
+                <div class="form-group">
+                  <label class="form-label">Nom de l'exploitation <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="nomExploitation"
+                         [class.is-invalid]="modificationForm.get('nomExploitation')?.invalid && modificationForm.get('nomExploitation')?.touched">
+                  <div class="invalid-feedback">Nom d'exploitation requis (min 3 caractères)</div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <!-- Adresse -->
+                <div class="form-group full-width">
+                  <label class="form-label">Adresse <span class="required">*</span></label>
+                  <textarea class="form-control" formControlName="adresse" rows="3"
+                            [class.is-invalid]="modificationForm.get('adresse')?.invalid && modificationForm.get('adresse')?.touched"></textarea>
+                  <div class="invalid-feedback">Adresse requise</div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" (click)="cancel()">
+                  <i class="bi bi-x-lg me-2"></i>
+                  Annuler
+                </button>
+                <button type="submit" class="btn-primary" [disabled]="modificationForm.invalid || saving">
+                  <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                  <i class="bi bi-save me-2"></i>
+                  {{ saving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <div class="alert alert-info mb-4">
-          <div class="row">
-            <div class="col-md-6">
-              <strong><i class="bi bi-envelope-fill me-2"></i>Email :</strong> {{ agriculteurEmail }}
-            </div>
-            <div class="col-md-6">
-              <strong><i class="bi bi-person-badge-fill me-2"></i>ID :</strong> {{ agriculteurId }}
-            </div>
-          </div>
-          <div class="mt-2 small text-muted">
-            <i class="bi bi-info-circle-fill me-1"></i> L'email et l'ID ne peuvent pas être modifiés
-          </div>
-        </div>
-
-        <form [formGroup]="modificationForm" (ngSubmit)="onSubmit()">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Prénom *</label>
-              <input type="text" class="form-control" formControlName="prenom">
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Nom *</label>
-              <input type="text" class="form-control" formControlName="nom">
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Téléphone *</label>
-              <input type="tel" class="form-control" formControlName="telephone" placeholder="12345678">
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Nom de l'exploitation *</label>
-              <input type="text" class="form-control" formControlName="nomExploitation">
-            </div>
-
-            <div class="col-md-12 mb-3">
-              <label class="form-label">Adresse *</label>
-              <textarea class="form-control" formControlName="adresse" rows="3"></textarea>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" class="btn btn-secondary" (click)="cancel()">
-              <i class="bi bi-x-circle me-2"></i>Annuler
-            </button>
-            <button type="submit" class="btn btn-success" [disabled]="modificationForm.invalid || saving">
-              <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
-              <i class="bi bi-save me-2"></i>
-              {{ saving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
-  </div>
+  </main>
 </div>
