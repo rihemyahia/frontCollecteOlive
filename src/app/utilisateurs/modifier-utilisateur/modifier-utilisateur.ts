@@ -28,7 +28,7 @@ export class ModifierUtilisateur implements OnInit {
   successMessage = '';
   id: string = '';
 
-  roles = ['admin', 'responsable', 'agriculteur', 'equipe_recolte', 'transporteur'];
+  roles = ['admin', 'responsable', 'agriculteur', 'TRAVAILLEUR', 'transporteur'];
 
   constructor(
     private route: ActivatedRoute,

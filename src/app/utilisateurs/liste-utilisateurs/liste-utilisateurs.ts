@@ -27,7 +27,7 @@ export class ListeUtilisateurs implements OnInit {
   showEditForm = false;
   editUtilisateur: Utilisateur | null = null;
 
-  roles = ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR', 'AGRICULTEUR', 'EQUIPE_RECOLTE'];
+  roles = ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR', 'AGRICULTEUR', 'TRAVAILLEUR'];
 
   constructor(
     private utilisateurService: UtilisateurService,

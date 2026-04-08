@@ -69,7 +69,7 @@ export class SideBarResponsable implements OnInit {
       label: 'Tournées',
       icon: 'route',
       route: '/tournees',
-      roles: ['ADMIN', 'RESPONSABLE', 'EQUIPE_RECOLTE']
+      roles: ['ADMIN', 'RESPONSABLE', 'TRAVAILLEUR']
     },
     {
       id: 'alertes',
@@ -97,7 +97,7 @@ export class SideBarResponsable implements OnInit {
       label: 'Mon profil',
       icon: 'profile',
       route: '/profile',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'EQUIPE_RECOLTE']
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR']
     }
   ];
 

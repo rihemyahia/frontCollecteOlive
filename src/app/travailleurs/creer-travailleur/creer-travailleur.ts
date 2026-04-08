@@ -132,7 +132,7 @@ onSubmit(): void {
     dateEmbauche: new Date(this.inscriptionForm.value.dateEmbauche),
     salaire: this.inscriptionForm.value.salaire,
     statutEmploye: this.inscriptionForm.value.statutEmploye,
-    role: 'EQUIPE_RECOLTE'
+    role: 'TRAVAILLEUR'
   };
 
   console.log('📤 Données à envoyer:', JSON.stringify(data, null, 2));

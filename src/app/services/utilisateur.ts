@@ -20,7 +20,7 @@ export interface Utilisateur {
   nomExploitation?: string;
   vergers?: any[];
 
-  // Pour travailleur (EQUIPE_RECOLTE)
+  // Pour travailleur ()
   cin?: string;
   specialites?: string[];
   dateEmbauche?: Date;
