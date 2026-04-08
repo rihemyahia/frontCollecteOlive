@@ -1,0 +1,101 @@
+<!-- src/app/ressources/tracteurs/modifier-tracteur/modifier-tracteur.html -->
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar()" [userRole]="userRole"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient"><div class="amb-orb amb-orb--1"></div><div class="amb-orb amb-orb--2"></div><div class="amb-orb amb-orb--3"></div></div>
+
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand"><div class="oh-brand__icon"><svg viewBox="0 0 48 48" fill="none"><path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/></svg></div></div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">MODIFICATION TRACTEUR</p>
+                <h2 class="oh-header__title">Modifier le tracteur</h2>
+                <p class="header-subtitle">Modifiez toutes les informations du tracteur</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div *ngIf="isLoading" class="loading-container"><div class="spinner"></div><p>Chargement...</p></div>
+          <div *ngIf="successMessage" class="oh-success">{{ successMessage }}</div>
+          <div *ngIf="errorMessage" class="oh-error">{{ errorMessage }}</div>
+
+          <form *ngIf="!isLoading" [formGroup]="tracteurForm" (ngSubmit)="onSubmit()" class="oh-form">
+            <div class="form-section">
+              <h3 class="section-title">Informations générales</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Nom <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="nom">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Immatriculation <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="immatriculation">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Puissance <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="puissance">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Carburant <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="carburant">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title">Informations techniques</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Consommation horaire (L/h)</label>
+                  <input type="number" class="form-control" formControlName="consommationHoraire" step="0.1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Kilométrage (km)</label>
+                  <input type="number" class="form-control" formControlName="kilometrage">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" formControlName="aRemorque">
+                    <span>Possède une remorque</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Statut <span class="required">*</span></label>
+                  <select class="form-control" formControlName="statut">
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="EN_USE">En usage</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="HORS_SERVICE">Hors service</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="cancel()">Annuler</button>
+              <button type="submit" class="btn-primary" [disabled]="tracteurForm.invalid || isSaving">
+                <span *ngIf="isSaving" class="spinner-border"></span> Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -10,6 +10,12 @@ import { CreerAgriculteur } from './agriculteurs/creer-agriculteur/creer-agricul
 import { ModifierAgriculteur } from './agriculteurs/modifier-agriculteur/modifier-agriculteur';
 import { ListeUtilisateurs } from './utilisateurs/liste-utilisateurs/liste-utilisateurs';
 import { ActivationComptes } from './admin/activation-comptes/activation-comptes';
+import { ListeBennesComponent } from './ressources/bennes/liste-bennes/liste-bennes';
+import { AjouterBenneComponent } from './ressources/bennes/ajouter-benne/ajouter-benne';
+import { ModifierBenneComponent } from './ressources/bennes/modifier-benne/modifier-benne';
+import { ListeTracteursComponent } from './ressources/tracteurs/liste-tracteurs/liste-tracteurs';
+import { AjouterTracteurComponent } from './ressources/tracteurs/ajouter-tracteur/ajouter-tracteur';
+import { ModifierTracteurComponent } from './ressources/tracteurs/modifier-tracteur/modifier-tracteur';
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
 
@@ -74,6 +80,46 @@ export const routes: Routes = [
     component: ActivationComptes,
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'admin' }
+  },
+
+  // Routes Ressources (Bennes)
+  {
+    path: 'ressources/bennes',
+    component: ListeBennesComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/bennes/ajouter',
+    component: AjouterBenneComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/bennes/modifier/:id',
+    component: ModifierBenneComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+
+  // Routes Ressources (Tracteurs)
+  {
+    path: 'ressources/tracteurs',
+    component: ListeTracteursComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/tracteurs/ajouter',
+    component: AjouterTracteurComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/tracteurs/modifier/:id',
+    component: ModifierTracteurComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
   },
 
   { path: '**', redirectTo: '/login' }

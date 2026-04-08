@@ -1,0 +1,65 @@
+<!-- src/app/ressources/bennes/ajouter-benne/ajouter-benne.html -->
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar()" [userRole]="userRole"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient"><div class="amb-orb amb-orb--1"></div><div class="amb-orb amb-orb--2"></div><div class="amb-orb amb-orb--3"></div></div>
+
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand"><div class="oh-brand__icon"><svg viewBox="0 0 48 48" fill="none"><path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/></svg></div></div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">AJOUT BENNE</p>
+                <h2 class="oh-header__title">Créer une nouvelle benne</h2>
+                <p class="header-subtitle">Ajoutez un nouveau conteneur de récolte</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div *ngIf="successMessage" class="oh-success">{{ successMessage }}</div>
+          <div *ngIf="errorMessage" class="oh-error">{{ errorMessage }}</div>
+
+          <form [formGroup]="benneForm" (ngSubmit)="onSubmit()" class="oh-form">
+            <div class="form-section">
+              <h3 class="section-title">Informations de la benne</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Nom <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="nom" placeholder="Ex: Benne Nord">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Immatriculation <span class="required">*</span></label>
+                  <input type="text" class="form-control" formControlName="immatriculation" placeholder="Ex: B-001">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Capacité (kg) <span class="required">*</span></label>
+                  <input type="number" class="form-control" formControlName="capaciteKg" placeholder="Ex: 1000">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="cancel()">Annuler</button>
+              <button type="submit" class="btn-primary" [disabled]="benneForm.invalid || isLoading">
+                <span *ngIf="isLoading" class="spinner-border"></span> Ajouter la benne
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

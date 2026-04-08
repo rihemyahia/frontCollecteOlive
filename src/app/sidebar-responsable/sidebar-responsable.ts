@@ -1,4 +1,5 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+// src/app/sidebar-responsable/sidebar-responsable.ts
+import { Component, OnInit, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -11,6 +12,7 @@ export interface MenuItem {
   route: string;
   roles?: string[];
   children?: MenuItem[];
+  badge?: number;
 }
 
 @Component({
@@ -26,13 +28,15 @@ export class SideBarResponsable implements OnInit {
   @Input() userRole: string = '';
 
   activeRoute: string = '';
-  expandedMenus: Set<string> = new Set();
-  unreadAlerts: number = 0;
+  expandedMenus: Set<string> = new Set(['ressources']);
+  isMobile: boolean = false;
 
   userProfile: any = {
     prenom: '',
     nom: '',
-    role: ''
+    role: '',
+    email: '',
+    avatar: ''
   };
 
   menuItems: MenuItem[] = [
@@ -46,21 +50,21 @@ export class SideBarResponsable implements OnInit {
     {
       id: 'travailleurs',
       label: 'Travailleurs',
-      icon: 'people',
+      icon: 'users',
       route: '/travailleurs',
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {
       id: 'agriculteurs',
       label: 'Agriculteurs',
-      icon: 'orchard',
+      icon: 'farmer',
       route: '/agriculteurs',
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {
       id: 'vergers',
       label: 'Vergers',
-      icon: 'orchard',
+      icon: 'tree',
       route: '/vergers',
       roles: ['ADMIN', 'RESPONSABLE']
     },
@@ -74,28 +78,52 @@ export class SideBarResponsable implements OnInit {
     {
       id: 'alertes',
       label: 'Alertes',
-      icon: 'alert',
+      icon: 'bell',
       route: '/alertes',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR']
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'],
+      badge: 3
     },
     {
       id: 'activation',
       label: 'Activation des comptes',
-      icon: 'verified',
+      icon: 'user-check',
       route: '/admin/activation',
       roles: ['ADMIN']
     },
     {
       id: 'utilisateurs',
-      label: 'Gestion des utilisateurs',
-      icon: 'admin',
+      label: 'Utilisateurs',
+      icon: 'users-cog',
       route: '/utilisateurs',
       roles: ['ADMIN']
     },
     {
+      id: 'ressources',
+      label: 'Ressources',
+      icon: 'package',
+      route: '/ressources',
+      roles: ['ADMIN', 'RESPONSABLE'],
+      children: [
+        {
+          id: 'bennes',
+          label: 'Bennes',
+          icon: 'box',
+          route: '/ressources/bennes',
+          roles: ['ADMIN', 'RESPONSABLE']
+        },
+        {
+          id: 'tracteurs',
+          label: 'Tracteurs',
+          icon: 'tractor',
+          route: '/ressources/tracteurs',
+          roles: ['ADMIN', 'RESPONSABLE']
+        }
+      ]
+    },
+    {
       id: 'profile',
       label: 'Mon profil',
-      icon: 'profile',
+      icon: 'user',
       route: '/profile',
       roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'EQUIPE_RECOLTE']
     }
@@ -103,14 +131,27 @@ export class SideBarResponsable implements OnInit {
 
   filteredMenuItems: MenuItem[] = [];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    this.checkMobile();
+  }
 
   ngOnInit(): void {
     this.loadUserProfile();
     this.filterMenuByRole();
     this.setActiveRoute();
-    this.loadUnreadAlerts();
+    this.setupRouterListener();
+  }
 
+  @HostListener('window:resize')
+  checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile && this.isCollapsed) {
+      this.isCollapsed = false;
+      this.toggleSidebar.emit();
+    }
+  }
+
+  setupRouterListener(): void {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -124,15 +165,16 @@ export class SideBarResponsable implements OnInit {
       try {
         const user = JSON.parse(userStr);
         this.userProfile = {
-          prenom: user.prenom || '',
+          prenom: user.prenom || 'Utilisateur',
           nom: user.nom || '',
-          role: user.role || this.userRole
+          role: user.role?.toUpperCase() || this.userRole,
+          email: user.email || '',
+          avatar: user.prenom ? user.prenom.charAt(0).toUpperCase() : 'U'
         };
 
         if (!this.userRole && user.role) {
           this.userRole = user.role.toUpperCase();
         }
-        console.log('User role loaded:', this.userRole);
       } catch (e) {
         console.error('Error parsing user data', e);
         this.setDefaultProfile();
@@ -146,12 +188,10 @@ export class SideBarResponsable implements OnInit {
     this.userProfile = {
       prenom: 'Utilisateur',
       nom: '',
-      role: this.userRole || 'VISITEUR'
+      role: this.userRole || 'VISITEUR',
+      email: '',
+      avatar: 'U'
     };
-  }
-
-  loadUnreadAlerts(): void {
-    this.unreadAlerts = 0;
   }
 
   filterMenuByRole(): void {
@@ -167,12 +207,27 @@ export class SideBarResponsable implements OnInit {
       }
     }
 
-    console.log('Filtering menu for role:', this.userRole);
-    this.filteredMenuItems = this.menuItems.filter(item => {
-      if (!item.roles) return true;
-      return item.roles.includes(this.userRole);
-    });
-    console.log('Filtered menu items:', this.filteredMenuItems);
+    this.filteredMenuItems = this.menuItems
+      .filter(item => {
+        if (!item.roles) return true;
+        return item.roles.includes(this.userRole);
+      })
+      .map(item => {
+        if (item.children && item.children.length > 0) {
+          return {
+            ...item,
+            children: item.children.filter(child => {
+              if (!child.roles) return true;
+              return child.roles.includes(this.userRole);
+            })
+          };
+        }
+        return item;
+      })
+      .filter(item => {
+        if (item.children) return item.children.length > 0;
+        return true;
+      });
   }
 
   setActiveRoute(): void {
@@ -183,7 +238,12 @@ export class SideBarResponsable implements OnInit {
     if (route === '/') {
       return this.activeRoute === route;
     }
-    return this.activeRoute.startsWith(route);
+    return this.activeRoute === route || this.activeRoute.startsWith(route + '/');
+  }
+
+  isChildActive(children: MenuItem[] | undefined): boolean {
+    if (!children) return false;
+    return children.some(child => this.isActive(child.route));
   }
 
   toggleMenu(menuId: string): void {
@@ -195,14 +255,20 @@ export class SideBarResponsable implements OnInit {
   }
 
   isMenuExpanded(menuId: string): boolean {
-    return this.expandedMenus.has(menuId);
+    const item = this.menuItems.find(m => m.id === menuId);
+    return this.expandedMenus.has(menuId) || this.isChildActive(item?.children);
   }
 
   navigate(route: string): void {
+    if (this.isMobile) {
+      this.isCollapsed = true;
+      this.toggleSidebar.emit();
+    }
     this.router.navigate([route]);
   }
 
   toggle(): void {
+    this.isCollapsed = !this.isCollapsed;
     this.toggleSidebar.emit();
   }
 
@@ -214,14 +280,18 @@ export class SideBarResponsable implements OnInit {
 
   getIconPath(iconName: string): string {
     const icons: { [key: string]: string } = {
-      dashboard: 'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z',
-      people: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-      orchard: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+      dashboard: 'M3 12h6V3H3v9zm12 0h6V3h-6v9zM3 21h6v-6H3v6zm12 0h6v-6h-6v6z',
+      users: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+      farmer: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+      tree: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
       route: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-      alert: 'M12 2L1 21h22L12 2zm1 16h-2v-2h2v2zm0-4h-2v-4h2v4z',
-      admin: 'M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z',
-      profile: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-      verified: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
+      bell: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+      'user-check': 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+      'users-cog': 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+      package: 'M4 8h16M4 16h16M8 3v18M16 3v18',
+      box: 'M4 8h16M4 16h16M8 3v18M16 3v18',
+      tractor: 'M5 10h14M5 14h14M7 6h10M7 18h10M12 2v4M12 18v4',
+      user: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'
     };
     return icons[iconName] || icons['dashboard'];
   }
