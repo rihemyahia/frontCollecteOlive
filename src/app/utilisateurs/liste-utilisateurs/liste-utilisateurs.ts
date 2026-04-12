@@ -15,6 +15,10 @@ import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsabl
 })
 export class ListeUtilisateurs implements OnInit {
 
+  filteredUtilisateurs: Utilisateur[] = [];
+  utilisateursActifs: Utilisateur[] = [];
+  utilisateursDesactives: Utilisateur[] = [];
+  activeTab: string = 'actifs';
   utilisateurs: Utilisateur[] = [];
   isLoading = false;
   errorMessage = '';
@@ -23,7 +27,6 @@ export class ListeUtilisateurs implements OnInit {
   isMobile = false;
   userRole = '';
 
-  // Only for editing
   showEditForm = false;
   editUtilisateur: Utilisateur | null = null;
 
@@ -68,6 +71,7 @@ export class ListeUtilisateurs implements OnInit {
     this.utilisateurService.getAll().subscribe({
       next: (data) => {
         this.utilisateurs = data || [];
+        this.filterUtilisateurs();
         this.isLoading = false;
         this.cdr.markForCheck();
       },
@@ -80,8 +84,54 @@ export class ListeUtilisateurs implements OnInit {
     });
   }
 
+  filterUtilisateurs(): void {
+    this.utilisateursActifs = this.utilisateurs.filter(u => u.compteActif === true);
+    this.utilisateursDesactives = this.utilisateurs.filter(u => u.compteActif === false);
+
+    switch(this.activeTab) {
+      case 'actifs':
+        this.filteredUtilisateurs = this.utilisateursActifs;
+        break;
+      case 'desactives':
+        this.filteredUtilisateurs = this.utilisateursDesactives;
+        break;
+      case 'tous':
+      default:
+        this.filteredUtilisateurs = this.utilisateurs;
+        break;
+    }
+  }
+
+  changeTab(tab: string): void {
+    this.activeTab = tab;
+    this.filterUtilisateurs();
+  }
+
+  desactiverCompte(id: string): void {
+    if (!confirm('⚠️ Voulez-vous vraiment désactiver ce compte ? L\'utilisateur ne pourra plus se connecter.')) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.utilisateurService.desactiverCompte(id).subscribe({
+      next: () => {
+        this.loadUtilisateurs();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur lors de la désactivation:', err);
+        this.errorMessage = 'Erreur lors de la désactivation du compte';
+        this.isLoading = false;
+      }
+    });
+  }
+
   goToCreateUser(): void {
-    this.router.navigate(['/creer-utilisateur']);   // ← Make sure this route exists in your routing
+    this.router.navigate(['/creer-utilisateur']);
+  }
+
+  goToModifierUtilisateur(id: string): void {
+    this.router.navigate([`/utilisateurs/modifier/${id}`]);
   }
 
   prepareEditUtilisateur(u: Utilisateur): void {
@@ -124,8 +174,8 @@ export class ListeUtilisateurs implements OnInit {
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
+
   navigateToCreateUser(): void {
-  this.router.navigate(['/utilisateurs/creer']);
-  // ou selon votre route: this.router.navigate(['/admin/creer-utilisateur']);
-}
+    this.router.navigate(['/utilisateurs/creer']);
+  }
 }

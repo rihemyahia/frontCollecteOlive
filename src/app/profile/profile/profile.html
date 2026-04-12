@@ -1,0 +1,137 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="profile-container">
+      <!-- Messages -->
+      <div *ngIf="successMessage" class="alert alert-success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>{{ successMessage }}</span>
+        <button class="alert-close" (click)="successMessage = ''">×</button>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-error">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>{{ errorMessage }}</span>
+        <button class="alert-close" (click)="errorMessage = ''">×</button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement de votre profil...</p>
+      </div>
+
+      <!-- Profile Content -->
+      <div *ngIf="!isLoading" class="profile-grid">
+        <!-- Informations personnelles -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div class="avatar">
+              <span class="avatar-initials">
+                {{ (profile.prenom || '')[0] }}{{ (profile.nom || '')[0] }}
+              </span>
+            </div>
+            <div class="user-info">
+              <h3>{{ profile.prenom }} {{ profile.nom }}</h3>
+              <span class="user-role">
+                <i class="bi bi-briefcase"></i>
+                {{ profile.role }}
+              </span>
+              <span class="user-email">
+                <i class="bi bi-envelope"></i>
+                {{ profile.email }}
+              </span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="form-group">
+              <label><i class="bi bi-person"></i> Nom complet</label>
+              <div class="form-row">
+                <input type="text" [(ngModel)]="profile.nom" class="form-control" placeholder="Nom" style="flex:1">
+                <input type="text" [(ngModel)]="profile.prenom" class="form-control" placeholder="Prénom" style="flex:1">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label><i class="bi bi-envelope"></i> Adresse email</label>
+              <input type="email" [value]="profile.email" class="form-control" disabled>
+            </div>
+
+            <div class="form-group">
+              <label><i class="bi bi-telephone"></i> Numéro de téléphone</label>
+              <input type="tel" [(ngModel)]="profile.telephone" class="form-control" placeholder="+216 XX XXX XXX">
+            </div>
+
+            <div class="form-group">
+              <label><i class="bi bi-geo-alt"></i> Adresse postale</label>
+              <input type="text" [(ngModel)]="profile.adresse" class="form-control" placeholder="Votre adresse complète">
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn btn-primary" (click)="updateProfile()" [disabled]="isLoading">
+              <i class="bi bi-save"></i>
+              {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Sécurité -->
+        <div class="profile-card">
+          <div class="card-header security-header">
+            <i class="bi bi-shield-lock"></i>
+            <h3>Sécurité du compte</h3>
+          </div>
+
+          <div class="card-body" *ngIf="!showPasswordForm">
+            <div class="info-box">
+              <i class="bi bi-info-circle"></i>
+              <p>Changez votre mot de passe régulièrement pour protéger votre compte.</p>
+            </div>
+            <button class="btn btn-outline" (click)="showPasswordForm = true">
+              <i class="bi bi-key"></i> Changer mon mot de passe
+            </button>
+          </div>
+
+          <div class="card-body" *ngIf="showPasswordForm">
+            <div class="form-group">
+              <label><i class="bi bi-lock"></i> Mot de passe actuel</label>
+              <input type="password" [(ngModel)]="passwordData.ancienMotDePasse" class="form-control" placeholder="Votre mot de passe actuel">
+            </div>
+            <div class="form-group">
+              <label><i class="bi bi-key"></i> Nouveau mot de passe</label>
+              <input type="password" [(ngModel)]="passwordData.nouveauMotDePasse" class="form-control" placeholder="Minimum 6 caractères">
+              <small class="form-text">Minimum 6 caractères</small>
+            </div>
+            <div class="form-group">
+              <label><i class="bi bi-check-circle"></i> Confirmation</label>
+              <input type="password" [(ngModel)]="passwordData.confirmMotDePasse" class="form-control" placeholder="Confirmez votre nouveau mot de passe">
+            </div>
+          </div>
+
+          <div class="card-footer" *ngIf="showPasswordForm">
+            <button class="btn btn-secondary" (click)="cancelPasswordChange()">
+              <i class="bi bi-x-circle"></i> Annuler
+            </button>
+            <button class="btn btn-primary" (click)="changePassword()" [disabled]="isChangingPassword">
+              <i class="bi bi-check-circle"></i>
+              {{ isChangingPassword ? 'Changement...' : 'Mettre à jour' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

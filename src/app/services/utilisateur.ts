@@ -58,9 +58,64 @@ export class UtilisateurService {
       'Authorization': `Bearer ${token}`
     });
   }
+  // Add these methods to your UtilisateurService
 
+// ========== GESTION DES COMPTES (DÉSACTIVATION) ==========
+desactiverCompte(id: string): Observable<any> {
+  return this.http.post(`${this.apiUrl}/admin/desactiver-compte/${id}`, {}, {
+    headers: this.getHeaders()
+  });
+}
+
+// ========== GESTION DU PROFIL ==========
+getProfil(): Observable<any> {
+  return this.http.get(`${this.apiUrl}/profil`, {
+    headers: this.getHeaders()
+  });
+}
+
+
+mettreAJourProfil(updates: any): Observable<any> {
+  return this.http.put(`${this.apiUrl}/profil`, updates, {
+    headers: this.getHeaders()
+  });
+}
+
+changerMotDePasse(ancienMotDePasse: string, nouveauMotDePasse: string): Observable<any> {
+  return this.http.post(`${this.apiUrl}/changer-mot-de-passe`, {
+    ancienMotDePasse,
+    nouveauMotDePasse
+  }, {
+    headers: this.getHeaders()
+  });
+}
+// Add this method to UtilisateurService
+// Get user by ID - make sure URL has /admin/
+getById(id: string): Observable<Utilisateur> {
+  console.log('Fetching user with ID:', id);
+  return this.http.get<Utilisateur>(`${this.apiUrl}/admin/utilisateurs/${id}`, {
+    headers: this.getHeaders()
+  });
+}
+
+// Update user - make sure URL has /admin/
+update(id: string, utilisateur: Partial<Utilisateur>): Observable<Utilisateur> {
+  console.log('Updating user with ID:', id);
+  return this.http.put<Utilisateur>(`${this.apiUrl}/admin/utilisateurs/${id}`, utilisateur, {
+    headers: this.getHeaders()
+  });
+}
+
+// Change password as admin
+changerMotDePasseAdmin(id: string, nouveauMotDePasse: string): Observable<any> {
+  console.log('Changing password for user ID:', id);
+  return this.http.post(`${this.apiUrl}/admin/changer-mot-de-passe/${id}`,
+    { nouveauMotDePasse },
+    { headers: this.getHeaders() }
+  );
+}
   getAll(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.apiUrl}/utilisateurs`, {
+    return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/utilisateurs`, {
       headers: this.getHeaders()
     }).pipe(
       tap({
@@ -70,11 +125,6 @@ export class UtilisateurService {
     );
   }
 
-  getById(id: string): Observable<Utilisateur> {
-    return this.http.get<Utilisateur>(`${this.apiUrl}/utilisateurs/${id}`, {
-      headers: this.getHeaders()
-    });
-  }
 
 // Dans utilisateur.service.ts
 creerUtilisateurParAdmin(utilisateur: Utilisateur): Observable<any> {
@@ -89,11 +139,7 @@ create(utilisateur: Utilisateur): Observable<Utilisateur> {
     headers: this.getHeaders()
   });
 }
-  update(id: string, utilisateur: Partial<Utilisateur>): Observable<Utilisateur> {
-    return this.http.put<Utilisateur>(`${this.apiUrl}/utilisateurs/${id}`, utilisateur, {
-      headers: this.getHeaders()
-    });
-  }
+
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/utilisateurs/${id}`, {

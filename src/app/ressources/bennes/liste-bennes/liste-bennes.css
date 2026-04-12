@@ -1,5 +1,5 @@
 /* src/app/ressources/bennes/liste-bennes/liste-bennes.css */
-@import '../../ressources/ressources.css';
+@import '../../../ressources/ressources.css';
 
 .app-layout {
   display: flex;

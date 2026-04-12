@@ -172,27 +172,37 @@
             </div>
 
             <!-- Section Mot de passe -->
-            <div class="form-section" style="margin-top: 1.5rem;">
-              <h3 class="section-title" style="font-size: 1rem; font-weight: 600; color: #5A6E1A; margin-bottom: 1rem;">
-                <i class="bi bi-key"></i> Mot de passe
-              </h3>
-              <div class="form-group">
-                <button type="button" class="btn-generate-password" (click)="generatePassword()"
-                        style="background: linear-gradient(135deg, #5A6E1A, #A8B84B); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; cursor: pointer;">
-                  <i class="bi bi-shuffle"></i> Générer un mot de passe
-                </button>
+          <!-- Section Mot de passe -->
+<div class="form-section" style="margin-top: 1.5rem;">
+  <h3 class="section-title" style="font-size: 1rem; font-weight: 600; color: #5A6E1A; margin-bottom: 1rem;">
+    <i class="bi bi-envelope-paper"></i> Envoi du mot de passe
+  </h3>
+  <div class="password-notice">
+    <i class="bi bi-info-circle-fill" style="color: #A8B84B; font-size: 1.2rem;"></i>
+    <div style="flex: 1;">
+      <strong>Un mot de passe sera généré automatiquement</strong>
+      <p style="margin: 0; font-size: 0.85rem; color: #7A6845;">Le mot de passe sera envoyé à l'email de l'utilisateur. Vous ne pourrez pas le voir ni le copier pour des raisons de sécurité.</p>
+    </div>
+  </div>
 
-                <div *ngIf="generatedPassword" class="generated-password-card" style="margin-top: 1rem; background: #F0F4D8; border-radius: 12px; padding: 0.75rem 1rem;">
-                  <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <code style="flex: 1; background: white; padding: 0.5rem 0.75rem; border-radius: 8px; color: #5A6E1A; font-weight: 600;">{{ generatedPassword }}</code>
-                    <button type="button" (click)="copyPassword()" title="Copier"
-                            style="background: #FFFFF8; border: 2px solid #A8B84B; padding: 0.5rem 0.75rem; border-radius: 8px; cursor: pointer;">
-                      <i class="bi bi-clipboard"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div class="form-group" style="margin-top: 1rem;">
+    <button type="button" class="btn-generate-password" (click)="generatePassword()"
+            style="background: linear-gradient(135deg, #5A6E1A, #A8B84B); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; cursor: pointer; width: 100%;">
+      <i class="bi bi-shuffle"></i> Générer et envoyer le mot de passe
+    </button>
+  </div>
+
+  <!-- Success message after generation -->
+  <div *ngIf="generatedPassword" class="password-success-card" style="margin-top: 1rem; background: #E8F2D8; border-radius: 12px; padding: 0.75rem 1rem; border-left: 4px solid #4A7A2A;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <i class="bi bi-check-circle-fill" style="color: #4A7A2A; font-size: 1.2rem;"></i>
+      <div style="flex: 1;">
+        <strong style="color: #4A7A2A;">Mot de passe généré !</strong>
+        <p style="margin: 0; font-size: 0.8rem; color: #5A6E1A;">Le mot de passe a été envoyé à l'email de l'utilisateur.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
             <!-- Boutons d'action -->
             <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid rgba(168, 184, 75, 0.2);">

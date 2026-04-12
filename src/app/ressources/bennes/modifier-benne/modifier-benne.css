@@ -1,5 +1,5 @@
 /* src/app/ressources/bennes/modifier-benne/modifier-benne.css */
-@import '../../ressources/ressources.css';
+@import '../../../ressources/ressources.css';
 
 .app-layout {
   display: flex;

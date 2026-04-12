@@ -13,6 +13,14 @@ import { ActivationComptes } from './admin/activation-comptes/activation-comptes
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
 import { CreerUtilisateur } from './utilisateurs/creer-utilisateur/creer-utilisateur';
+import { ListeTracteursComponent } from './ressources/tracteurs/liste-tracteurs/liste-tracteurs';
+import { AjouterTracteurComponent } from './ressources/tracteurs/ajouter-tracteur/ajouter-tracteur';
+import { ModifierTracteurComponent } from './ressources/tracteurs/modifier-tracteur/modifier-tracteur';
+import { ListeBennesComponent } from './ressources/bennes/liste-bennes/liste-bennes';
+import { AjouterBenneComponent } from './ressources/bennes/ajouter-benne/ajouter-benne';
+import { ModifierBenneComponent } from './ressources/bennes/modifier-benne/modifier-benne';
+import { ProfilComponent } from './profile/profile/profile';
+import { ModifierUtilisateur } from './utilisateurs/modifier-utilisateur/modifier-utilisateur';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -40,7 +48,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'responsable' }
   },
-
+{
+    path: 'utilisateurs/modifier/:id',
+    component: ModifierUtilisateur,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'admin' }
+  },
   // Routes Agriculteurs
   {
     path: 'agriculteurs',
@@ -83,5 +96,58 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
 
+  // Routes Ressources (Bennes)
+  {
+    path: 'ressources/bennes',
+    component: ListeBennesComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/bennes/ajouter',
+    component: AjouterBenneComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/bennes/modifier/:id',
+    component: ModifierBenneComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+
+  // Routes Ressources (Tracteurs)
+  {
+    path: 'ressources/tracteurs',
+    component: ListeTracteursComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/tracteurs/ajouter',
+    component: AjouterTracteurComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+  {
+    path: 'ressources/tracteurs/modifier/:id',
+    component: ModifierTracteurComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'responsable' }
+  },
+// app.routes.ts - Update the profile route
+{
+  path: 'profile',
+  component: ProfilComponent,
+  canActivate: [AuthGuard]  // Only check if logged in, not role-specific
+},
+{
+  path: 'profil',
+  component: ProfilComponent,
+  canActivate: [AuthGuard]  // Only check if logged in, not role-specific
+},
+
+
   { path: '**', redirectTo: '/login' }
 ];
+

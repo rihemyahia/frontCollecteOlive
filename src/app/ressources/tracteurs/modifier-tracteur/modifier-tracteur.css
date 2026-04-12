@@ -1,5 +1,5 @@
-/* src/app/ressources/bennes/modifier-benne/modifier-benne.css */
-@import '../../ressources/ressources.css';
+/* src/app/ressources/tracteurs/modifier-tracteur/modifier-tracteur.css */
+@import '../../../ressources/ressources.css';
 
 .app-layout {
   display: flex;
@@ -102,23 +102,6 @@
 .info-value {
   color: #2C3A10;
   font-size: 0.95rem;
-}
-
-.progress-mini {
-  display: inline-block;
-  width: 80px;
-  height: 6px;
-  background: #E8ECDC;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-.progress-mini-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #A8B84B, #C8D880);
-  border-radius: 3px;
 }
 
 .oh-form {
@@ -324,5 +307,5 @@
   .btn-primary, .btn-secondary {
     width: 100%;
     justify-content: center;
-  }
+  } 
 }

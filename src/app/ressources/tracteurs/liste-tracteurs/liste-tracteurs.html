@@ -1,0 +1,126 @@
+<!-- src/app/ressources/tracteurs/liste-tracteurs/liste-tracteurs.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES TRACTEURS</p>
+                <h2 class="oh-header__title">Liste des tracteurs</h2>
+                <p class="header-subtitle">Gérez et consultez tous les tracteurs disponibles</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div class="search-actions">
+            <div class="filter-group">
+              <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control">
+                <option *ngFor="let s of statuts" [value]="s">{{ s === 'TOUS' ? 'Tous les statuts' : getStatutLabel(s) }}</option>
+              </select>
+            </div>
+            <button class="btn-add" (click)="navigateToAdd()">
+              <i class="bi bi-plus-lg"></i>
+              Ajouter tracteur
+            </button>
+          </div>
+
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des tracteurs...</p>
+          </div>
+
+          <div *ngIf="!isLoading && filteredTracteurs.length > 0" class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Immatriculation</th>
+                  <th>Nom</th>
+                  <th>Puissance</th>
+                  <th>Carburant</th>
+                  <th>Consommation</th>
+                  <th>Kilométrage</th>
+                  <th>Remorque</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of filteredTracteurs">
+                  <td data-label="Immatriculation"><strong>{{ t.immatriculation }}</strong></td>
+                  <td data-label="Nom">{{ t.nom }}</td>
+                  <td data-label="Puissance">{{ t.puissance || '-' }}</td>
+                  <td data-label="Carburant">{{ t.carburant || '-' }}</td>
+                  <td data-label="Consommation">{{ t.consommationHoraire || 0 }} L/h</td>
+                  <td data-label="Kilométrage">{{ (t.kilometrage || 0) | number }} km</td>
+                  <td data-label="Remorque">
+                    <span [class]="t.aRemorque ? 'badge-oui' : 'badge-non'">
+                      {{ t.aRemorque ? 'Oui' : 'Non' }}
+                    </span>
+                  </td>
+                  <td data-label="Statut">
+                    <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+                      {{ getStatutLabel(t.statut) }}
+                    </span>
+                  </td>
+                  <td data-label="Actions">
+                    <button class="btn-edit" (click)="navigateToEdit(t.id!)">✎ Modifier</button>
+                    <button class="btn-delete" (click)="deleteTracteur(t.id!)">🗑 Supprimer</button>
+                    <div *ngIf="deleteConfirmId === t.id" class="confirm-box">
+                      <p>Confirmer suppression?</p>
+                      <button (click)="confirmDelete()">Oui</button>
+                      <button (click)="cancelDelete()">Non</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="!isLoading && filteredTracteurs.length === 0" class="oh-state">
+            <i class="bi bi-truck"></i>
+            <p>Aucun tracteur trouvé</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

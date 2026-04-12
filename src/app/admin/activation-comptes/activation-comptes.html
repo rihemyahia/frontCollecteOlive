@@ -162,9 +162,7 @@
             </div>
 
             <!-- ── Inline Activation Panel (Agriculteurs) ── -->
-<!-- Assurez-vous que closePanel() est bien appelée et réinitialise tout -->
-<div class="oh-inline-panel" *ngIf="selectedUser && activeTab === 'agriculteurs'">
-  <!-- ... contenu ... -->
+            <div class="oh-inline-panel" *ngIf="selectedUser && activeTab === 'agriculteurs'">
               <div class="oh-inline-panel__header">
                 <div class="oh-inline-panel__title">
                   <i class="bi bi-person-check-fill"></i>
@@ -195,41 +193,29 @@
                     <small class="text-muted">{{ selectedUser.email }}</small>
                   </div>
 
-                  <form [formGroup]="activationForm" class="activation-form">
-
-                    <!-- Password Field -->
-                    <div class="form-group">
-                      <div class="password-wrapper">
-                         <button
-                          type="button"
-                          class="btn-generate-password"
-                          (click)="generateAndFillPassword()"
-                          title="Générer un mot de passe aléatoire">
-                          <i class="bi bi-shuffle"></i> Générer
-                        </button>
-                      </div>
-                      <div class="invalid-feedback" *ngIf="activationForm.get('nouveauMotDePasse')?.invalid && activationForm.get('nouveauMotDePasse')?.touched">
-                        Mot de passe requis (minimum 6 caractères)
-                      </div>
-
-                      <!-- Generated Password Display -->
-                      <div *ngIf="generatedPassword" class="generated-password-card">
-                        <div class="generated-password-header">
-                          <i class="bi bi-key-fill"></i>
-                        </div>
-                        <div class="generated-password-value">
-                          <code>{{ generatedPassword }}</code>
-
-                        </div>
-                      </div>
+                  <div class="activation-notice">
+                    <i class="bi bi-envelope-paper-fill"></i>
+                    <div>
+                      <strong>Envoi par email</strong>
+                      <p>Un mot de passe sera généré automatiquement et envoyé à l'adresse email de l'utilisateur.</p>
                     </div>
+                  </div>
 
-                    <!-- Confirm Password Field -->
-                    <div class="form-group">
+                  <div class="form-group" style="margin-top: 1rem;">
+                    <button type="button" class="btn-generate-password" (click)="generateAndFillPassword()"
+                            style="width: 100%;">
+                      <i class="bi bi-shuffle"></i> Générer et envoyer le mot de passe
+                    </button>
+                  </div>
 
+                  <!-- Password generated confirmation (no password visible) -->
+                  <div *ngIf="generatedPassword" class="password-sent-confirmation">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>
+                      <strong>Mot de passe généré !</strong>
+                      <p>Le mot de passe a été envoyé à l'email de l'utilisateur.</p>
                     </div>
-
-                  </form>
+                  </div>
                 </div>
               </div>
 
@@ -237,11 +223,9 @@
                 <button type="button" class="btn-cancel" (click)="closePanel()">
                   <i class="bi bi-x-circle"></i> Annuler
                 </button>
-                <button
-                  type="button"
-                  class="btn-activate-account"
-                  (click)="activerCompte()"
-                  [disabled]="activationForm.invalid || isActivating || successMessage">
+                <button type="button" class="btn-activate-account"
+                        (click)="activerCompte()"
+                        [disabled]="!generatedPassword || isActivating || successMessage">
                   <span *ngIf="isActivating" class="spinner-border spinner-border-sm me-2"></span>
                   <i class="bi bi-check-circle" *ngIf="!isActivating"></i>
                   {{ isActivating ? 'Activation en cours...' : 'Activer le compte' }}
@@ -348,33 +332,29 @@
                     <small class="text-muted">{{ selectedUser.email }}</small>
                   </div>
 
-                  <form [formGroup]="activationForm" class="activation-form">
-
-                    <!-- Password Field -->
-                    <div class="form-group">
-                      <div class="password-wrapper">
-                           <button
-                          type="button"
-                          class="btn-generate-password"
-                          (click)="generateAndFillPassword()"
-                          title="Générer un mot de passe aléatoire">
-                          <i class="bi bi-shuffle"></i> Générer
-                        </button>
-                      </div>
-
-
-                      <!-- Generated Password Display -->
-                      <div *ngIf="generatedPassword" class="generated-password-card">
-
-                      </div>
+                  <div class="activation-notice">
+                    <i class="bi bi-envelope-paper-fill"></i>
+                    <div>
+                      <strong>Envoi par email</strong>
+                      <p>Un mot de passe sera généré automatiquement et envoyé à l'adresse email de l'utilisateur.</p>
                     </div>
+                  </div>
 
-                    <!-- Confirm Password Field -->
-                    <div class="form-group">
+                  <div class="form-group" style="margin-top: 1rem;">
+                    <button type="button" class="btn-generate-password" (click)="generateAndFillPassword()"
+                            style="width: 100%;">
+                      <i class="bi bi-shuffle"></i> Générer et envoyer le mot de passe
+                    </button>
+                  </div>
 
+                  <!-- Password generated confirmation (no password visible) -->
+                  <div *ngIf="generatedPassword" class="password-sent-confirmation">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>
+                      <strong>Mot de passe généré !</strong>
+                      <p>Le mot de passe a été envoyé à l'email de l'utilisateur.</p>
                     </div>
-
-                  </form>
+                  </div>
                 </div>
               </div>
 
@@ -382,11 +362,9 @@
                 <button type="button" class="btn-cancel" (click)="closePanel()">
                   <i class="bi bi-x-circle"></i> Annuler
                 </button>
-                <button
-                  type="button"
-                  class="btn-activate-account"
-                  (click)="activerCompte()"
-                  [disabled]="activationForm.invalid || isActivating || successMessage">
+                <button type="button" class="btn-activate-account"
+                        (click)="activerCompte()"
+                        [disabled]="!generatedPassword || isActivating || successMessage">
                   <span *ngIf="isActivating" class="spinner-border spinner-border-sm me-2"></span>
                   <i class="bi bi-check-circle" *ngIf="!isActivating"></i>
                   {{ isActivating ? 'Activation en cours...' : 'Activer le compte' }}
