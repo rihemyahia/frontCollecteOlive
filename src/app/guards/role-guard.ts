@@ -12,11 +12,12 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   if (!userRole) return false;
 
-  // ✅ handle array of roles
+  // ✅ ADMIN bypass (IMPORTANT)
+  if (userRole === 'ADMIN') return true;
+
   if (Array.isArray(requiredRole)) {
-    return requiredRole.includes(userRole);
+    return requiredRole.map(r => r.toUpperCase()).includes(userRole);
   }
 
-  // ✅ handle single role
   return userRole === requiredRole?.toUpperCase();
 };

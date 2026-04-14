@@ -45,7 +45,7 @@ export class SideBarResponsable implements OnInit {
       label: 'Tableau de bord',
       icon: 'dashboard',
       route: '/dashboard',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR', 'TRANSPORTEUR']
+      roles: ['ADMIN', 'RESPONSABLE']
     },
     {
       id: 'travailleurs',
@@ -66,14 +66,14 @@ export class SideBarResponsable implements OnInit {
       label: 'Vergers',
       icon: 'tree',
       route: '/vergers',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR']
+      roles: ['ADMIN', 'RESPONSABLE']
     },
     {
       id: 'tournees',
       label: 'Tournées',
       icon: 'route',
       route: '/tournees',
-      roles: ['ADMIN', 'RESPONSABLE', 'TRAVAILLEUR', 'TRANSPORTEUR']
+      roles: ['ADMIN', 'RESPONSABLE', 'EQUIPE_RECOLTE']
     },
     {
       id: 'alertes',
@@ -122,10 +122,10 @@ export class SideBarResponsable implements OnInit {
     },
     {
       id: 'profile',
-      label: 'Mon Profil',
+      label: 'Mon profil',
       icon: 'user',
       route: '/profile',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR', 'TRANSPORTEUR']
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'EQUIPE_RECOLTE']
     }
   ];
 
@@ -167,7 +167,7 @@ export class SideBarResponsable implements OnInit {
         this.userProfile = {
           prenom: user.prenom || 'Utilisateur',
           nom: user.nom || '',
-          role: this.getRoleLabel(user.role?.toUpperCase() || this.userRole),
+          role: user.role?.toUpperCase() || this.userRole,
           email: user.email || '',
           avatar: user.prenom ? user.prenom.charAt(0).toUpperCase() : 'U'
         };
@@ -184,22 +184,11 @@ export class SideBarResponsable implements OnInit {
     }
   }
 
-  getRoleLabel(role: string): string {
-    const roleLabels: { [key: string]: string } = {
-      'ADMIN': 'Administrateur',
-      'RESPONSABLE': 'Responsable',
-      'AGRICULTEUR': 'Agriculteur',
-      'TRAVAILLEUR': 'Travailleur',
-      'TRANSPORTEUR': 'Transporteur'
-    };
-    return roleLabels[role] || role;
-  }
-
   setDefaultProfile(): void {
     this.userProfile = {
       prenom: 'Utilisateur',
       nom: '',
-      role: this.getRoleLabel(this.userRole) || 'Visiteur',
+      role: this.userRole || 'VISITEUR',
       email: '',
       avatar: 'U'
     };
@@ -287,11 +276,6 @@ export class SideBarResponsable implements OnInit {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     this.router.navigate(['/login']);
-  }
-
-  // Navigate to profile page
-  goToProfile(): void {
-    this.navigate('/profile');
   }
 
   getIconPath(iconName: string): string {
