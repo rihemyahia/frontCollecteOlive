@@ -81,5 +81,14 @@ isLoggedIn(): boolean {
       return localStorage.getItem('token');
     }
     return null;
+ 
+  
   }
+  getUserRole(): string {
+  return this.currentUserSubject.value?.role?.toUpperCase() || '';
+}
+
+getUserId(): string {
+  return this.currentUserSubject.value?.id || '';
+}
 }

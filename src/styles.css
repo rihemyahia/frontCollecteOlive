@@ -1,3 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import "tailwindcss";
+.th-cell { text-align: left; padding: 1rem 0.75rem; background: #F9F6EB; color: #5A5A48; font-weight: 600; }
+.td-cell { padding: 1rem 0.75rem; }
+.avatar-circle { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#F0F4D8,#DFE9B0); display:flex; align-items:center; justify-content:center; font-weight:700; color:#3A4A12; }
+.badge-olive { background:#F0F4D8; color:#5A6E1A; border:1px solid rgba(168,184,75,0.35); border-radius:50px; padding:3px 10px; font-size:0.75rem; }
+.statut-badge { display:inline-block; padding:4px 12px; border-radius:50px; font-size:0.75rem; font-weight:600; }
+.badge-warning { background:#FFF4E0; color:#8A6A0A; }
+.badge-info    { background:#E0F0FF; color:#0A4A8A; }
+.badge-success { background:#E8F5E0; color:#2A6A0A; }
+.progress-bar-bg   { width:80px; height:8px; background:#E8E0CE; border-radius:50px; overflow:hidden; }
+.progress-bar-fill { height:100%; background:linear-gradient(90deg,#A8B84B,#5A6E1A); border-radius:50px; transition:width 0.3s ease; }
+.btn-edit   { background:#F0F4D8; color:#5A6E1A; padding:0.5rem 1rem; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+.btn-delete { background:#F5E0D8; color:#8A2A1A; padding:0.5rem 0.75rem; border-radius:8px; border:none; cursor:pointer; }

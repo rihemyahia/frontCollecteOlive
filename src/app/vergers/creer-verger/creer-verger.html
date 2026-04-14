@@ -1,0 +1,235 @@
+<!-- creer-verger.component.html -->
+<div class="app-layout">
+
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="page-wrapper">
+
+      <div class="oh-card">
+
+        <!-- Header -->
+        <div class="oh-card__header">
+          <div class="header-inner">
+            <div class="header-left">
+              <div class="brand-icon">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <p class="header-eyebrow">GESTION DES VERGERS</p>
+                <h2 class="header-title">Nouveau verger</h2>
+                <p class="header-subtitle">Enregistrez un nouveau verger d'oliviers</p>
+              </div>
+            </div>
+            <button class="btn-back" (click)="router.navigate(['/vergers'])">
+              <i class="bi bi-arrow-left"></i> Retour à la liste
+            </button>
+          </div>
+          <div class="header-rule"></div>
+        </div>
+
+        <!-- Body -->
+        <div class="oh-card__body">
+
+          <div *ngIf="successMessage" class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="alert alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <form [formGroup]="vergerForm" (ngSubmit)="onSubmit()" novalidate>
+
+            <!-- Section: Identification -->
+      <!-- Section: Identification -->
+<div class="form-section">
+  <div class="section-title">
+    <i class="bi bi-person-badge"></i> Identification
+  </div>
+
+  <!-- Selected farmer card -->
+  <div class="selected-agri-card" *ngIf="selectedAgriculteur">
+    <div class="agri-avatar large">{{ selectedAgriculteur.nom | slice:0:1 }}</div>
+    <div class="agri-info">
+      <p class="agri-name">{{ selectedAgriculteur.nom }}</p>
+      <p class="agri-email">{{ selectedAgriculteur.email }}</p>
+    </div>
+    <button type="button" class="btn-change-agri" (click)="clearAgriculteur()">
+      <i class="bi bi-arrow-repeat"></i> Changer
+    </button>
+  </div>
+
+  <!-- Search input -->
+  <div class="form-group" *ngIf="!selectedAgriculteur">
+    <label class="form-label">Agriculteur <span class="req">*</span></label>
+    <div class="autocomplete-wrap">
+      <i class="bi bi-search autocomplete-icon"></i>
+      <input type="text" class="form-control"
+             [value]="agriculteurSearch"
+       (input)="onAgriculteurSearch($any($event.target).value)"
+       (focus)="onFocusSearch()"
+       (blur)="hideDropdown()"
+       placeholder="Rechercher par nom ou email..."
+       [class.invalid]="isInvalid('agriculteurId')">
+
+      <div class="autocomplete-dropdown" *ngIf="showDropdown && filteredAgriculteurs.length > 0">
+        <div class="autocomplete-item"
+             *ngFor="let a of filteredAgriculteurs"
+             (mousedown)="selectAgriculteur(a)">
+          <div class="agri-avatar">{{ a.nom | slice:0:1 }}</div>
+          <div>
+            <p class="agri-name">{{ a.nom }}</p>
+            <p class="agri-email">{{ a.email }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="hint">Tapez au moins 2 caractères pour rechercher</span>
+    <span class="error-msg" *ngIf="isInvalid('agriculteurId')">
+      Veuillez sélectionner un agriculteur
+    </span>
+  </div>
+
+</div>
+            <!-- Section: Caractéristiques -->
+            <div class="form-section">
+              <div class="section-title">
+                <i class="bi bi-tree"></i> Caractéristiques du verger
+              </div>
+              <div class="form-grid form-grid--2col">
+
+                <div class="form-group">
+                  <label class="form-label">Type d'olive <span class="req">*</span></label>
+                  <select class="form-control" formControlName="typeOlive"
+                          [class.invalid]="isInvalid('typeOlive')">
+                    <option value="">Sélectionner une variété...</option>
+                    <option *ngFor="let type of typesOlive" [value]="type">{{ type }}</option>
+                  </select>
+                  <span class="error-msg" *ngIf="isInvalid('typeOlive')">La variété d'olive est requise</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Superficie <span class="req">*</span></label>
+                  <div class="input-unit-wrap">
+                    <input type="number" class="form-control" formControlName="superficie"
+                           [class.invalid]="isInvalid('superficie')"
+                           step="0.01" min="0.01" placeholder="0.00">
+                    <span class="unit-label">ha</span>
+                  </div>
+                  <span class="error-msg" *ngIf="isInvalid('superficie')">Superficie requise (valeur positive)</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Nombre d'arbres <span class="req">*</span></label>
+                  <div class="input-unit-wrap">
+                    <input type="number" class="form-control" formControlName="nbArbre"
+                           [class.invalid]="isInvalid('nbArbre')"
+                           min="1" placeholder="0">
+                    <span class="unit-label">arbres</span>
+                  </div>
+                  <span class="error-msg" *ngIf="isInvalid('nbArbre')">Nombre d'arbres requis (minimum 1)</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Rendement estimé <span class="req">*</span></label>
+                  <div class="input-unit-wrap">
+                    <input type="number" class="form-control" formControlName="rendementEstime"
+                           [class.invalid]="isInvalid('rendementEstime')"
+                           step="0.1" min="0" placeholder="0.0">
+                    <span class="unit-label">kg</span>
+                  </div>
+                  <span class="error-msg" *ngIf="isInvalid('rendementEstime')">Rendement estimé requis (≥ 0)</span>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Section: État -->
+            <div class="form-section">
+              <div class="section-title">
+                <i class="bi bi-speedometer2"></i> État actuel
+              </div>
+              <div class="form-grid form-grid--2col">
+
+                <div class="form-group">
+                  <label class="form-label">Maturité actuelle (%) <span class="req">*</span></label>
+                  <input type="number" class="form-control" formControlName="maturiteActuelle"
+                         [class.invalid]="isInvalid('maturiteActuelle')"
+                         min="0" max="100" placeholder="0 – 100">
+                  <!-- Live preview bar -->
+                  <div class="maturite-preview">
+                    <div class="maturite-bg">
+                      <div class="maturite-fill"
+                           [style.width.%]="maturiteValue"
+                           [style.background]="getMaturiteColor(maturiteValue)">
+                      </div>
+                    </div>
+                    <span class="maturite-pct">{{ maturiteValue }}%</span>
+                  </div>
+                  <span class="error-msg" *ngIf="isInvalid('maturiteActuelle')">Maturité requise (0 – 100)</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Statut</label>
+                  <div class="statut-radio-group">
+                    <label *ngFor="let s of statuts"
+                           class="statut-radio"
+                           [class.selected]="vergerForm.get('statut')?.value === s">
+                      <input type="radio" formControlName="statut" [value]="s">
+                      <span class="dot"
+                            [class.dot-warning]="s === 'NON_RECOLTE'"
+                            [class.dot-info]="s === 'EN_COURS'"
+                            [class.dot-success]="s === 'RECOLTE'">
+                      </span>
+                      <span class="statut-label">{{ getStatutLabel(s) }}</span>
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="onReset()">
+                <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+              </button>
+              <button type="button" class="btn-secondary" (click)="router.navigate(['/vergers'])">
+                <i class="bi bi-x-circle"></i> Annuler
+              </button>
+              <button type="submit" class="btn-secondary" [disabled]="isLoading">
+                <span class="btn-spinner" *ngIf="isLoading"></span>
+                <i class="bi bi-plus-circle-fill" *ngIf="!isLoading"></i>
+<span>
+    {{ isLoading ? 'Enregistrement...' : 'Créer le verger' }}
+  </span>              </button>
+            </div>
+
+          </form>
+
+          <div class="info-note">
+            <i class="bi bi-info-circle-fill"></i>
+            <p>Les champs marqués d'un <span class="req">*</span> sont obligatoires.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

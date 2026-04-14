@@ -21,6 +21,9 @@ import { AjouterBenneComponent } from './ressources/bennes/ajouter-benne/ajouter
 import { ModifierBenneComponent } from './ressources/bennes/modifier-benne/modifier-benne';
 import { ProfilComponent } from './profile/profile/profile';
 import { ModifierUtilisateur } from './utilisateurs/modifier-utilisateur/modifier-utilisateur';
+import { ListeVergersComponent } from './vergers/liste-vergers/liste-vergers';
+import { CreerVergerComponent } from './vergers/creer-verger/creer-verger';
+import { ModifierVergerComponent } from './vergers/modifier-verger/modifier-verger';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -147,7 +150,18 @@ export const routes: Routes = [
   canActivate: [AuthGuard]  // Only check if logged in, not role-specific
 },
 
+  //verger
+ {
+  path: 'vergers',
+  canActivate: [AuthGuard, roleGuard],
+  data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }, // or adapt
+  children: [
+    { path: '', component: ListeVergersComponent },
+     { path: 'creer',         component: CreerVergerComponent },
+         { path: 'modifier/:id',  component: ModifierVergerComponent }
+  ]
+},
+  { path: '**', redirectTo: '/login' },
 
-  { path: '**', redirectTo: '/login' }
 ];
 

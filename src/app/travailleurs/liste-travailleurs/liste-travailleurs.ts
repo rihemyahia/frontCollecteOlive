@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TravailleurService, Travailleur } from '../../services/travailleur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
-
 @Component({
   selector: 'app-liste-travailleurs',
   standalone: true,
