@@ -1,0 +1,167 @@
+<!-- src/app/collecte/collecte.component.html -->
+<div class="app-layout">
+
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <path d="M24 34C32 27 35 13 35 13C17 18 11 40 11 40C19 38 28 36 24 34Z" fill="#7A9B2A" opacity="0.7"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES COLLECTES</p>
+                <h2 class="oh-header__title">Campagnes de récolte</h2>
+                <p class="header-subtitle">Gérez et suivez l'avancement de vos campagnes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div class="search-actions">
+            <div class="filter-group">
+              <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control">
+                <option *ngFor="let s of statuts" [value]="s">
+                  {{ s === 'TOUS' ? 'Tous les statuts' : getStatutLabel(s) }}
+                </option>
+              </select>
+              <input
+                type="text"
+                class="form-control search-input"
+                placeholder="Rechercher par code..."
+                [(ngModel)]="searchTerm"
+                (input)="onSearchChange()">
+            </div>
+            <button class="btn-add" (click)="creerCollecte()">
+              <i class="bi bi-plus-lg"></i>
+              Nouvelle campagne
+            </button>
+          </div>
+
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des campagnes...</p>
+          </div>
+
+          <div *ngIf="!isLoading && filteredCollectes.length > 0" class="table-responsive">
+            <table class="oh-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Statut</th>
+                  <th>Tournées</th>
+                  <th>Quantité totale</th>
+                  <th>Rendement moyen</th>
+                  <th>Progression</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of filteredCollectes">
+                  <td>
+                    <strong>{{ c.code }}</strong>
+                    <div class="sub-info" *ngIf="c.vergerId">
+                      <small>Verger: {{ c.vergerId | slice:0:8 }}...</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="statut-badge" [ngClass]="getStatutClass(c.statut)">
+                      {{ getStatutLabel(c.statut) }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ c.nombreTourneesTerminees || 0 }} / {{ c.nombreTournees || 0 }}
+                  </td>
+                  <td>
+                    <strong>{{ getTotalCollecteLabel(c.quantiteTotaleKg || 0) }}</strong>
+                  </td>
+                  <td>
+                    {{ (c.rendementMoyenParArbre || 0) | number:'1.1-2' }} kg/arbre
+                  </td>
+                  <td>
+                    <div class="progress-cell">
+                      <div class="progress-bar">
+                        <div class="progress-fill"
+                             [style.width.%]="getProgress(c)"
+                             [ngClass]="getProgressClass(getProgress(c))">
+                        </div>
+                      </div>
+                      {{ getProgress(c) }}%
+                    </div>
+                    <div class="date-info" *ngIf="c.dateDebutCampagne">
+                      <small>Début: {{ c.dateDebutCampagne | date:'dd/MM/yyyy' }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-view" (click)="voirDetails(c)" title="Voir détails">
+                        👁️
+                      </button>
+                      <button class="btn-start" *ngIf="c.statut === 'PLANIFIEE'"
+                              (click)="demarrerCollecte(c)" title="Démarrer">
+                        ▶
+                      </button>
+                      <button class="btn-finish" *ngIf="c.statut === 'EN_COURS'"
+                              (click)="terminerCollecte(c)" title="Terminer">
+                        🏁
+                      </button>
+                      <button class="btn-cancel" *ngIf="c.statut === 'PLANIFIEE'"
+                              (click)="annulerCollecte(c)" title="Annuler">
+                        ⚠
+                      </button>
+                      <button class="btn-delete" *ngIf="c.statut === 'PLANIFIEE' || c.statut === 'ANNULEE'"
+                              (click)="confirmDelete(c.id)" title="Supprimer">
+                        🗑
+                      </button>
+                    </div>
+                    <div *ngIf="deleteConfirmId === c.id" class="confirm-box">
+                      <p>Confirmer suppression ?</p>
+                      <button (click)="supprimerCollecte(c)">Oui</button>
+                      <button (click)="cancelDelete()">Non</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="!isLoading && filteredCollectes.length === 0" class="oh-state">
+            <i class="bi bi-calendar-x"></i>
+            <p>Aucune campagne trouvée</p>
+            <button class="btn-add" (click)="creerCollecte()">Créer une campagne</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

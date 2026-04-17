@@ -43,6 +43,52 @@ export class AuthService {
         })
       );
   }
+ getUserRole(): string {
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser && currentUser.role) {
+      return currentUser.role;
+    }
+
+    // Fallback: récupérer depuis localStorage
+    if (typeof window !== 'undefined' && localStorage) {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          return user.role || '';
+        } catch (e) {
+          return '';
+        }
+      }
+    }
+    return '';
+  }
+
+  // ✅ AJOUTER CETTE MÉTHODE
+  getUserId(): string {
+    const currentUser = this.currentUserSubject.value;
+    if (currentUser && currentUser.id) {
+      return currentUser.id;
+    }
+
+    if (typeof window !== 'undefined' && localStorage) {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          return user.id || '';
+        } catch (e) {
+          return '';
+        }
+      }
+    }
+    return '';
+  }
+
+  // ✅ AJOUTER CETTE MÉTHODE (optionnelle)
+  getUser(): Utilisateur | null {
+    return this.currentUserSubject.value;
+  }
 
   logout(): void {
     // Vérifier si on est dans le navigateur

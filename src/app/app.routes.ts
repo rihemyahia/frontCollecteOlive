@@ -21,6 +21,11 @@ import { AjouterBenneComponent } from './ressources/bennes/ajouter-benne/ajouter
 import { ModifierBenneComponent } from './ressources/bennes/modifier-benne/modifier-benne';
 import { ProfilComponent } from './profile/profile/profile';
 import { ModifierUtilisateur } from './utilisateurs/modifier-utilisateur/modifier-utilisateur';
+import { CollecteComponent } from './collecte/collecte/collecte';
+import { CalendrierComponent } from './calendrier/calendrier/calendrier';
+import { ListeVergersComponent } from './vergers/liste-vergers/liste-vergers';
+import { ModifierVergerComponent } from './vergers/modifier-verger/modifier-verger';
+import { CreerVergerComponent } from './vergers/creer-verger/creer-verger';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -54,13 +59,42 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'admin' }
   },
+   //verger
+ {
+  path: 'vergers',
+  canActivate: [AuthGuard, roleGuard],
+  data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }, // or adapt
+  children: [
+    { path: '', component: ListeVergersComponent },
+     { path: 'creer',         component: CreerVergerComponent },
+         { path: 'modifier/:id',  component: ModifierVergerComponent }
+  ]
+},
+
   // Routes Agriculteurs
   {
     path: 'agriculteurs',
     component: ListeAgriculteurs,
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'responsable' }
+  },// Ajoutez une route de test
+{
+  path: 'test-collecte',
+  component: CollecteComponent,
   },
+  {
+    path: 'calendrier',
+    component: CalendrierComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { roles: ['ADMIN', 'RESPONSABLE'] }
+  },
+// Routes Agriculteurs
+  {
+    path: 'collectes',
+    component: CollecteComponent,
+  //  canActivate: [AuthGuard, roleGuard],
+    //data: { role: 'admin' }
+  },  { path: 'campagnes', component: CollecteComponent },
   {
     path: 'agriculteurs/creer',
     component: CreerAgriculteur,

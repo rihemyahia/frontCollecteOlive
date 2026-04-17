@@ -41,6 +41,9 @@
     </div>
   </div>
 
+
+
+
   <!-- Navigation -->
   <nav class="sidebar-nav">
     <ul class="nav-list">
@@ -56,6 +59,7 @@
           <span class="nav-label" *ngIf="!isCollapsed">{{ item.label }}</span>
           <span class="nav-badge" *ngIf="item.badge && !isCollapsed">{{ item.badge }}</span>
         </a>
+        
 
         <!-- Item avec sous-menu -->
         <div *ngIf="item.children?.length" class="nav-dropdown">

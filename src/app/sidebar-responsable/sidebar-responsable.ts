@@ -97,6 +97,20 @@ export class SideBarResponsable implements OnInit {
       route: '/utilisateurs',
       roles: ['ADMIN']
     },
+     {
+      id: 'vergers',
+      label: 'Vergers',
+      icon: 'tree',
+      route: '/vergers',
+      roles: ['ADMIN', 'RESPONSABLE']
+    },
+      {
+      id: 'calendrier',
+      label: 'Calendrier',
+      icon: 'calendar',
+      route: '/calendrier',
+    roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR']
+    },
     {
       id: 'ressources',
       label: 'Ressources',

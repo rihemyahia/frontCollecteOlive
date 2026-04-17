@@ -1,0 +1,141 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <!-- Ambient soft orbs -->
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
+      </div>
+
+      <!-- Main Premium Card -->
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="6" y="10" width="36" height="32" rx="6" fill="#A8B84B" opacity="0.85"/>
+                    <rect x="6" y="10" width="36" height="12" rx="6" fill="#5A6E1A" opacity="0.9"/>
+                    <rect x="14" y="6" width="4" height="9" rx="2" fill="#DFE9B0"/>
+                    <rect x="30" y="6" width="4" height="9" rx="2" fill="#DFE9B0"/>
+                    <rect x="13" y="27" width="5" height="5" rx="1.5" fill="white" opacity="0.8"/>
+                    <rect x="21" y="27" width="5" height="5" rx="1.5" fill="white" opacity="0.8"/>
+                    <rect x="29" y="27" width="5" height="5" rx="1.5" fill="white" opacity="0.8"/>
+                    <rect x="13" y="35" width="5" height="3" rx="1" fill="white" opacity="0.5"/>
+                    <rect x="21" y="35" width="5" height="3" rx="1" fill="white" opacity="0.5"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  PLANIFICATION DES COLLECTES
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Calendrier des tournées</h2>
+                <p class="header-subtitle">Visualisez et gérez toutes les tournées de collecte</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <div class="oh-stats-pill"></div>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
+
+          <!-- Filters for Admin/Responsable -->
+          <div *ngIf="isAdminOrResponsable" class="filters-bar">
+            <div class="filter-group">
+              <label class="filter-label">
+                <i class="bi bi-tree-fill"></i>
+                Filtrer par verger
+              </label>
+              <select class="filter-select" [(ngModel)]="selectedVergerId" (change)="onVergerChange()">
+                <option value="">Tous les vergers</option>
+                <option *ngFor="let v of vergers" [value]="v.id">
+                  {{ v.typeOlive }} ({{ v.nbArbre }} arbres)
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">
+                <i class="bi bi-person-fill"></i>
+                Filtrer par travailleur
+              </label>
+              <select class="filter-select" [(ngModel)]="selectedTravailleurId" (change)="onTravailleurChange()">
+                <option value="">Tous les travailleurs</option>
+                <option *ngFor="let t of travailleurs" [value]="t.id">
+                  {{ t.prenom }} {{ t.nom }}
+                </option>
+              </select>
+            </div>
+
+            <button (click)="resetFilters()" class="btn-reset">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Réinitialiser
+            </button>
+          </div>
+
+          <!-- Info message for non-admin -->
+          <div *ngIf="!isAdminOrResponsable" class="info-message">
+            <i class="bi bi-pin-angle-fill"></i>
+            <span>Vous voyez uniquement les tournées qui vous concernent.</span>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+          <!-- Error message -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des collectes...</p>
+          </div>
+
+          <!-- Calendar -->
+          <div class="calendar-wrapper">
+            <full-calendar [options]="calendarOptions"></full-calendar>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Event Detail Modal -->
+  <app-event-detail-modal
+    [event]="selectedEvent"
+    [isEditable]="isAdminOrResponsable"
+    [isOpen]="showModal"
+    (closeModal)="closeModal()"
+    (editEvent)="handleEditEvent($event)">
+  </app-event-detail-modal>
+</div>
+
