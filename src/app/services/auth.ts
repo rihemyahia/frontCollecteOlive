@@ -34,12 +34,17 @@ export class AuthService {
     return this.http.post<Utilisateur>(`${this.apiUrl}/login`, { email, motDePasse })
       .pipe(
         tap(user => {
+          console.log('✅ Login response received:', user);
           // Vérifier si on est dans le navigateur
           if (typeof window !== 'undefined' && localStorage) {
             localStorage.setItem('currentUser', JSON.stringify(user));
             localStorage.setItem('token', user.token);
+            console.log('✅ Saved to localStorage - currentUser:', user);
+            console.log('✅ Saved to localStorage - id:', user.id);
+            console.log('✅ localStorage.getItem("currentUser"):', localStorage.getItem('currentUser'));
           }
           this.currentUserSubject.next(user);
+          console.log('✅ BehaviorSubject updated with user data');
         })
       );
   }
@@ -52,6 +57,7 @@ export class AuthService {
     }
     this.currentUserSubject.next(null);
   }
+  
 
  // In auth-service.ts - Update the isLoggedIn method:
 
@@ -81,14 +87,71 @@ isLoggedIn(): boolean {
       return localStorage.getItem('token');
     }
     return null;
- 
-  
   }
-  getUserRole(): string {
-  return this.currentUserSubject.value?.role?.toUpperCase() || '';
-}
 
-getUserId(): string {
-  return this.currentUserSubject.value?.id || '';
-}
+  getUserRole(): string {
+    // First try BehaviorSubject
+    if (this.currentUserSubject.value?.role) {
+      return this.currentUserSubject.value.role.toUpperCase();
+    }
+
+    // Fallback to localStorage
+    if (typeof window !== 'undefined' && localStorage) {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          return user.role?.toUpperCase() || '';
+        } catch (e) {
+          console.error('Error parsing currentUser from localStorage:', e);
+        }
+      }
+    }
+
+    return '';
+  }
+
+  getUserId(): string {
+    // First try BehaviorSubject
+    if (this.currentUserSubject.value?.id) {
+      return this.currentUserSubject.value.id;
+    }
+
+    // Fallback to localStorage
+    if (typeof window !== 'undefined' && localStorage) {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          return user.id || '';
+        } catch (e) {
+          console.error('Error parsing currentUser from localStorage:', e);
+        }
+      }
+    }
+
+    return '';
+  }
+
+  // Debug method to check localStorage
+  debugLocalStorage(): void {
+    if (typeof window !== 'undefined' && localStorage) {
+      console.log('=== localStorage Debug ===');
+      console.log('currentUser:', localStorage.getItem('currentUser'));
+      console.log('token:', localStorage.getItem('token'));
+      
+      const currentUser = localStorage.getItem('currentUser');
+      if (currentUser) {
+        try {
+          const parsed = JSON.parse(currentUser);
+          console.log('Parsed currentUser:', parsed);
+          console.log('ID:', parsed.id);
+          console.log('Role:', parsed.role);
+          console.log('Email:', parsed.email);
+        } catch (e) {
+          console.error('Error parsing currentUser:', e);
+        }
+      }
+    }
+  }
 }
