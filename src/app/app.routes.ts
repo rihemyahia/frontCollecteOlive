@@ -26,6 +26,7 @@ import { CreerVergerComponent } from './vergers/creer-verger/creer-verger';
 import { ModifierVergerComponent } from './vergers/modifier-verger/modifier-verger';
 import { MesVergersComponent } from './vergers/mes-vergers/mes-vergers';
 import { MesAlertesComponent } from './alertes/mes-alertes/mes-alertes';
+import { CalendrierComponent } from './calendrier/calendrier/calendrier';
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -65,6 +66,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'responsable' }
   },
+  {
+    path: 'calendrier',
+    component: CalendrierComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE','AGRICULTEUR'] }},
   {
     path: 'agriculteurs/creer',
     component: CreerAgriculteur,
