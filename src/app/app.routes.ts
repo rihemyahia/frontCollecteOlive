@@ -24,7 +24,8 @@ import { ModifierUtilisateur } from './utilisateurs/modifier-utilisateur/modifie
 import { ListeVergersComponent } from './vergers/liste-vergers/liste-vergers';
 import { CreerVergerComponent } from './vergers/creer-verger/creer-verger';
 import { ModifierVergerComponent } from './vergers/modifier-verger/modifier-verger';
-
+import { MesVergersComponent } from './vergers/mes-vergers/mes-vergers';
+import { MesAlertesComponent } from './alertes/mes-alertes/mes-alertes';
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -161,7 +162,10 @@ export const routes: Routes = [
          { path: 'modifier/:id',  component: ModifierVergerComponent }
   ]
 },
-  { path: '**', redirectTo: '/login' },
+
+{path: 'mes-vergers', component: MesVergersComponent, canActivate: [AuthGuard, roleGuard], data: { role: ['AGRICULTEUR'] } },
+{ path: 'mes-alertes', component: MesAlertesComponent, canActivate: [AuthGuard, roleGuard], data: { role: ['AGRICULTEUR'] } },
+{ path: '**', redirectTo: '/login' },
 
 ];
 

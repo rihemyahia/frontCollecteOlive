@@ -1,0 +1,205 @@
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { VergerService } from '../../services/verger';
+import { VergerResponse } from '../../models/verger';
+import { StatutVerger } from '../../models/enums/statut-verger';
+import { AuthService } from '../../services/auth';
+import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+
+@Component({
+  selector: 'app-mes-vergers',
+  standalone: true,
+  imports: [CommonModule, DecimalPipe, DatePipe, SideBarResponsable, FormsModule],
+  templateUrl: './mes-vergers.html',
+  styleUrl: './mes-vergers.css'
+})
+export class MesVergersComponent implements OnInit {
+
+  vergers: VergerResponse[] = [];
+  isLoading = true;
+  errorMessage = '';
+
+  // Search & Filter
+  searchQuery = '';
+  selectedType = '';
+  selectedStatus = '';
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 6;
+
+  isSidebarCollapsed = false;
+  isMobile = false;
+  userRole = '';
+  agriculteurId = '';
+
+  constructor(
+    private vergerService: VergerService,  // ← Order matters, put services first
+    private authService: AuthService,
+    public router: Router,
+    private cdr: ChangeDetectorRef  // ← ChangeDetectorRef last
+  ) {}
+
+  @HostListener('window:resize')
+  checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile) this.isSidebarCollapsed = false;
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  ngOnInit(): void {
+    this.userRole = this.authService.getUserRole();
+    this.agriculteurId = this.authService.getUserId();
+    this.checkMobile();
+    this.loadVergers();
+  }
+
+  loadVergers(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    console.log('Loading vergers for:', this.agriculteurId); // Debug
+    
+    this.vergerService.getByAgriculteur(this.agriculteurId).subscribe({
+      next: (data) => {
+        console.log('Data received:', data); // Debug
+        this.vergers = data.filter(v => !v.estSupprimer);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading vergers:', err);
+        this.errorMessage = 'Erreur lors du chargement de vos vergers.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  get totalArbres(): number {
+    return this.vergers.reduce((s, v) => s + (v.nbArbre ?? 0), 0);
+  }
+
+  get totalSuperficie(): number {
+    return this.vergers.reduce((s, v) => s + (v.superficie ?? 0), 0);
+  }
+
+  get vergersRecoltes(): number {
+    return this.vergers.filter(v => v.statut === StatutVerger.RECOLTE).length;
+  }
+
+  // Filter & Search
+  get filteredVergers(): VergerResponse[] {
+    let result = [...this.vergers];
+
+    // Search by type or location
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(v =>
+        v.typeOlive?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter by type
+    if (this.selectedType) {
+      result = result.filter(v => v.typeOlive === this.selectedType);
+    }
+
+    // Filter by status
+    if (this.selectedStatus) {
+      result = result.filter(v => v.statut === this.selectedStatus);
+    }
+
+    return result;
+  }
+
+  // Pagination
+  get totalPages(): number {
+    return Math.ceil(this.filteredVergers.length / this.itemsPerPage) || 1;
+  }
+
+  get paginatedVergers(): VergerResponse[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredVergers.slice(start, end);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedType = '';
+    this.selectedStatus = '';
+    this.currentPage = 1;
+  }
+
+  // Quick Alert
+  openAlertModal(verger: VergerResponse): void {
+    // Store the selected verger in session storage for mes-alertes to use
+    sessionStorage.setItem('preSelectedVergerId', verger.id);
+    this.router.navigate(['/mes-alertes']);
+  }
+
+  // Get unique types for filter dropdown
+  get vergerTypes(): string[] {
+    const types = this.vergers.map(v => v.typeOlive).filter((v, i, a) => a.indexOf(v) === i);
+    return types.sort();
+  }
+
+  getMaturiteColor(val: number): string {
+    if (val < 40) return '#E8A838';
+    if (val < 75) return '#A8B84B';
+    return '#4A7A2A';
+  }
+
+  getStatutLabel(s: string | StatutVerger): string {
+    const map: Record<string, string> = {
+      'NON_RECOLTE': 'Non récolté',
+      'EN_COURS': 'En cours',
+      'RECOLTE': 'Récolté'
+    };
+    return map[s as string] ?? s as string;
+  }
+
+  getStatutClass(statut: string | StatutVerger): string {
+    const status = statut as string;
+    switch(status) {
+      case 'NON_RECOLTE': return 'statut-badge--warning';
+      case 'EN_COURS': return 'statut-badge--info';
+      case 'RECOLTE': return 'statut-badge--success';
+      default: return '';
+    }
+  }
+
+  getDotClass(statut: string | StatutVerger): string {
+    const status = statut as string;
+    switch(status) {
+      case 'NON_RECOLTE': return 'dot-warning';
+      case 'EN_COURS': return 'dot-info';
+      case 'RECOLTE': return 'dot-success';
+      default: return '';
+    }
+  }
+}

@@ -1,0 +1,383 @@
+<!-- mes-alertes.component.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+
+      <!-- Main Card -->
+      <div class="oh-card">
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-bell-fill"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">MON ESPACE</p>
+                <h2 class="oh-header__title">Mes alertes</h2>
+                <p class="header-subtitle">Signalez un problème et suivez vos alertes en cours</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <button class="btn-signal" (click)="showForm = !showForm">
+                <i class="bi bi-plus-circle-fill"></i>
+                {{ showForm ? 'Fermer' : 'Nouvelle alerte' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Alert Form -->
+           
+          <div class="oh-form-card" *ngIf="showForm">
+            <div class="oh-form-card__header">
+              <i class="bi bi-megaphone-fill"></i> Signaler un problème
+            </div>
+            <div class="oh-form-card__body">
+
+              <div *ngIf="formSuccess" class="oh-alert-msg oh-alert-msg--success">
+                <i class="bi bi-check-circle-fill"></i> {{ formSuccess }}
+              </div>
+              <div *ngIf="formError" class="oh-alert-msg oh-alert-msg--error">
+                <i class="bi bi-exclamation-triangle-fill"></i> {{ formError }}
+              </div>
+
+              <!-- Urgence Info Header with Icon -->
+              <div class="oh-form-urgence-header">
+                <h3>Votre alerte sera évaluée automatiquement</h3>
+                <button type="button" class="oh-urgence-info-btn" (click)="showUrgenceInfo = true" title="Comment est calculée l'urgence ?">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </div>
+
+              <!-- Urgence Info Popup -->
+              <div class="oh-urgence-modal-overlay" *ngIf="showUrgenceInfo" (click)="showUrgenceInfo = false">
+                <div class="oh-urgence-modal" (click)="$event.stopPropagation()">
+                  <div class="oh-urgence-modal__header">
+                    <h2><i class="bi bi-lightbulb-fill"></i> Comment est calculée l'urgence ?</h2>
+                    <button type="button" class="oh-urgence-modal__close" (click)="showUrgenceInfo = false">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                  
+                  <div class="oh-urgence-modal__content">
+                    <p class="oh-urgence-intro">Notre système analyse votre alerte pour déterminer son niveau d'urgence. Plus le problème pourrait impacter votre récolte, plus l'urgence sera élevée.</p>
+                    
+                    <div class="oh-urgence-factors">
+                      <div class="oh-factor">
+                        <div class="oh-factor__icon">🔴</div>
+                        <div class="oh-factor__content">
+                          <h4>Type de problème</h4>
+                          <p>Certains problèmes sont plus graves :</p>
+                          <ul>
+                            <li><strong>Sécurité :</strong> Risques pour la santé → <span class="oh-urgence-badge oh-urgence-badge--critique">CRITIQUE</span></li>
+                            <li><strong>Maladie, Ravageurs :</strong> Peuvent se propager → <span class="oh-urgence-badge oh-urgence-badge--elevee">ÉLEVÉE</span></li>
+                            <li><strong>Récolte, Maturité :</strong> Impactent le rendement → <span class="oh-urgence-badge oh-urgence-badge--moyenne">MOYENNE</span></li>
+                            <li><strong>Autres :</strong> Moins critique → <span class="oh-urgence-badge oh-urgence-badge--faible">FAIBLE</span></li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="oh-factor">
+                        <div class="oh-factor__icon">📅</div>
+                        <div class="oh-factor__content">
+                          <h4>Phase de votre culture</h4>
+                          <p>Le moment est crucial :</p>
+                          <ul>
+                            <li><strong>En récolte :</strong> Urgence augmentée ⬆️ (temps limité)</li>
+                            <li><strong>Pré-récolte :</strong> Urgence augmentée ⬆️ (dernière chance)</li>
+                            <li><strong>Autres phases :</strong> Urgence normale</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div class="oh-factor">
+                        <div class="oh-factor__icon">⚠️</div>
+                        <div class="oh-factor__content">
+                          <h4>Exemple réel</h4>
+                          <p><strong>Scénario 1 :</strong> Maladie en floraison → Urgence élevée</p>
+                          <p><strong>Scénario 2 :</strong> Maladie en récolte → Urgence CRITIQUE</p>
+                          <p><strong>Scénario 3 :</strong> Problème de récolte en récolte → Urgence CRITIQUE</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="oh-urgence-footer">
+                      <p><i class="bi bi-info-circle"></i> Cette évaluation automatique aide nos responsables à prioriser les alertes et à vous apporter une aide rapide.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <form [formGroup]="alerteForm" (ngSubmit)="onSubmit()" novalidate>
+                <div class="oh-form-grid">
+
+                  <!-- Verger Selection -->
+                  <div class="oh-form-group">
+                    <label class="oh-form-label">Verger concerné <span class="oh-req">*</span></label>
+                    <select class="oh-form-control" formControlName="vergerId"
+                            [class.invalid]="isInvalid('vergerId')">
+                      <option value="">Sélectionner un verger...</option>
+                      <option *ngFor="let v of mesVergers" [value]="v.id">
+                        {{ v.typeOlive }} — {{ v.superficie | number:'1.1-1' }} ha
+                      </option>
+                    </select>
+                    <span class="oh-error-msg" *ngIf="isInvalid('vergerId')">Veuillez sélectionner un verger</span>
+                  </div>
+
+                  <!-- Alert Type -->
+                  <div class="oh-form-group">
+                    <label class="oh-form-label">Type d'alerte <span class="oh-req">*</span></label>
+                    <select class="oh-form-control" formControlName="type"
+                            [class.invalid]="isInvalid('type')">
+                      <option value="">Sélectionner un type...</option>
+                      <option *ngFor="let t of typesAlerte" [value]="t.value">
+                        {{ t.label }}
+                      </option>
+                    </select>
+                    <span class="oh-error-msg" *ngIf="isInvalid('type')">Veuillez sélectionner un type</span>
+                  </div>
+
+                  <!-- Description -->
+                  <div class="oh-form-group oh-form-group--full">
+                    <label class="oh-form-label">Description <span class="oh-req">*</span></label>
+                    <textarea class="oh-form-control" formControlName="description"
+                              [class.invalid]="isInvalid('description')"
+                              rows="4"
+                              placeholder="Décrivez le problème observé sur votre verger..."></textarea>
+                    <span class="oh-error-msg" *ngIf="isInvalid('description')">
+                      La description est requise (minimum 10 caractères)
+                    </span>
+                  </div>
+
+                  <!-- Geolocation Status -->
+                  <div class="oh-form-group oh-form-group--full" *ngIf="locationError">
+                    <div class="oh-alert-msg oh-alert-msg--error" style="margin-bottom: 1rem;">
+                      <i class="bi bi-exclamation-triangle-fill"></i> {{ locationError }}
+                    </div>
+                    <label class="oh-form-label">Adresse indicative</label>
+                    <input type="text" class="oh-form-control" formControlName="adresseIndicative"
+                           placeholder="Ex: Route de Fès, km 15 ou Ferme...">
+                  </div>
+
+                  <!-- Current Location Info -->
+                  <div class="oh-form-group oh-form-group--full" *ngIf="currentLatitude && currentLongitude && !locationError">
+                    <div style="padding: 0.75rem; background: #E8F2D8; border-radius: 8px; border-left: 3px solid #4A7A2A; font-size: 0.85rem; color: #2A5A0A;">
+                      <i class="bi bi-geo-alt-fill"></i> Position capturée: {{ currentLatitude | number:'1.5-5' }}, {{ currentLongitude | number:'1.5-5' }}
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Form Actions -->
+                <div class="oh-form-actions">
+                  <button type="button" class="oh-btn-secondary" (click)="resetForm()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                  </button>
+                  <button type="button" class="oh-btn-secondary" (click)="showForm = false">
+                    <i class="bi bi-x-circle"></i> Annuler
+                  </button>
+                  <button type="submit" class="oh-btn-primary" [disabled]="isSubmitting || isGettingLocation">
+                    <span class="oh-spinner" *ngIf="isSubmitting"></span>
+                    <i class="bi bi-megaphone-fill" *ngIf="!isSubmitting"></i>
+                    {{ isSubmitting ? 'Envoi...' : "Envoyer l'alerte" }}
+                  </button>
+                </div>
+              </form>
+
+            </div>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="oh-stats-row" *ngIf="!isLoading && alertes.length > 0">
+            <div class="oh-stat-card">
+              <span class="oh-stat-value">{{ alertes.length }}</span>
+              <span class="oh-stat-label">Total alertes</span>
+            </div>
+            <div class="oh-stat-card">
+              <span class="oh-stat-value">{{ getAlertesByStatut('EN_ATTENTE').length }}</span>
+              <span class="oh-stat-label">En attente</span>
+            </div>
+            <div class="oh-stat-card">
+              <span class="oh-stat-value">{{ getAlertesByStatut('TRAITEE').length }}</span>
+              <span class="oh-stat-label">Traitées</span>
+            </div>
+            <div class="oh-stat-card">
+              <span class="oh-stat-value">{{ getAlertesByNiveau('CRITIQUE').length }}</span>
+              <span class="oh-stat-label">Critiques</span>
+            </div>
+          </div>
+
+          <!-- Search & Filters -->
+          <div class="oh-search-filters" *ngIf="!isLoading && alertes.length > 0">
+            <!-- Search Bar -->
+            <div class="oh-search-bar">
+              <input type="text" 
+                     placeholder="🔍 Rechercher par description, verger ou type..."
+                     [(ngModel)]="searchQuery"
+                     class="oh-search-input">
+            </div>
+
+            <!-- Filter Buttons & Toggle -->
+            <div class="oh-filter-controls">
+              <!-- Hide Resolved Toggle -->
+              <label class="oh-filter-toggle">
+                <input type="checkbox" [(ngModel)]="hideResolved">
+                <span>Masquer résolues</span>
+              </label>
+
+              <!-- Type Filter -->
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Type</label>
+                <select [(ngModel)]="selectedType" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option *ngFor="let t of typesAlerte" [value]="t.value">{{ t.label }}</option>
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatus" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="EN_ATTENTE">En attente</option>
+                  <option value="TRAITEE">Traitées</option>
+                  <option value="IGNOREE">Ignorées</option>
+                </select>
+              </div>
+
+              <!-- Urgence Filter -->
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Urgence</label>
+                <select [(ngModel)]="selectedUrgence" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="CRITIQUE">Critique</option>
+                  <option value="ELEVEE">Élevée</option>
+                  <option value="MOYENNE">Moyenne</option>
+                  <option value="FAIBLE">Faible</option>
+                </select>
+              </div>
+
+              <!-- Reset Button -->
+              <button (click)="resetFilters()" class="oh-filter-reset" 
+                      [class.hidden]="!searchQuery && !hideResolved && !selectedType && !selectedStatus && !selectedUrgence">
+                🔄 Réinitialiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement de vos alertes...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && alertes.length === 0" class="empty-state">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔔</div>
+            <h3>Aucune alerte signalée</h3>
+            <p>Vous n'avez pas encore signalé de problème. Utilisez le bouton ci-dessus pour en créer une.</p>
+          </div>
+
+          <!-- No Results -->
+          <div *ngIf="!isLoading && alertes.length > 0 && filteredAlertes.length === 0" class="empty-state">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3>Aucun résultat</h3>
+            <p>Aucune alerte ne correspond à vos filtres. Essayez de les modifier.</p>
+          </div>
+
+          <!-- Alerts List -->
+          <div class="oh-alerts-list" *ngIf="!isLoading && filteredAlertes.length > 0">
+            <div class="oh-alert-item"
+                 *ngFor="let a of paginatedAlertes"
+                 [class.oh-alert-item--critique]="a.niveauUrgence === 'CRITIQUE'"
+                 [class.oh-alert-item--treated]="a.statut === 'TRAITEE'"
+                 [class.oh-alert-item--ignored]="a.statut === 'IGNOREE'">
+
+              <div class="oh-alert-item__left">
+                <div class="oh-alert-type-icon">
+                  {{ getTypeIcon(a.type) }}
+                </div>
+              </div>
+
+              <div class="oh-alert-item__body">
+                <div class="oh-alert-item__top">
+                  <div class="oh-alert-header-left">
+                    <span class="oh-alert-type-label">{{ getTypeLabel(a.type) }}</span>
+                    <span class="oh-alert-verger" *ngIf="a.vergerTypeOlive">
+                      🌳 {{ a.vergerTypeOlive }}
+                    </span>
+                  </div>
+                  <div class="oh-alert-header-right">
+                    <span class="oh-niveau-badge" 
+                          [class]="'oh-niveau-badge--' + (a.niveauUrgence | lowercase)"
+                          [title]="getUrgenceExplanation(a)">
+                      {{ getNiveauUrgenceLabel(a.niveauUrgence) }}
+                    </span>
+                    <span class="oh-statut-badge" [class]="getStatutClass(a.statut)">
+                      {{ getStatutLabel(a.statut) }}
+                    </span>
+                  </div>
+                </div>
+                <p class="oh-alert-message">{{ a.description }}</p>
+                <div class="oh-alert-meta">
+                  <span><i class="bi bi-clock-history"></i> {{ a.dateSignalement | relativeDate }}</span>
+                  <span *ngIf="a.phase">
+                    <i class="bi bi-flower1"></i> {{ getPhaseLabel(a.phase) }}
+                  </span>
+                  <span *ngIf="a.commentaireTraitement">
+                    <i class="bi bi-chat-dots"></i> {{ a.commentaireTraitement }}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="oh-pagination" *ngIf="totalPages > 1">
+              <button class="oh-pagination__btn" 
+                      (click)="previousPage()" 
+                      [disabled]="currentPage === 1"
+                      title="Page précédente">
+                <i class="bi bi-chevron-left"></i> Précédent
+              </button>
+
+              <div class="oh-pagination__info">
+                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+                <span class="oh-pagination__count">({{ filteredAlertes.length }} alertes)</span>
+              </div>
+
+              <button class="oh-pagination__btn" 
+                      (click)="nextPage()" 
+                      [disabled]="currentPage === totalPages"
+                      title="Page suivante">
+                Suivant <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
