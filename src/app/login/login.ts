@@ -17,7 +17,13 @@ export class Login {
   isLoading = false;
   errorMessage = '';
 
+  showPassword = false;
+
   constructor(private authService: AuthService, private router: Router) {}
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   onSubmit(): void {
     if (!this.email || !this.motDePasse) {

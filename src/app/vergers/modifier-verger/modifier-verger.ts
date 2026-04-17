@@ -8,20 +8,23 @@ import { StatutVerger } from '../../models/enums/statut-verger';
 import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { Agriculteur, AgriculteurService } from '../../services/agriculteur';
+import { VergerMapComponent } from '../../shared/verger-map/verger-map';
 
 @Component({
   selector: 'app-modifier-verger',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, SideBarResponsable],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, SideBarResponsable, VergerMapComponent],
   templateUrl: './modifier-verger.html',
   styleUrl: './modifier-verger.css'
 })
 export class ModifierVergerComponent implements OnInit {
-agriculteurs: Agriculteur[] = [];
-filteredAgriculteurs: Agriculteur[] = [];
-selectedAgriculteur: Agriculteur | null = null; 
+
+  agriculteurs: Agriculteur[] = [];
+  filteredAgriculteurs: Agriculteur[] = [];
+  selectedAgriculteur: Agriculteur | null = null; 
   agriculteurSearch = '';
   showDropdown = false;
+
   vergerForm!: FormGroup;
   vergerId = '';
   isLoading = false;
@@ -39,6 +42,11 @@ selectedAgriculteur: Agriculteur | null = null;
   showStatutPanel = false;
   selectedNewStatut: StatutVerger = StatutVerger.NON_RECOLTE;
 
+  // Variables pour la carte
+  selectedLat: number | null = null;
+  selectedLng: number | null = null;
+  selectedAddress = '';
+
   constructor(
     private fb: FormBuilder,
     private vergerService: VergerService,
@@ -47,7 +55,6 @@ selectedAgriculteur: Agriculteur | null = null;
     private cdr: ChangeDetectorRef,
     public router: Router,
     private agriculteurService: AgriculteurService,
-
   ) {}
 
   @HostListener('window:resize')
@@ -60,64 +67,74 @@ selectedAgriculteur: Agriculteur | null = null;
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
- ngOnInit(): void {
-  this.userRole = this.authService.getUserRole();
-  this.checkMobile();
-  this.vergerId = this.route.snapshot.paramMap.get('id')!;
+  ngOnInit(): void {
+    this.userRole = this.authService.getUserRole();
+    this.checkMobile();
+    this.vergerId = this.route.snapshot.paramMap.get('id')!;
 
-  this.vergerForm = this.fb.group({
-    agriculteurId:    ['', Validators.required],
-    superficie:       [null, [Validators.required, Validators.min(0.01)]],
-    typeOlive:        ['', Validators.required],
-    nbArbre:          [null, [Validators.required, Validators.min(1)]],
-    rendementEstime:  [null, [Validators.required, Validators.min(0)]],
-    maturiteActuelle: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
-    statut:           [StatutVerger.NON_RECOLTE]
-  });
+    this.vergerForm = this.fb.group({
+      agriculteurId:    ['', Validators.required],
+      superficie:       [null, [Validators.required, Validators.min(0.01)]],
+      typeOlive:        ['', Validators.required],
+      nbArbre:          [null, [Validators.required, Validators.min(1)]],
+      rendementEstime:  [null, [Validators.required, Validators.min(0)]],
+      maturiteActuelle: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
+      statut:           [StatutVerger.NON_RECOLTE],
+      latitude:         [null],
+      longitude:        [null],
+      adresseIndicative: ['']
+    });
 
-  // Load farmers first, THEN load the verger so find() can match
-  this.agriculteurService.getAll().subscribe(list => {
-    this.agriculteurs = list;
-    this.loadVerger();
-  });
-}
+    this.agriculteurService.getAll().subscribe(list => {
+      this.agriculteurs = list;
+      this.loadVerger();
+    });
+  }
 
   loadVerger(): void {
     this.isLoadingData = true;
     this.cdr.detectChanges();
 
     this.vergerService.getById(this.vergerId).subscribe({
-      next: v => {
-  this.vergerForm.patchValue({
-    agriculteurId:    v.agriculteurId,
-    superficie:       v.superficie,
-    typeOlive:        v.typeOlive,
-    nbArbre:          v.nbArbre,
-    rendementEstime:  v.rendementEstime,
-    maturiteActuelle: v.maturiteActuelle,
-    statut:           v.statut
-  });
+      next: (v: any) => {
+        this.vergerForm.patchValue({
+          agriculteurId:    v.agriculteurId,
+          superficie:       v.superficie,
+          typeOlive:        v.typeOlive,
+          nbArbre:          v.nbArbre,
+          rendementEstime:  v.rendementEstime,
+          maturiteActuelle: v.maturiteActuelle,
+          statut:           v.statut,
+          latitude:         v.geolocalisation?.latitude || null,
+          longitude:        v.geolocalisation?.longitude || null,
+          adresseIndicative: v.geolocalisation?.adresseIndicative || ''
+        });
 
-  this.selectedNewStatut = v.statut;
+        this.selectedNewStatut = v.statut;
 
-  // Try to match from loaded list first
-  const match = this.agriculteurs.find(a => a.id === v.agriculteurId);
-  if (match) {
-    this.selectedAgriculteur = match;
-  } else {
-    // Fallback using response fields — cast to satisfy the type
-    this.selectedAgriculteur = {
-      ...({} as Agriculteur),
-      id: v.agriculteurId,
-      nom: v.agriculteurNom,
-      email: v.agriculteurEmail
-    };
-  }
+        // Charger la position sur la carte si elle existe
+        if (v.geolocalisation?.latitude && v.geolocalisation?.longitude) {
+          this.selectedLat = v.geolocalisation.latitude;
+          this.selectedLng = v.geolocalisation.longitude;
+          this.selectedAddress = v.geolocalisation.adresseIndicative || '';
+        }
 
-  this.isLoadingData = false;
-  this.cdr.detectChanges();
-},
-      
+        // Match agriculteur
+        const match = this.agriculteurs.find(a => a.id === v.agriculteurId);
+        if (match) {
+          this.selectedAgriculteur = match;
+        } else {
+          this.selectedAgriculteur = {
+            ...({} as Agriculteur),
+            id: v.agriculteurId,
+            nom: v.agriculteurNom || '',
+            email: v.agriculteurEmail || ''
+          };
+        }
+
+        this.isLoadingData = false;
+        this.cdr.detectChanges();
+      },
       error: () => {
         this.errorMessage = 'Verger introuvable ou erreur de chargement.';
         this.isLoadingData = false;
@@ -125,31 +142,48 @@ selectedAgriculteur: Agriculteur | null = null;
       }
     });
   }
-onAgriculteurSearch(query: string): void {
-  this.agriculteurSearch = query;
-  const q = query.toLowerCase();
-  this.filteredAgriculteurs = q.length < 2 ? [] :
-    this.agriculteurs.filter(a =>
-      a.nom.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
-    );
-  this.showDropdown = this.filteredAgriculteurs.length > 0;
-}
 
-selectAgriculteur(a: Agriculteur): void {
-  this.selectedAgriculteur = a;
-  this.vergerForm.patchValue({ agriculteurId: a.id });
-  this.agriculteurSearch = '';
-  this.showDropdown = false;
-}
+  // ====================== GESTION CARTE ======================
+  onLocationSelected(event: { lat: number; lng: number; address?: string }) {
+    this.selectedLat = event.lat;
+    this.selectedLng = event.lng;
+    this.selectedAddress = event.address || '';
 
-clearAgriculteur(): void {
-  this.selectedAgriculteur = null;
-  this.vergerForm.patchValue({ agriculteurId: '' });
-}
+    this.vergerForm.patchValue({
+      latitude: event.lat,
+      longitude: event.lng,
+      adresseIndicative: event.address
+    });
+    this.cdr.detectChanges();
+  }
 
-hideDropdown(): void {
-  setTimeout(() => { this.showDropdown = false; }, 200);
-}
+  // ====================== RECHERCHE AGRICULTEUR ======================
+  onAgriculteurSearch(query: string): void {
+    this.agriculteurSearch = query;
+    const q = query.toLowerCase();
+    this.filteredAgriculteurs = q.length < 2 ? [] :
+      this.agriculteurs.filter(a =>
+        a.nom.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
+      );
+    this.showDropdown = this.filteredAgriculteurs.length > 0;
+  }
+
+  selectAgriculteur(a: Agriculteur): void {
+    this.selectedAgriculteur = a;
+    this.vergerForm.patchValue({ agriculteurId: a.id });
+    this.agriculteurSearch = '';
+    this.showDropdown = false;
+  }
+
+  clearAgriculteur(): void {
+    this.selectedAgriculteur = null;
+    this.vergerForm.patchValue({ agriculteurId: '' });
+  }
+
+  hideDropdown(): void {
+    setTimeout(() => { this.showDropdown = false; }, 200);
+  }
+
   isInvalid(field: string): boolean {
     const ctrl = this.vergerForm.get(field);
     return !!(ctrl?.invalid && ctrl?.touched);
@@ -177,11 +211,25 @@ hideDropdown(): void {
       this.cdr.detectChanges();
       return;
     }
+
+    if (!this.selectedLat || !this.selectedLng) {
+      this.errorMessage = 'Veuillez sélectionner la localisation du verger sur la carte.';
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.vergerService.mettreAJour(this.vergerId, this.vergerForm.value).subscribe({
+    const payload = {
+      ...this.vergerForm.value,
+      latitude: this.selectedLat,
+      longitude: this.selectedLng,
+      adresseIndicative: this.selectedAddress
+    };
+
+    this.vergerService.mettreAJour(this.vergerId, payload).subscribe({
       next: () => {
         this.successMessage = 'Verger mis à jour avec succès !';
         this.isLoading = false;

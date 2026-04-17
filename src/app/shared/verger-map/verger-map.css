@@ -1,0 +1,52 @@
+.map-wrapper {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid #E8E0CE;
+  background: #FFFFF8;
+}
+
+.map-header {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.search-input {
+  flex: 1;
+  padding-left: 45px;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(168,184,75,0.15);
+}
+
+.btn-search {
+  background: #A8B84B;
+  color: white;
+  border: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(168,184,75,0.2);
+}
+
+.map-instructions {
+  padding: 10px 14px;
+  background: rgba(168,184,75,0.08);
+  font-size: 0.78rem;
+  color: #7A6845;
+  text-align: center;
+  border-top: 1px solid rgba(168,184,75,0.15);
+}
+
+#verger-map {
+  background: #f5f4eb;
+}

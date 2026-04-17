@@ -94,57 +94,69 @@
           <!-- Main form -->
           <form [formGroup]="vergerForm" (ngSubmit)="onSubmit()" novalidate>
 
-            <!-- Section: Identification -->
-            <!-- Section: Identification -->
-<div class="form-section">
-  <div class="section-title">
-    <i class="bi bi-person-badge"></i> Identification
-  </div>
+            <!-- Section: Identification + Localisation -->
+            <div class="form-section">
+              <div class="section-title">
+                <i class="bi bi-person-badge"></i> Identification & Localisation
+              </div>
 
-  <!-- Selected farmer card (pre-filled on load, changeable) -->
-  <div class="selected-agri-card" *ngIf="selectedAgriculteur">
-    <div class="agri-avatar large">{{ selectedAgriculteur.nom | slice:0:1 }}</div>
-    <div class="agri-info">
-      <p class="agri-name">{{ selectedAgriculteur.nom }}</p>
-      <p class="agri-email">{{ selectedAgriculteur.email }}</p>
-    </div>
-    <button type="button" class="btn-change-agri" (click)="clearAgriculteur()">
-      <i class="bi bi-arrow-repeat"></i> Changer
-    </button>
-  </div>
+              <!-- Selected farmer card (pre-filled on load, changeable) -->
+              <div class="selected-agri-card" *ngIf="selectedAgriculteur">
+                <div class="agri-avatar large">{{ selectedAgriculteur.nom | slice:0:1 }}</div>
+                <div class="agri-info">
+                  <p class="agri-name">{{ selectedAgriculteur.nom }}</p>
+                  <p class="agri-email">{{ selectedAgriculteur.email }}</p>
+                </div>
+                <button type="button" class="btn-change-agri" (click)="clearAgriculteur()">
+                  <i class="bi bi-arrow-repeat"></i> Changer
+                </button>
+              </div>
 
-  <!-- Search input (shown after clearing) -->
-  <div class="form-group" *ngIf="!selectedAgriculteur">
-    <label class="form-label">Agriculteur <span class="req">*</span></label>
-    <div class="autocomplete-wrap">
-      <i class="bi bi-search autocomplete-icon"></i>
-      <input type="text" class="form-control"
-             [value]="agriculteurSearch"
-             (input)="onAgriculteurSearch($any($event.target).value)"
-             (blur)="hideDropdown()"
-             (focus)="onAgriculteurSearch(agriculteurSearch)"
-             placeholder="Rechercher par nom ou email..."
-             [class.invalid]="isInvalid('agriculteurId')">
+              <!-- Search input (shown after clearing) -->
+              <div class="form-group" *ngIf="!selectedAgriculteur">
+                <label class="form-label">Agriculteur <span class="req">*</span></label>
+                <div class="autocomplete-wrap">
+                  <i class="bi bi-search autocomplete-icon"></i>
+                  <input type="text" class="form-control"
+                         [value]="agriculteurSearch"
+                         (input)="onAgriculteurSearch($any($event.target).value)"
+                         (blur)="hideDropdown()"
+                         (focus)="onAgriculteurSearch(agriculteurSearch)"
+                         placeholder="Rechercher par nom ou email..."
+                         [class.invalid]="isInvalid('agriculteurId')">
 
-      <div class="autocomplete-dropdown" *ngIf="showDropdown && filteredAgriculteurs.length > 0">
-        <div class="autocomplete-item"
-             *ngFor="let a of filteredAgriculteurs"
-             (mousedown)="selectAgriculteur(a)">
-          <div class="agri-avatar">{{ a.nom | slice:0:1 }}</div>
-          <div>
-            <p class="agri-name">{{ a.nom }}</p>
-            <p class="agri-email">{{ a.email }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <span class="hint">Tapez au moins 2 caractères pour rechercher</span>
-    <span class="error-msg" *ngIf="isInvalid('agriculteurId')">
-      Veuillez sélectionner un agriculteur
-    </span>
-  </div>
+                  <div class="autocomplete-dropdown" *ngIf="showDropdown && filteredAgriculteurs.length > 0">
+                    <div class="autocomplete-item"
+                         *ngFor="let a of filteredAgriculteurs"
+                         (mousedown)="selectAgriculteur(a)">
+                      <div class="agri-avatar">{{ a.nom | slice:0:1 }}</div>
+                      <div>
+                        <p class="agri-name">{{ a.nom }}</p>
+                        <p class="agri-email">{{ a.email }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="hint">Tapez au moins 2 caractères pour rechercher</span>
+                <span class="error-msg" *ngIf="isInvalid('agriculteurId')">
+                  Veuillez sélectionner un agriculteur
+                </span>
+              </div>
 
-</div>
+              <!-- Carte de localisation -->
+              <div class="form-group mt-4">
+                <label class="form-label">Localisation du verger <span class="req">*</span></label>
+                <app-verger-map
+                  [editable]="true"
+                  [latitude]="selectedLat || undefined"
+                  [longitude]="selectedLng || undefined"
+                  (locationSelected)="onLocationSelected($event)">
+                </app-verger-map>
+                <span class="error-msg" *ngIf="(!selectedLat || !selectedLng) && vergerForm.touched">
+                  Veuillez sélectionner la localisation du verger sur la carte
+                </span>
+              </div>
+            </div>
 
             <!-- Section: Caractéristiques -->
             <div class="form-section">
@@ -251,7 +263,7 @@
               <button type="button" class="btn-secondary" (click)="router.navigate(['/vergers'])">
                 <i class="bi bi-x-circle"></i> Annuler
               </button>
-              <button type="submit" class="btn-primary" [disabled]="isLoading">
+              <button type="submit" class="btn-secondary" [disabled]="isLoading">
                 <span class="btn-spinner" *ngIf="isLoading"></span>
                 <i class="bi bi-pencil-square" *ngIf="!isLoading"></i>
                 {{ isLoading ? 'Enregistrement...' : 'Enregistrer les modifications' }}

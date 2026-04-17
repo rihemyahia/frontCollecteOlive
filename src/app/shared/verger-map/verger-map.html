@@ -1,0 +1,22 @@
+<div class="map-wrapper">
+  <div class="map-header" *ngIf="editable">
+    <input 
+      type="text" 
+      class="form-control search-input"
+      [(ngModel)]="searchInput"
+      (keyup.enter)="searchAddress()"
+      placeholder="Rechercher un lieu, ville, région... (ex: Sfax, Mahdia)">
+    <button class="btn-search" (click)="searchAddress()">
+      <i class="bi bi-search"></i>
+    </button>
+  </div>
+
+  <div id="verger-map" [style.height]="height"></div>
+
+  <div class="map-instructions" *ngIf="editable">
+    <small>
+      <i class="bi bi-info-circle"></i>
+      Cliquez sur la carte ou glissez le marqueur pour choisir l’emplacement du verger
+    </small>
+  </div>
+</div>

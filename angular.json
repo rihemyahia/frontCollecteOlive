@@ -22,17 +22,21 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/leaflet/dist/images",
+                "output": "assets/leaflet/images"
               }
             ],
             "styles": [
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
+              "node_modules/leaflet/dist/leaflet.css",
               "src/styles.css"
             ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "scripts": [],
+            "outputMode": "static",
+            "ssr": false
           },
           "configurations": {
             "production": {
@@ -44,8 +48,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "6kB",
+                  "maximumError": "10kB"
                 }
               ],
               "outputHashing": "all"
@@ -56,7 +60,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
@@ -73,7 +77,6 @@
         "test": {
           "builder": "@angular/build:unit-test"
         }
-        
       }
     }
   }
