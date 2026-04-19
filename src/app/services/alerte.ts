@@ -9,13 +9,13 @@ export type NiveauUrgence = 'FAIBLE' | 'MOYENNE' | 'ELEVEE' | 'CRITIQUE';
 export type PhaseCulturale = 'FLORAISON' | 'NOUAISON' | 'VERDAISON' | 'PRE_RECOLTE' | 'RECOLTE' | 'INCONNUE';
 
 export interface AlerteRequest {
-  agriculteurId: string;      // Required by backend
-  vergerId: string;           // Required
-  type: TypeAlerte;           // Changed from typeAlerte
-  description: string;        // Changed from message
-  latitude: number;           // Required
-  longitude: number;          // Required
-  adresseIndicative?: string; // Optional
+  agriculteurId: string;    // @NotBlank - Required
+  vergerId: string;         // @NotBlank - Required, backend extracts geolocation from this verger
+  type: TypeAlerte;         // @NotNull - Required
+  description: string;      // @NotBlank - Required
+  latitude?: number;        // Optional - kept for backward compatibility but not used
+  longitude?: number;       // Optional - kept for backward compatibility but not used
+  adresseIndicative?: string; // Optional - kept for backward compatibility but not used
 }
 
 export interface AlerteResponse {

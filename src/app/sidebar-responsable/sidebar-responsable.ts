@@ -88,7 +88,15 @@ export class SideBarResponsable implements OnInit {
       icon: 'bell',
       route: '/mes-alertes',
       roles: ['AGRICULTEUR'],
-      badge: 3
+      badge: 3,
+       children: [
+        {
+          id: 'creer-alerte',
+          label: 'Crée alerte',
+          icon: '',
+          route: '/cree-alerte',
+          roles: ['AGRICULTEUR']
+        }]
     },
     {
       id: 'activation',

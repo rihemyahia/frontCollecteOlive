@@ -197,9 +197,10 @@ export class MesVergersComponent implements OnInit {
   // ALERT
   // =========================
   openAlertModal(verger: VergerResponse): void {
-    sessionStorage.setItem('preSelectedVergerId', (verger as any).id);
-    this.router.navigate(['/mes-alertes']);
-  }
+  this.router.navigate(['/cree-alerte'], {
+    queryParams: { vergerId: (verger as any).id }
+  });
+}
 
   // =========================
   // HELPERS

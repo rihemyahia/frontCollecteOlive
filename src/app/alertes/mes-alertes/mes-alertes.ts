@@ -1,20 +1,20 @@
 // mes-alertes.component.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, LowerCasePipe } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlerteService, AlerteResponse, TypeAlerte, StatutAlerte, NiveauUrgence, AlerteRequest, PhaseCulturale } from '../../services/alerte';
+import { AlerteService, AlerteResponse, TypeAlerte, StatutAlerte, NiveauUrgence, PhaseCulturale } from '../../services/alerte';
 import { VergerService } from '../../services/verger';
 import { VergerResponse } from '../../models/verger';
 import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
-import { NgZone } from '@angular/core';
 import { RelativeDatePipe } from '../../shared/pipes/relative-date.pipe';
+import { CreeAlerte } from '../cree-alerte/cree-alerte';
 
 @Component({
   selector: 'app-mes-alertes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, LowerCasePipe, SideBarResponsable, RelativeDatePipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, LowerCasePipe, SideBarResponsable, RelativeDatePipe, CreeAlerte],
   templateUrl: './mes-alertes.html',
   styleUrl: './mes-alertes.css'
 })
@@ -22,13 +22,9 @@ export class MesAlertesComponent implements OnInit {
 
   alertes: AlerteResponse[] = [];
   mesVergers: VergerResponse[] = [];
-  alerteForm!: FormGroup;
 
   showForm = false;
   isLoading = true;
-  isSubmitting = false;
-  formSuccess = '';
-  formError = '';
 
   isSidebarCollapsed = false;
   isMobile = false;
@@ -140,8 +136,6 @@ export class MesAlertesComponent implements OnInit {
   currentLatitude: number = 0;
   currentLongitude: number = 0;
   locationError: string = '';
-  isGettingLocation = false;
-
   readonly typesAlerte = [
     { value: 'MATURITE', label: '🫒 Problème de maturité' },
     { value: 'MATURITE_ACCELEREE', label: '⏱️ Maturité accélérée' },
@@ -159,13 +153,10 @@ export class MesAlertesComponent implements OnInit {
   ];
 
   constructor(
-    private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
-    private fb: FormBuilder,
     private alerteService: AlerteService,
     private vergerService: VergerService,
-    private authService: AuthService,
-    public router: Router
+    private authService: AuthService
   ) {}
 
   @HostListener('window:resize')
@@ -182,71 +173,16 @@ export class MesAlertesComponent implements OnInit {
     this.userRole = this.authService.getUserRole();
     this.agriculteurId = this.authService.getUserId();
     this.checkMobile();
-      console.log("👤 agriculteurId:", this.agriculteurId);
-    this.initForm();
-    this.getCurrentLocation();
+    console.log("👤 agriculteurId:", this.agriculteurId);
     this.loadData();
-
-    // Check for pre-selected verger from quick alert
-    const preSelectedVergerId = sessionStorage.getItem('preSelectedVergerId');
-    if (preSelectedVergerId) {
-      sessionStorage.removeItem('preSelectedVergerId'); // Clear it after use
-      // Set the verger and show form after a small delay to ensure form is initialized
-      setTimeout(() => {
-        this.alerteForm.patchValue({ vergerId: preSelectedVergerId });
-        this.showForm = true;
-        this.cdr.markForCheck();
-      }, 100);
-    }
-  }
-
-  initForm(): void {
-    this.alerteForm = this.fb.group({
-      vergerId: ['', Validators.required],
-      type: ['', Validators.required],
-      description: ['', [Validators.required, Validators.minLength(10)]],
-      adresseIndicative: ['']
-    });
-  }
-
-  getCurrentLocation(): void {
-    this.isGettingLocation = true;
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-  (position) => {
-    this.ngZone.run(() => {
-      this.currentLatitude = position.coords.latitude;
-      this.currentLongitude = position.coords.longitude;
-      this.locationError = '';
-      this.isGettingLocation = false;
-    });
-  },
-  (error) => {
-    this.ngZone.run(() => {
-      this.locationError = 'Impossible d\'obtenir votre position.';
-      this.isGettingLocation = false;
-      this.currentLatitude = 31.7917;
-      this.currentLongitude = -7.0926;
-    });
-  }
-);
-
-    } else {
-      this.locationError = 'La géolocalisation n\'est pas supportée par votre navigateur.';
-      this.isGettingLocation = false;
-      // Default to center of Morocco
-      this.currentLatitude = 31.7917;
-      this.currentLongitude = -7.0926;
-    }
   }
 
   loadData(): void {
-     if (!this.agriculteurId) {
-    console.error('No agriculteurId, cannot load data');
-    this.isLoading = false;
-    this.formError = 'Erreur d\'authentification. Veuillez vous reconnecter.';
-    return;
-  }
+    if (!this.agriculteurId) {
+      console.error('No agriculteurId, cannot load data');
+      this.isLoading = false;
+      return;
+    }
     // Load own vergers for dropdown
     this.vergerService.getByAgriculteur(this.agriculteurId).subscribe({
       next: (data: VergerResponse[]) => {
@@ -273,97 +209,24 @@ export class MesAlertesComponent implements OnInit {
         console.error('❌ Error loading alerts:', err);
         this.isLoading = false;
         this.cdr.markForCheck();
-        if (err.status === 403) {
-          this.formError = 'Vous n\'avez pas l\'autorisation de voir ces alertes.';
-        } else {
-          this.formError = 'Erreur lors du chargement des alertes.';
-        }
       }
     });
   }
 
   isInvalid(field: string): boolean {
-    if (!this.alerteForm) return false;
-    const ctrl = this.alerteForm.get(field);
-    return !!(ctrl?.invalid && ctrl?.touched);
+    // Helper method for display only (kept for compatibility)
+    return false;
   }
 
- // In mes-alertes.component.ts, replace onSubmit method:
-
-onSubmit(): void {
-  if (this.alerteForm.invalid) {
-    this.alerteForm.markAllAsTouched();
-    this.formError = 'Veuillez remplir tous les champs obligatoires.';
-    return;
+  // Event handlers from signaler-cree-alerte component
+  onAlerteCreated(alerte: AlerteResponse): void {
+    this.alertes.unshift(alerte);
+    this.cdr.markForCheck();
   }
 
-  // Ensure we have valid coordinates
-  let lat = this.currentLatitude;
-  let lng = this.currentLongitude;
-  
-  if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-    // Use default Morocco coordinates if geolocation failed
-    lat = 31.7917;
-    lng = -7.0926;
-    console.warn('Using default coordinates:', lat, lng);
-  }
-
-  this.isSubmitting = true;
-  this.formError = '';
-  this.formSuccess = '';
-
-  // Build request matching backend DTO exactly
-  const requestData: AlerteRequest = {
-    agriculteurId: this.agriculteurId,
-    vergerId: this.alerteForm.get('vergerId')?.value,
-    type: this.alerteForm.get('type')?.value as TypeAlerte,
-    description: this.alerteForm.get('description')?.value,
-    latitude: lat,
-    longitude: lng,
-    adresseIndicative: this.alerteForm.get('adresseIndicative')?.value || 'Ferme'
-  };
-
-  console.log('📤 Sending alert request:', JSON.stringify(requestData, null, 2));
-
-  this.alerteService.signaler(requestData).subscribe({
-    next: (created: AlerteResponse) => {
-      console.log('✅ Alert created:', created);
-      this.alertes.unshift(created);
-      this.formSuccess = 'Alerte signalée avec succès !';
-      this.isSubmitting = false;
-      this.cdr.markForCheck();
-      this.alerteForm.reset();
-      setTimeout(() => {
-        this.showForm = false;
-        this.formSuccess = '';
-        this.cdr.markForCheck();
-      }, 2000);
-    },
-    error: (err: any) => {
-      console.error('❌ Error submitting alert:', err);
-      let errorMsg = 'Erreur lors de l\'envoi de l\'alerte.';
-      if (err.error) {
-        if (typeof err.error === 'string') {
-          errorMsg = err.error;
-        } else if (err.error.message) {
-          errorMsg = err.error.message;
-        } else if (err.error.error) {
-          errorMsg = err.error.error;
-        } else if (err.error.errors && Array.isArray(err.error.errors)) {
-          errorMsg = err.error.errors.map((e: any) => e.message || e.defaultMessage).join(', ');
-        }
-      }
-      this.formError = errorMsg;
-      this.isSubmitting = false;
-      this.cdr.markForCheck();
-    }
-  });
-}
-
-  resetForm(): void {
-    this.alerteForm.reset();
-    this.alerteForm.markAsUntouched();
-    this.formError = '';
+  onFormClosed(): void {
+    this.showForm = false;
+    this.cdr.markForCheck();
   }
 
   // Helper methods for display
