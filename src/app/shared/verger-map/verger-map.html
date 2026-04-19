@@ -1,5 +1,6 @@
 <div class="map-wrapper">
-  <div class="map-header" *ngIf="editable">
+  <!-- Barre de recherche uniquement en mode édition (single) -->
+  <div class="map-header" *ngIf="editable && mode === 'single'">
     <input 
       type="text" 
       class="form-control search-input"
@@ -13,10 +14,19 @@
 
   <div id="verger-map" [style.height]="height"></div>
 
-  <div class="map-instructions" *ngIf="editable">
+  <!-- Instructions uniquement en mode édition -->
+  <div class="map-instructions" *ngIf="editable && mode === 'single'">
     <small>
       <i class="bi bi-info-circle"></i>
       Cliquez sur la carte ou glissez le marqueur pour choisir l’emplacement du verger
+    </small>
+  </div>
+
+  <!-- Info pour le mode multiple (agriculteur) -->
+  <div class="map-instructions" *ngIf="mode === 'multiple' && vergers.length > 0">
+    <small>
+      <i class="bi bi-info-circle"></i>
+      Survolez ou cliquez sur les marqueurs pour voir les détails des vergers
     </small>
   </div>
 </div>

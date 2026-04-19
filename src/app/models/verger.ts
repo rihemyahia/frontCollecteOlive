@@ -8,6 +8,9 @@ export interface VergerRequest {
   rendementEstime: number;
   maturiteActuelle: number;
   statut?: StatutVerger;
+  latitude?: number;
+  longitude?: number;
+  adresseIndicative?: string;
 }
 
 export interface VergerResponse {
@@ -24,4 +27,11 @@ export interface VergerResponse {
   dateDerniereRecolte?: Date;
   estSupprimer: boolean;
   dateCreation: Date;
+
+  // ← AJOUTÉ : Correspond à ce que renvoie ton backend
+  geolocalisation?: {
+    latitude: number;
+    longitude: number;
+    adresseIndicative?: string;
+  };
 }
