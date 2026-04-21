@@ -28,6 +28,12 @@ import { MesVergersComponent } from './vergers/mes-vergers/mes-vergers';
 import { MesAlertesComponent } from './alertes/mes-alertes/mes-alertes';
 import { CalendrierComponent } from './calendrier/calendrier/calendrier';
 import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
+import { TourneeListComponent } from './tournee/tournee-list/tournee-list';
+import { TourneeCreateComponent } from './tournee/tournee-create/tournee-create';
+import { TourneeDetailComponent } from './tournee/tournee-detail/tournee-detail';
+import { CollecteListComponent } from './collecte/collecte-list/collecte-list';
+import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-detail';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -35,6 +41,13 @@ export const routes: Routes = [
   // Dashboard
   { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard] },
 
+  // Calendrier
+  {
+    path: 'calendrier',
+    component: CalendrierComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }
+  },
   // Routes Travailleurs
   {
     path: 'travailleurs',
@@ -115,7 +128,7 @@ export const routes: Routes = [
     data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
 
-  // ⭐⭐⭐ COLLECTES ROUTES - MUST BE AFTER TOURNEES ROUTES ⭐⭐⭐
+  // COLLECTES ROUTES
   {
     path: 'collectes',
     component: CollecteListComponent,
@@ -189,25 +202,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-{path: 'mes-vergers', component: MesVergersComponent, canActivate: [AuthGuard, roleGuard], data: { role: ['AGRICULTEUR'] } },
-{ path: 'mes-alertes', component: MesAlertesComponent, canActivate: [AuthGuard, roleGuard], data: { role: ['AGRICULTEUR'] } },
-{
-  path: 'cree-alerte',
-  component: CreeAlerte
-},
-{ path: '**', redirectTo: '/login' },
-
-  // Vergers
-  {
-    path: 'vergers',
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] },
-    children: [
-      { path: '', component: ListeVergersComponent },
-      { path: 'creer', component: CreerVergerComponent },
-      { path: 'modifier/:id', component: ModifierVergerComponent }
-    ]
-  },
   {
     path: 'mes-vergers',
     component: MesVergersComponent,
@@ -219,6 +213,20 @@ export const routes: Routes = [
     component: MesAlertesComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['AGRICULTEUR'] }
+  },
+  {
+    path: 'cree-alerte',
+    component: CreeAlerte
+  },
+  {
+    path: 'vergers',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] },
+    children: [
+      { path: '', component: ListeVergersComponent },
+      { path: 'creer', component: CreerVergerComponent },
+      { path: 'modifier/:id', component: ModifierVergerComponent }
+    ]
   },
 
   // Default redirect - MUST BE LAST
