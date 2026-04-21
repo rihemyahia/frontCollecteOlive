@@ -81,7 +81,15 @@ export class SideBarResponsable implements OnInit {
       icon: 'bell',
       route: '/mes-alertes',
       roles: ['AGRICULTEUR'],
-      badge: 3
+      badge: 3,
+       children: [
+        {
+          id: 'creer-alerte',
+          label: 'Crée alerte',
+          icon: '',
+          route: '/cree-alerte',
+          roles: ['AGRICULTEUR']
+        }]
     },
     {
       id: 'activation',
@@ -146,7 +154,7 @@ export class SideBarResponsable implements OnInit {
       label: 'Mon profil',
       icon: 'user',
       route: '/profile',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'EQUIPE_RECOLTE']
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR']
     }
   ];
 

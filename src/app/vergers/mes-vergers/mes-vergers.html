@@ -1,4 +1,4 @@
-<!-- mes-vergers.component.html -->
+<!-- mes-vergers.html -->
 <div class="app-layout">
 
   <app-sidebar
@@ -43,6 +43,41 @@
 
         <!-- Card Body -->
         <div class="oh-card__body">
+
+          <!-- Carte des vergers - Lecture seule pour l'agriculteur -->
+         <div *ngIf="!isLoading && vergers.length > 0" style="margin-bottom: 2.5rem;">
+  
+  <h3 style="margin-bottom: 1rem; color: #3A4A12; font-size: 1.4rem;">
+    📍 Localisation de mes vergers
+  </h3>
+
+  <!-- ✅ HERE: dropdown just before map -->
+  <div style="margin-bottom: 1rem;">
+    <label>Choisir un verger :</label>
+
+    <select [(ngModel)]="selectedVergerId"
+            (change)="zoomToSelected()"
+            class="oh-filter-select">
+
+      <option value="">Tous les vergers</option>
+
+      <option *ngFor="let v of vergers" [value]="v.id">
+  {{ v.typeOlive }} ({{ v.superficie }} ha)
+</option>
+
+    </select>
+  </div>
+
+  <!-- MAP -->
+  <app-verger-map 
+    [vergers]="vergers" 
+    [mode]="'multiple'" 
+    [editable]="false"
+    [selectedIds]="selectedVergerIds"
+    height="520px">
+  </app-verger-map>
+
+</div>
 
           <!-- Stats Row -->
           <div class="oh-stats-row" *ngIf="!isLoading && vergers.length > 0">

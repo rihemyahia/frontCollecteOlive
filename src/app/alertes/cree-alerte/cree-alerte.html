@@ -1,0 +1,219 @@
+<!-- cree-alerte.component.html -->
+<div class="app-layout">
+
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+
+      <!-- Main Card -->
+      <div class="oh-card">
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-megaphone-fill"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">MON ESPACE</p>
+                <h2 class="oh-header__title">Signaler un problème</h2>
+                <p class="header-subtitle">Signalez rapidement un problème sur l'un de vos vergers</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Alert Form Card -->
+          <div class="oh-form-card">
+            <div class="oh-form-card__header">
+              <i class="bi bi-megaphone-fill"></i> Formulaire de signalement
+            </div>
+            <div class="oh-form-card__body">
+
+              <div *ngIf="formSuccess" class="oh-alert-msg oh-alert-msg--success">
+                <i class="bi bi-check-circle-fill"></i> {{ formSuccess }}
+              </div>
+              <div *ngIf="formError" class="oh-alert-msg oh-alert-msg--error">
+                <i class="bi bi-exclamation-triangle-fill"></i> {{ formError }}
+              </div>
+
+              <!-- Urgence Info Header with Icon -->
+              <div class="oh-form-urgence-header">
+                <h3>Votre alerte sera évaluée automatiquement</h3>
+                <button type="button" class="oh-urgence-info-btn" (click)="openUrgenceInfo()" title="Comment est calculée l'urgence ?">
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </div>
+
+              <form [formGroup]="alerteForm" (ngSubmit)="onSubmit()" novalidate>
+                <div class="oh-form-grid">
+
+                  <!-- Verger Selection -->
+                  <div class="oh-form-group">
+                    <label class="oh-form-label">Verger concerné <span class="oh-req">*</span></label>
+                    <select class="oh-form-control" formControlName="vergerId"
+                            [class.invalid]="isInvalid('vergerId')">
+                      <option value="">Sélectionner un verger...</option>
+                      <option *ngFor="let v of mesVergers" [value]="v.id">
+                        {{ v.typeOlive }} — {{ v.superficie | number:'1.1-1' }} ha
+                      </option>
+                    </select>
+                    <span class="oh-error-msg" *ngIf="isInvalid('vergerId')">Veuillez sélectionner un verger</span>
+                  </div>
+
+                  <!-- Alert Type -->
+                  <div class="oh-form-group">
+                    <label class="oh-form-label">Type d'alerte <span class="oh-req">*</span></label>
+                    <select class="oh-form-control" formControlName="type"
+                            [class.invalid]="isInvalid('type')">
+                      <option value="">Sélectionner un type...</option>
+                      <option *ngFor="let t of typesAlerte" [value]="t.value">
+                        {{ t.label }}
+                      </option>
+                    </select>
+                    <span class="oh-error-msg" *ngIf="isInvalid('type')">Veuillez sélectionner un type</span>
+                  </div>
+
+                  <!-- Description -->
+                  <div class="oh-form-group oh-form-group--full">
+                    <label class="oh-form-label">Description <span class="oh-req">*</span></label>
+                    <textarea class="oh-form-control" formControlName="description"
+                              [class.invalid]="isInvalid('description')"
+                              rows="4"
+                              placeholder="Décrivez le problème observé sur votre verger..."></textarea>
+                    <span class="oh-error-msg" *ngIf="isInvalid('description')">
+                      La description est requise (minimum 10 caractères)
+                    </span>
+                  </div>
+
+                </div>
+
+                <!-- Form Actions -->
+                <div class="oh-form-actions">
+                  <button type="button" class="oh-btn-secondary" (click)="resetForm()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                  </button>
+                  <button type="button" class="oh-btn-secondary" (click)="onCancel()">
+                    <i class="bi bi-x-circle"></i> Annuler
+                  </button>
+                  <button type="submit" class="oh-btn-primary" [disabled]="isSubmitting">
+                    <span class="oh-spinner" *ngIf="isSubmitting"></span>
+                    <i class="bi bi-megaphone-fill" *ngIf="!isSubmitting"></i>
+                    {{ isSubmitting ? 'Envoi...' : "Envoyer l'alerte" }}
+                  </button>
+                </div>
+              </form>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<!-- Urgence Info Modal -->
+<div class="oh-urgence-modal-overlay" *ngIf="showUrgenceInfo" (click)="closeUrgenceInfo()">
+  <div class="oh-urgence-modal" (click)="$event.stopPropagation()">
+    <div class="oh-urgence-modal__header">
+      <h2>⚠️ Comment est calculée l'urgence ?</h2>
+      <button type="button" class="oh-urgence-modal__close" (click)="closeUrgenceInfo()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="oh-urgence-modal__content">
+      <p class="oh-urgence-intro">
+        Le système évalue automatiquement le niveau d'urgence de votre alerte en fonction de plusieurs facteurs.
+        Voici comment cela fonctionne :
+      </p>
+
+      <div class="oh-urgence-factors">
+        <!-- Factor 1: Alert Type -->
+        <div class="oh-factor">
+          <div class="oh-factor__icon">🔴</div>
+          <div class="oh-factor__content">
+            <h4>Type d'alerte</h4>
+            <p>Certains types d'alertes sont intrinsèquement plus urgents :</p>
+            <ul>
+              <li><strong>Critique :</strong> Sécurité récolte, Maladie grave</li>
+              <li><strong>Élevée :</strong> Dégât météorologique, Rendement anormal</li>
+              <li><strong>Moyenne :</strong> Problèmes de qualité</li>
+              <li><strong>Faible :</strong> Alertes informatives</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Factor 2: Crop Phase -->
+        <div class="oh-factor">
+          <div class="oh-factor__icon">🌱</div>
+          <div class="oh-factor__content">
+            <h4>Phase de culture</h4>
+            <p>L'urgence varie selon la phase de culture :</p>
+            <ul>
+              <li><strong>Récolte :</strong> Urgence maximale, impact immédiat</li>
+              <li><strong>Pré-récolte :</strong> Urgence élevée</li>
+              <li><strong>Verdaison/Nouaison :</strong> Urgence moyenne</li>
+              <li><strong>Floraison :</strong> Impact sur future récolte</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Factor 3: Description -->
+        <div class="oh-factor">
+          <div class="oh-factor__icon">📝</div>
+          <div class="oh-factor__content">
+            <h4>Contenu de la description</h4>
+            <p>Mots-clés dans votre description peuvent augmenter l'urgence :</p>
+            <ul>
+              <li>Termes critiques (mort, perte totale, catastrophe)</li>
+              <li>Propagation rapide (épidémie, invasion)</li>
+              <li>Menace immédiate</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Factor 4: Historical Data -->
+        <div class="oh-factor">
+          <div class="oh-factor__icon">📊</div>
+          <div class="oh-factor__content">
+            <h4>Historique du verger</h4>
+            <p>Le système considère :</p>
+            <ul>
+              <li>Problèmes similaires passés et leur gravité</li>
+              <li>Tendances saisonnières</li>
+              <li>Performance globale du verger</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="oh-urgence-footer">
+        <p>ℹ️ <strong>Important :</strong> Décrivez vos problèmes en détail pour une meilleure évaluation de l'urgence</p>
+      </div>
+    </div>
+  </div>
+</div>

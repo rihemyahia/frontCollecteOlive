@@ -264,3 +264,14 @@
   .oh-card__body { padding: 1.5rem; }
   .oh-header__title { font-size: 1.4rem; }
 }
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #5A6E1A;
+  font-size: 0.85rem;
+}
+
+.location-info i {
+  color: #A8B84B;
+}
