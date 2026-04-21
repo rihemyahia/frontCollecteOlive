@@ -7,11 +7,19 @@ import { VergerResponse } from '../../models/verger';
 import { StatutVerger } from '../../models/enums/statut-verger';
 import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+import { VergerMapComponent } from '../../shared/verger-map/verger-map';
 
 @Component({
   selector: 'app-mes-vergers',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, DatePipe, SideBarResponsable, FormsModule],
+  imports: [
+    CommonModule,
+    DecimalPipe,
+    DatePipe,
+    SideBarResponsable,
+    FormsModule,
+    VergerMapComponent
+  ],
   templateUrl: './mes-vergers.html',
   styleUrl: './mes-vergers.css'
 })
@@ -35,11 +43,17 @@ export class MesVergersComponent implements OnInit {
   userRole = '';
   agriculteurId = '';
 
+  // =========================
+  // ✅ MAP CONTROL (FIXED)
+  // =========================
+  selectedVergerId: string = '';
+  selectedVergerIds: string[] = [];
+
   constructor(
-    private vergerService: VergerService,  // ← Order matters, put services first
+    private vergerService: VergerService,
     private authService: AuthService,
     public router: Router,
-    private cdr: ChangeDetectorRef  // ← ChangeDetectorRef last
+    private cdr: ChangeDetectorRef
   ) {}
 
   @HostListener('window:resize')
@@ -62,12 +76,9 @@ export class MesVergersComponent implements OnInit {
   loadVergers(): void {
     this.isLoading = true;
     this.errorMessage = '';
-    
-    console.log('Loading vergers for:', this.agriculteurId); // Debug
-    
+
     this.vergerService.getByAgriculteur(this.agriculteurId).subscribe({
       next: (data) => {
-        console.log('Data received:', data); // Debug
         this.vergers = data.filter(v => !v.estSupprimer);
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -81,6 +92,37 @@ export class MesVergersComponent implements OnInit {
     });
   }
 
+  // =========================
+  // ✅ DROPDOWN MAP LOGIC FIXED
+  // =========================
+  zoomToSelected(): void {
+
+    if (!this.selectedVergerId) {
+      // reset → show all
+      this.selectedVergerIds = [];
+      return;
+    }
+
+    const selected = this.vergers.find(v =>
+      (v as any).id === this.selectedVergerId ||
+      (v as any)._id === this.selectedVergerId
+    );
+
+    if (!selected) {
+      this.selectedVergerIds = [];
+      return;
+    }
+
+    // single selection zoom
+    this.selectedVergerIds = [this.selectedVergerId];
+
+    // optional: force UI refresh
+    this.cdr.detectChanges();
+  }
+
+  // =========================
+  // STATS
+  // =========================
   get totalArbres(): number {
     return this.vergers.reduce((s, v) => s + (v.nbArbre ?? 0), 0);
   }
@@ -93,11 +135,12 @@ export class MesVergersComponent implements OnInit {
     return this.vergers.filter(v => v.statut === StatutVerger.RECOLTE).length;
   }
 
-  // Filter & Search
+  // =========================
+  // FILTERS
+  // =========================
   get filteredVergers(): VergerResponse[] {
     let result = [...this.vergers];
 
-    // Search by type or location
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
       result = result.filter(v =>
@@ -105,12 +148,10 @@ export class MesVergersComponent implements OnInit {
       );
     }
 
-    // Filter by type
     if (this.selectedType) {
       result = result.filter(v => v.typeOlive === this.selectedType);
     }
 
-    // Filter by status
     if (this.selectedStatus) {
       result = result.filter(v => v.statut === this.selectedStatus);
     }
@@ -118,15 +159,16 @@ export class MesVergersComponent implements OnInit {
     return result;
   }
 
-  // Pagination
+  // =========================
+  // PAGINATION
+  // =========================
   get totalPages(): number {
     return Math.ceil(this.filteredVergers.length / this.itemsPerPage) || 1;
   }
 
   get paginatedVergers(): VergerResponse[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredVergers.slice(start, end);
+    return this.filteredVergers.slice(start, start + this.itemsPerPage);
   }
 
   goToPage(page: number): void {
@@ -137,15 +179,11 @@ export class MesVergersComponent implements OnInit {
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.goToPage(this.currentPage + 1);
-    }
+    if (this.currentPage < this.totalPages) this.goToPage(this.currentPage + 1);
   }
 
   previousPage(): void {
-    if (this.currentPage > 1) {
-      this.goToPage(this.currentPage - 1);
-    }
+    if (this.currentPage > 1) this.goToPage(this.currentPage - 1);
   }
 
   resetFilters(): void {
@@ -155,16 +193,23 @@ export class MesVergersComponent implements OnInit {
     this.currentPage = 1;
   }
 
-  // Quick Alert
+  // =========================
+  // ALERT
+  // =========================
   openAlertModal(verger: VergerResponse): void {
-    // Store the selected verger in session storage for mes-alertes to use
-    sessionStorage.setItem('preSelectedVergerId', verger.id);
-    this.router.navigate(['/mes-alertes']);
-  }
+  this.router.navigate(['/cree-alerte'], {
+    queryParams: { vergerId: (verger as any).id }
+  });
+}
 
-  // Get unique types for filter dropdown
+  // =========================
+  // HELPERS
+  // =========================
   get vergerTypes(): string[] {
-    const types = this.vergers.map(v => v.typeOlive).filter((v, i, a) => a.indexOf(v) === i);
+    const types = this.vergers
+      .map(v => v.typeOlive)
+      .filter((v, i, a) => a.indexOf(v) === i);
+
     return types.sort();
   }
 
@@ -180,26 +225,6 @@ export class MesVergersComponent implements OnInit {
       'EN_COURS': 'En cours',
       'RECOLTE': 'Récolté'
     };
-    return map[s as string] ?? s as string;
-  }
-
-  getStatutClass(statut: string | StatutVerger): string {
-    const status = statut as string;
-    switch(status) {
-      case 'NON_RECOLTE': return 'statut-badge--warning';
-      case 'EN_COURS': return 'statut-badge--info';
-      case 'RECOLTE': return 'statut-badge--success';
-      default: return '';
-    }
-  }
-
-  getDotClass(statut: string | StatutVerger): string {
-    const status = statut as string;
-    switch(status) {
-      case 'NON_RECOLTE': return 'dot-warning';
-      case 'EN_COURS': return 'dot-info';
-      case 'RECOLTE': return 'dot-success';
-      default: return '';
-    }
+    return map[s as string] ?? (s as string);
   }
 }
