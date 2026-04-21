@@ -1,4 +1,3 @@
-// src/app/admin/activation-comptes/activation-comptes.ts
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -175,28 +174,15 @@ export class ActivationComptes implements OnInit {
     return password;
   }
 
-  generateAndFillPassword(): void {
-    this.generatedPassword = this.generateRandomPassword();
-    this.activationForm.patchValue({
-      nouveauMotDePasse: this.generatedPassword,
-      confirmerMotDePasse: this.generatedPassword
-    });
-  }
-
-  copyPassword(): void {
-    navigator.clipboard.writeText(this.generatedPassword);
-    alert('Mot de passe copié dans le presse-papier !');
-  }
-
   activerCompte(): void {
-    if (this.activationForm.invalid || !this.selectedUserId) return;
+    if (!this.selectedUserId) return;
 
     this.isActivating = true;
     this.errorMessage = '';
     this.successMessage = '';
     this.showEmailSent = false;
 
-    const motDePasse = this.activationForm.get('nouveauMotDePasse')?.value;
+    const motDePasse = this.generateRandomPassword();
 
     const activationObservable = this.activeTab === 'agriculteurs'
       ? this.utilisateurService.activerAgriculteur(this.selectedUserId, motDePasse)
@@ -204,13 +190,12 @@ export class ActivationComptes implements OnInit {
 
     activationObservable.subscribe({
       next: (response) => {
-        this.successMessage = `Compte de ${this.selectedUserPrenom} ${this.selectedUserNom} activé avec succès !`;
+        this.successMessage = `Compte de ${this.selectedUserPrenom} ${this.selectedUserNom} activé avec succès ! Un email avec le mot de passe a été envoyé.`;
         this.showEmailSent = true;
         this.emailSentTo = this.selectedUserEmail;
         this.isActivating = false;
         this.cdr.detectChanges();
 
-        // Rafraîchir les listes
         if (this.activeTab === 'agriculteurs') {
           this.loadAgriculteursEnAttente();
         } else {
@@ -218,7 +203,6 @@ export class ActivationComptes implements OnInit {
         }
         this.loadStats();
 
-        // Fermer le panel et réinitialiser
         this.closePanel();
 
         setTimeout(() => {

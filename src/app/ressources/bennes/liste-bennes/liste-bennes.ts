@@ -1,4 +1,4 @@
-// src/app/ressources/bennes/liste-bennes/liste-bennes.ts
+3// src/app/ressources/bennes/liste-bennes/liste-bennes.ts
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';

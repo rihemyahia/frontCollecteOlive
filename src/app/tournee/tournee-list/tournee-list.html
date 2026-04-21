@@ -1,0 +1,218 @@
+<!-- src/app/tournees/tournee-list/tournee-list.component.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
+                <h2 class="oh-header__title">Liste des tournées</h2>
+                <p class="header-subtitle">Planifiez, suivez et gérez les tournées de récolte</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <button class="btn-add" (click)="navigateToCreate()">
+                <i class="bi bi-plus-lg"></i>
+                Nouvelle tournée
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <!-- Filters -->
+          <div class="search-actions">
+            <div class="filter-group">
+              <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control">
+                <option value="">Tous les statuts</option>
+                <option value="PLANIFIEE">Planifiée</option>
+                <option value="EN_COURS">En cours</option>
+                <option value="TERMINEE">Terminée</option>
+                <option value="ANNULEE">Annulée</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <input type="text"
+                     [(ngModel)]="searchTerm"
+                     (input)="onSearchChange()"
+                     placeholder="Rechercher par code ou verger..."
+                     class="form-control search-input">
+            </div>
+            <button class="btn-add" (click)="refreshList()">
+              <i class="bi bi-arrow-repeat"></i>
+              Actualiser
+            </button>
+          </div>
+
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des tournées...</p>
+          </div>
+
+          <div *ngIf="!isLoading && filteredTournees.length > 0" class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Statut</th>
+                  <th>Verger</th>
+                  <th>Agriculteur</th>
+                  <th>Date Début</th>
+                  <th>Date Fin</th>
+                  <th>Quantité</th>
+                  <th>Efficacité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of filteredTournees; trackBy: trackByTourneeId">
+                  <td><strong>{{ t.code }}</strong></td>
+                  <td>
+                    <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+                      {{ t.statut | statutTournee }}
+                    </span>
+                  </td>
+                  <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
+                  <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
+                  <td>{{ t.formattedDateDebut }}</td>
+                  <td>{{ t.formattedDateFin }}</td>
+                  <td>
+                    <div class="quantity-cell">
+                      <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
+                      <div *ngIf="t.totalCollecteVergerKg" class="quantity-total">
+                        Total verger: {{ t.totalCollecteVergerKg | number:'1.0-0' }} kg
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="efficiency-cell" *ngIf="t.efficacite">
+                      <div class="progress-bar small">
+                        <div class="progress-fill" [style.width.%]="t.efficacite"></div>
+                      </div>
+                      <span>{{ t.efficacite | number:'1.0-0' }}%</span>
+                    </div>
+                    <span *ngIf="!t.efficacite">N/A</span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn-view" (click)="viewDetails(t.id || t._id)" title="Voir détails">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-start"
+                              (click)="startTournee(t.id || t._id)" title="Démarrer">
+                        <i class="bi bi-play-fill"></i>
+                      </button>
+                      <button *ngIf="t.statut === 'EN_COURS'" class="btn-complete"
+                              (click)="openCompleteModal(t)" title="Terminer">
+                        <i class="bi bi-check-lg"></i>
+                      </button>
+                      <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-edit"
+                              (click)="navigateToEdit(t.id || t._id)" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button *ngIf="t.statut !== 'TERMINEE'" class="btn-cancel"
+                              (click)="cancelTournee(t.id || t._id)" title="Annuler">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="!isLoading && filteredTournees.length === 0" class="oh-state">
+            <i class="bi bi-calendar-x"></i>
+            <p>Aucune tournée trouvée</p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ==================== IMPROVED COMPLETE MODAL ==================== -->
+<div class="modal-overlay" *ngIf="showCompleteModal" (click)="closeCompleteModal()">
+  <div class="modal-container complete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🚜 Terminer la tournée</h3>
+      <button class="modal-close" (click)="closeCompleteModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="tournee-info">
+        <strong>Tournée :</strong> {{ selectedTournee?.code }}
+        <br>
+        <strong>Verger :</strong> {{ selectedTournee?.vergerTypeOlive || 'N/A' }}
+      </div>
+
+      <!-- Prominent Quantity Field -->
+      <div class="quantity-section">
+        <label class="big-label">Quantité collectée (kg)</label>
+        <div class="quantity-input-group">
+          <input type="number"
+                 [(ngModel)]="completeData.quantiteCollecteeKg"
+                 class="big-quantity-input"
+                 placeholder="0"
+                 min="0"
+                 autofocus>
+          <span class="unit">kg</span>
+        </div>
+        <small class="helper-text">Entrez la quantité réelle récoltée aujourd'hui</small>
+      </div>
+
+      <div class="form-group">
+</div>
+
+      <div class="form-group">
+        </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeCompleteModal()">Annuler</button>
+      <button class="btn-confirm"
+              (click)="confirmComplete()"
+              [disabled]="!completeData.quantiteCollecteeKg || completeData.quantiteCollecteeKg <= 0">
+        ✅ Valider la fin de tournée
+      </button>
+    </div>
+  </div>
+</div>

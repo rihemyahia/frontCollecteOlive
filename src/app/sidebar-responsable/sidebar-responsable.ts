@@ -61,26 +61,19 @@ export class SideBarResponsable implements OnInit {
       route: '/agriculteurs',
       roles: ['ADMIN', 'RESPONSABLE']
     },
-    {
-      id: 'vergers',
-      label: 'Vergers',
-      icon: 'tree',
-      route: '/vergers',
-      roles: ['ADMIN', 'RESPONSABLE']
-    },
-     {
+{
       id: 'mes-vergers',
       label: 'Mes vergers',
       icon: 'tree',
       route: '/mes-vergers',
       roles: ['AGRICULTEUR']
     },
-    {
-      id: 'tournees',
-      label: 'Tournées',
-      icon: 'route',
-      route: '/tournees',
-      roles: ['ADMIN', 'RESPONSABLE', 'EQUIPE_RECOLTE']
+{
+      id: 'collectes',
+      label: 'Collectes',
+      icon: 'tree',
+      route: '/collectes',
+      roles: [ 'RESPONSABLE', 'ADMIN']
     },
     {
       id: 'Mes alertes',
@@ -109,6 +102,13 @@ export class SideBarResponsable implements OnInit {
       label: 'Vergers',
       icon: 'tree',
       route: '/vergers',
+      roles: ['ADMIN', 'RESPONSABLE']
+    },
+       {
+      id: 'tournees',
+      label: 'Tournées',
+      icon: 'tree',
+      route: '/tournees',
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {

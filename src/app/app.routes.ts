@@ -1,4 +1,4 @@
-// app.routes.ts
+// app.routes.ts - COMPLETE FIXED VERSION
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
@@ -27,6 +27,12 @@ import { ModifierVergerComponent } from './vergers/modifier-verger/modifier-verg
 import { MesVergersComponent } from './vergers/mes-vergers/mes-vergers';
 import { MesAlertesComponent } from './alertes/mes-alertes/mes-alertes';
 import { CalendrierComponent } from './calendrier/calendrier/calendrier';
+import { TourneeListComponent } from './tournee/tournee-list/tournee-list';
+import { TourneeCreateComponent } from './tournee/tournee-create/tournee-create';
+import { TourneeDetailComponent } from './tournee/tournee-detail/tournee-detail';
+import { CollecteListComponent } from './collecte/collecte-list/collecte-list';
+import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-detail';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -39,63 +45,93 @@ export const routes: Routes = [
     path: 'travailleurs',
     component: ListeTravailleurs,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'travailleurs/creer',
     component: CreerTravailleur,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'travailleurs/modifier/:id',
     component: ModifierTravailleur,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
-{
+  {
     path: 'utilisateurs/modifier/:id',
     component: ModifierUtilisateur,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'admin' }
+    data: { role: ['ADMIN'] }
   },
+
   // Routes Agriculteurs
   {
     path: 'agriculteurs',
     component: ListeAgriculteurs,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
-  {
-    path: 'calendrier',
-    component: CalendrierComponent,
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['ADMIN', 'RESPONSABLE','AGRICULTEUR'] }},
   {
     path: 'agriculteurs/creer',
     component: CreerAgriculteur,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'agriculteurs/modifier/:id',
     component: ModifierAgriculteur,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
+  },
+
+  // Routes Utilisateurs
+  {
+    path: 'utilisateurs',
+    component: ListeUtilisateurs,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN'] }
   },
   {
     path: 'utilisateurs/creer',
     component: CreerUtilisateur,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'admin' }
+    data: { role: ['ADMIN'] }
   },
 
-  // Routes Utilisateurs (Admin)
+  // Routes Tournées
   {
-    path: 'utilisateurs',
-    component: ListeUtilisateurs,
+    path: 'tournees',
+    component: TourneeListComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'admin' }
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
+  },
+  {
+    path: 'tournees/create',
+    component: TourneeCreateComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
+  },
+  {
+    path: 'tournees/:id',
+    component: TourneeDetailComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
+  },
+
+  // ⭐⭐⭐ COLLECTES ROUTES - MUST BE AFTER TOURNEES ROUTES ⭐⭐⭐
+  {
+    path: 'collectes',
+    component: CollecteListComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
+  },
+  {
+    path: 'collectes/:id',
+    component: CollecteDetailComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
 
   // Routes Admin (Activation)
@@ -103,7 +139,7 @@ export const routes: Routes = [
     path: 'admin/activation',
     component: ActivationComptes,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'admin' }
+    data: { role: ['ADMIN'] }
   },
 
   // Routes Ressources (Bennes)
@@ -111,19 +147,19 @@ export const routes: Routes = [
     path: 'ressources/bennes',
     component: ListeBennesComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'ressources/bennes/ajouter',
     component: AjouterBenneComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'ressources/bennes/modifier/:id',
     component: ModifierBenneComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
 
   // Routes Ressources (Tracteurs)
@@ -131,46 +167,65 @@ export const routes: Routes = [
     path: 'ressources/tracteurs',
     component: ListeTracteursComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'ressources/tracteurs/ajouter',
     component: AjouterTracteurComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
   {
     path: 'ressources/tracteurs/modifier/:id',
     component: ModifierTracteurComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: 'responsable' }
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
-// app.routes.ts - Update the profile route
-{
-  path: 'profile',
-  component: ProfilComponent,
-  canActivate: [AuthGuard]  // Only check if logged in, not role-specific
-},
-{
-  path: 'profil',
-  component: ProfilComponent,
-  canActivate: [AuthGuard]  // Only check if logged in, not role-specific
-},
 
-  //verger
- {
-  path: 'vergers',
-  canActivate: [AuthGuard, roleGuard],
-  data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }, // or adapt
-  children: [
-    { path: '', component: ListeVergersComponent },
-     { path: 'creer',         component: CreerVergerComponent },
-         { path: 'modifier/:id',  component: ModifierVergerComponent }
-  ]
-},
+  // Profile Routes
+  {
+    path: 'profile',
+    component: ProfilComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'profil',
+    component: ProfilComponent,
+    canActivate: [AuthGuard]
+  },
 
-{path: 'mes-vergers', component: MesVergersComponent, canActivate: [AuthGuard, roleGuard], data: { role: ['AGRICULTEUR'] } },
-{ path: 'mes-alertes', component: MesAlertesComponent, canActivate: [AuthGuard, roleGuard], data: { role: ['AGRICULTEUR'] } },
-{ path: '**', redirectTo: '/login' },
+  // Calendrier
+  {
+    path: 'calendrier',
+    component: CalendrierComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }
+  },
 
+  // Vergers
+  {
+    path: 'vergers',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] },
+    children: [
+      { path: '', component: ListeVergersComponent },
+      { path: 'creer', component: CreerVergerComponent },
+      { path: 'modifier/:id', component: ModifierVergerComponent }
+    ]
+  },
+  {
+    path: 'mes-vergers',
+    component: MesVergersComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['AGRICULTEUR'] }
+  },
+  {
+    path: 'mes-alertes',
+    component: MesAlertesComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['AGRICULTEUR'] }
+  },
+
+  // Default redirect - MUST BE LAST
+  { path: '**', redirectTo: '/login' }
 ];

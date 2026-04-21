@@ -1,0 +1,123 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES COLLECTES</p>
+                <h2 class="oh-header__title">Liste des collectes</h2>
+                <p class="header-subtitle">Consultez et gérez toutes les campagnes de récolte</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <!-- Filters -->
+          <div class="search-actions">
+            <div class="filter-group">
+              <label>Filtrer par année:</label>
+              <select [(ngModel)]="selectedAnnee" (change)="filterByAnnee(selectedAnnee)" class="filter-select">
+                <option value="">Toutes les années</option>
+                <option *ngFor="let annee of annees" [value]="annee">{{ annee }}</option>
+              </select>
+            </div>
+            <div class="stats-summary" *ngIf="collectes.length > 0">
+              <span class="stat-badge">
+                <i class="bi bi-collection"></i>
+                Total: {{ getFilteredCollectes().length }} collectes
+              </span>
+              <span class="stat-badge">
+                <i class="bi bi-tree-fill"></i>
+                Total récolté: {{ getTotalQuantite() | number }} kg
+              </span>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des collectes...</p>
+          </div>
+
+          <!-- Error -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+            <button class="btn-retry" (click)="loadCollectes()">Réessayer</button>
+          </div>
+
+          <!-- Collectes Table -->
+          <div *ngIf="!isLoading && !errorMessage && getFilteredCollectes().length > 0" class="table-container">
+            <table class="collecte-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Statut</th>
+                  <th>Verger</th>
+                  <th>Année</th>
+                  <th>Quantité totale</th>
+                  <th>Tournées</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let collecte of getFilteredCollectes()" (click)="viewCollecte(collecte.id)" style="cursor: pointer;">
+                  <td data-label="Code"><strong>{{ collecte.code }}</strong></td>
+                  <td data-label="Statut">
+                    <span class="statut-badge" [class]="getStatutClass(collecte.statut)">
+                      {{ collecte.statut }}
+                    </span>
+                  </td>
+                  <td data-label="Verger">{{ collecte.vergerNom || 'N/A' }}</td>
+                  <td data-label="Année">{{ collecte.annee }}</td>
+                  <td data-label="Quantité totale" class="highlight">{{ (collecte.quantiteTotaleKg || 0) | number }} kg</td>
+                  <td data-label="Tournées">{{ collecte.nbreTournees || 0 }}</td>
+                  <td data-label="Actions">
+                    <button class="btn-icon view" (click)="viewCollecte(collecte.id); $event.stopPropagation()" title="Voir détails">
+                      <i class="bi bi-eye"></i> Détails
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- No Data -->
+          <div *ngIf="!isLoading && !errorMessage && getFilteredCollectes().length === 0" class="oh-state">
+            <i class="bi bi-inbox"></i>
+            <p>Aucune collecte trouvée</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

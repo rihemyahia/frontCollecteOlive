@@ -1,4 +1,3 @@
-<!-- src/app/admin/activation-comptes/activation-comptes.html -->
 <div class="app-layout">
 
   <!-- Sidebar Component -->
@@ -161,7 +160,7 @@
               </div>
             </div>
 
-            <!-- ── Inline Activation Panel (Agriculteurs) ── -->
+            <!-- Activation Panel Agriculteurs -->
             <div class="oh-inline-panel" *ngIf="selectedUser && activeTab === 'agriculteurs'">
               <div class="oh-inline-panel__header">
                 <div class="oh-inline-panel__title">
@@ -174,18 +173,14 @@
               </div>
 
               <div class="oh-inline-panel__body">
-
-                <!-- Success Message -->
                 <div *ngIf="successMessage" class="oh-success">
                   <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
                 </div>
 
-                <!-- Error Message -->
                 <div *ngIf="errorMessage" class="oh-error">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
                 </div>
 
-                <!-- Activation Form -->
                 <div *ngIf="!successMessage">
                   <div class="account-info">
                     <strong>Compte à activer :</strong><br>
@@ -196,24 +191,8 @@
                   <div class="activation-notice">
                     <i class="bi bi-envelope-paper-fill"></i>
                     <div>
-                      <strong>Envoi par email</strong>
-                      <p>Un mot de passe sera généré automatiquement et envoyé à l'adresse email de l'utilisateur.</p>
-                    </div>
-                  </div>
-
-                  <div class="form-group" style="margin-top: 1rem;">
-                    <button type="button" class="btn-generate-password" (click)="generateAndFillPassword()"
-                            style="width: 100%;">
-                      <i class="bi bi-shuffle"></i> Générer et envoyer le mot de passe
-                    </button>
-                  </div>
-
-                  <!-- Password generated confirmation (no password visible) -->
-                  <div *ngIf="generatedPassword" class="password-sent-confirmation">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <div>
-                      <strong>Mot de passe généré !</strong>
-                      <p>Le mot de passe a été envoyé à l'email de l'utilisateur.</p>
+                      <strong>Activation du compte</strong>
+                      <p>Un mot de passe sécurisé sera généré automatiquement et envoyé à l'adresse email de l'utilisateur.</p>
                     </div>
                   </div>
                 </div>
@@ -225,15 +204,13 @@
                 </button>
                 <button type="button" class="btn-activate-account"
                         (click)="activerCompte()"
-                        [disabled]="!generatedPassword || isActivating || successMessage">
+                        [disabled]="isActivating || successMessage">
                   <span *ngIf="isActivating" class="spinner-border spinner-border-sm me-2"></span>
                   <i class="bi bi-check-circle" *ngIf="!isActivating"></i>
                   {{ isActivating ? 'Activation en cours...' : 'Activer le compte' }}
                 </button>
               </div>
             </div>
-            <!-- ── End Inline Panel ── -->
-
           </div>
 
           <!-- ==================== TRAVAILLEURS TAB ==================== -->
@@ -300,7 +277,7 @@
               </div>
             </div>
 
-            <!-- ── Inline Activation Panel (Travailleurs) ── -->
+            <!-- Activation Panel Travailleurs -->
             <div class="oh-inline-panel" *ngIf="selectedUser && activeTab === 'travailleurs'">
               <div class="oh-inline-panel__header">
                 <div class="oh-inline-panel__title">
@@ -313,18 +290,14 @@
               </div>
 
               <div class="oh-inline-panel__body">
-
-                <!-- Success Message -->
                 <div *ngIf="successMessage" class="oh-success">
                   <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
                 </div>
 
-                <!-- Error Message -->
                 <div *ngIf="errorMessage" class="oh-error">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
                 </div>
 
-                <!-- Activation Form -->
                 <div *ngIf="!successMessage">
                   <div class="account-info">
                     <strong>Compte à activer :</strong><br>
@@ -335,24 +308,8 @@
                   <div class="activation-notice">
                     <i class="bi bi-envelope-paper-fill"></i>
                     <div>
-                      <strong>Envoi par email</strong>
-                      <p>Un mot de passe sera généré automatiquement et envoyé à l'adresse email de l'utilisateur.</p>
-                    </div>
-                  </div>
-
-                  <div class="form-group" style="margin-top: 1rem;">
-                    <button type="button" class="btn-generate-password" (click)="generateAndFillPassword()"
-                            style="width: 100%;">
-                      <i class="bi bi-shuffle"></i> Générer et envoyer le mot de passe
-                    </button>
-                  </div>
-
-                  <!-- Password generated confirmation (no password visible) -->
-                  <div *ngIf="generatedPassword" class="password-sent-confirmation">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <div>
-                      <strong>Mot de passe généré !</strong>
-                      <p>Le mot de passe a été envoyé à l'email de l'utilisateur.</p>
+                      <strong>Activation du compte</strong>
+                      <p>Un mot de passe sécurisé sera généré automatiquement et envoyé à l'adresse email de l'utilisateur.</p>
                     </div>
                   </div>
                 </div>
@@ -364,15 +321,13 @@
                 </button>
                 <button type="button" class="btn-activate-account"
                         (click)="activerCompte()"
-                        [disabled]="!generatedPassword || isActivating || successMessage">
+                        [disabled]="isActivating || successMessage">
                   <span *ngIf="isActivating" class="spinner-border spinner-border-sm me-2"></span>
                   <i class="bi bi-check-circle" *ngIf="!isActivating"></i>
                   {{ isActivating ? 'Activation en cours...' : 'Activer le compte' }}
                 </button>
               </div>
             </div>
-            <!-- ── End Inline Panel ── -->
-
           </div>
 
         </div>

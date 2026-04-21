@@ -1,0 +1,161 @@
+<!-- src/app/tournees/tournee-detail/tournee-detail.component.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card" *ngIf="tournee">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
+                <h2 class="oh-header__title">{{ tournee.code }}</h2>
+                <p class="header-subtitle">Détails de la tournée</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <button class="btn-back" (click)="goBack()">
+                <i class="bi bi-arrow-left"></i> Retour
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div class="detail-section">
+            <h3>Informations générales</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Code:</label>
+                <span>{{ tournee.code }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Statut:</label>
+                <span class="statut-badge" [ngClass]="getStatutClass(tournee.statut)">
+                  {{ tournee.statut | statutTournee }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <label>Date création:</label>
+                <span>{{ formatDate(tournee.dateCreation) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Verger</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Type d'olive:</label>
+                <span>{{ tournee.vergerTypeOlive || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Agriculteur:</label>
+                <span>{{ tournee.vergerAgriculteurNom || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Superficie:</label>
+                <span>{{ tournee.vergerSuperficie || 'N/A' }} ha</span>
+              </div>
+              <div class="detail-item">
+                <label>Nombre d'arbres:</label>
+                <span>{{ tournee.nbreArbre }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Ressources</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Benne:</label>
+                <span>{{ tournee.benneNom || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Tracteur:</label>
+                <span>{{ tournee.tracteurNom || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Travailleurs:</label>
+                <span>{{ tournee.travailleurNoms?.join(', ') || 'N/A' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Période</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Date début:</label>
+                <span>{{ formatDate(tournee.dateDebut) }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Date fin:</label>
+                <span>{{ formatDate(tournee.dateFin) }}</span>
+              </div>
+              <div class="detail-item" *ngIf="tournee.tempsTotal">
+                <label>Durée totale:</label>
+                <span>{{ formatDuration(tournee.tempsTotal) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section" *ngIf="tournee.statut === 'TERMINEE'">
+            <h3>Résultats</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Quantité collectée:</label>
+                <span>{{ (tournee.quantiteCollecteeKg || 0) | number }} kg</span>
+              </div>
+              <div class="detail-item" *ngIf="tournee.distanceTotale">
+                <label>Distance totale:</label>
+                <span>{{ tournee.distanceTotale }} km</span>
+              </div>
+              <div class="detail-item" *ngIf="tournee.efficacite">
+                <label>Efficacité:</label>
+                <span>{{ tournee.efficacite | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section" *ngIf="tournee.observations">
+            <h3>Observations</h3>
+            <p class="observations">{{ tournee.observations }}</p>
+          </div>
+
+          <div class="action-buttons">
+            <button *ngIf="tournee.statut === 'PLANIFIEE'" class="btn-start" (click)="startTournee()">
+              <i class="bi bi-play-fill"></i> Démarrer
+            </button>
+            <button *ngIf="tournee.statut === 'EN_COURS'" class="btn-complete" (click)="completeTournee()">
+              <i class="bi bi-check-lg"></i> Terminer
+            </button>
+            <button *ngIf="tournee.statut !== 'TERMINEE'" class="btn-cancel" (click)="cancelTournee()">
+              <i class="bi bi-x-lg"></i> Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,209 @@
+<!-- src/app/tournees/tournee-create/tournee-create.component.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
+                <h2 class="oh-header__title">Nouvelle tournée</h2>
+                <p class="header-subtitle">Planifiez une nouvelle tournée de récolte</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+
+          <form (ngSubmit)="onSubmit()">
+            <div class="form-grid">
+              <!-- Verger selection -->
+              <div class="form-group">
+                <label>Verger</label>
+<select
+  [(ngModel)]="formData.vergerId"
+  name="vergerId"
+  required
+  (change)="onVergerChange($event)">
+  <option value="">Sélectionnez un verger</option>
+  <option *ngFor="let v of vergers" [value]="v.id">
+    {{ v.typeOlive }} - {{ v.superficie }} ha ({{ v.nbArbre }} arbres)
+  </option>
+</select>
+              </div>
+
+              <!-- Verger details card - clean professional design -->
+              <div *ngIf="selectedVerger" class="info-card">
+                <div class="info-card-header">
+                  <span class="info-card-title">Informations du verger</span>
+                </div>
+                <div class="info-card-body">
+                  <div class="info-row">
+                    <div class="info-label">Type d'olive</div>
+                    <div class="info-value">{{ selectedVerger.typeOlive }}</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Agriculteur</div>
+                    <div class="info-value">{{ selectedVerger.agriculteurNom || 'Non assigné' }}</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Superficie</div>
+                    <div class="info-value">{{ selectedVerger.superficie }} hectares</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Nombre d'arbres</div>
+                    <div class="info-value">{{ selectedVerger.nbArbre }} arbres</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Statut</div>
+                    <div class="info-value">
+                      <span [class]="'status-badge status-' + selectedVerger.statut">
+                        {{ selectedVerger.statut }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Rendement estimé</div>
+                    <div class="info-value">{{ selectedVerger.rendementEstime }} kg/hectare</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Maturité</div>
+                    <div class="info-value">{{ selectedVerger.maturiteActuelle }}%</div>
+                  </div>
+                  <div class="info-row">
+                    <div class="info-label">Dernière récolte</div>
+                    <div class="info-value">{{ formatDateForDisplay(selectedVerger.dateDerniereRecolte) }}</div>
+                  </div>
+                </div>
+                <div *ngIf="selectedVerger.statut === 'RECOLTE'" class="info-card-warning">
+                  Ce verger a déjà été récolté. Veuillez vérifier les arbres restants.
+                </div>
+                <div *ngIf="selectedVerger.statut === 'EN_COURS'" class="info-card-info">
+                  Ce verger est actuellement en cours de récolte.
+                </div>
+              </div>
+
+              <!-- Benne selection -->
+              <div class="form-group">
+                <label>Benne</label>
+                <select [(ngModel)]="formData.benneId" name="benneId" required class="form-control">
+                  <option value="">Sélectionnez une benne</option>
+                  <option *ngFor="let b of bennes" [value]="b.id">
+                    {{ b.nom }} - Capacité: {{ b.capaciteKg }} kg
+                  </option>
+                </select>
+                <div *ngIf="bennes.length === 0" class="field-warning">
+                  Aucune benne disponible. Vérifiez la connexion API.
+                </div>
+              </div>
+
+              <!-- Tracteur selection -->
+              <div class="form-group">
+                <label>Tracteur</label>
+                <select [(ngModel)]="formData.tracteurId" name="tracteurId" required class="form-control">
+                  <option value="">Sélectionnez un tracteur</option>
+                  <option *ngFor="let t of tracteurs" [value]="t.id">
+                    {{ t.nom }} - {{ t.immatriculation }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Nombre d'arbres -->
+              <div class="form-group">
+                <label>Nombre d'arbres à récolter</label>
+                <input type="number" [(ngModel)]="formData.nbreArbre" name="nbreArbre" class="form-control">
+                <div *ngIf="selectedVerger" class="field-hint">
+                  Maximum disponible: {{ selectedVerger.nbArbre }} arbres
+                </div>
+              </div>
+
+              <!-- Dates -->
+              <div class="form-group">
+                <label>Date et heure de début</label>
+                <input
+                  type="datetime-local"
+                  [(ngModel)]="dateDebutStr"
+                  name="dateDebut"
+                  required
+                  class="form-control"
+                  (change)="onDateDebutChange($event)">
+              </div>
+
+              <div class="form-group">
+                <label>Date et heure de fin</label>
+                <input
+                  type="datetime-local"
+                  [(ngModel)]="dateFinStr"
+                  name="dateFin"
+                  required
+                  class="form-control"
+                  (change)="onDateFinChange($event)">
+              </div>
+
+              <!-- Distance -->
+              <div class="form-group">
+                <label>Distance totale (kilomètres)</label>
+                <input type="number" step="0.1" [(ngModel)]="formData.distanceTotale" name="distanceTotale" class="form-control">
+              </div>
+
+              <!-- Travailleurs -->
+              <div class="form-group full-width">
+                <label>Travailleurs assignés</label>
+                <select multiple [(ngModel)]="formData.travailleurIds" name="travailleurIds" required class="form-control" size="4">
+                  <option *ngFor="let w of travailleurs" [value]="w.id">
+                    {{ w.prenom }} {{ w.nom }}
+                  </option>
+                </select>
+                <div class="field-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs travailleurs</div>
+              </div>
+
+              <!-- Observations -->
+              <div class="form-group full-width">
+                <label>Observations</label>
+                <textarea [(ngModel)]="formData.observations" name="observations" rows="3" class="form-control" placeholder="Notes supplémentaires..."></textarea>
+              </div>
+            </div>
+
+            <!-- Form actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
+              <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+                {{ isSubmitting ? 'Création en cours...' : 'Créer la tournée' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

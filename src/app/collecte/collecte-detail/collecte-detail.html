@@ -1,0 +1,219 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
+      <div class="oh-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">DÉTAIL DE LA COLLECTE</p>
+                <h2 class="oh-header__title">{{ collecteDetail?.collecte?.code }}</h2>
+                <p class="header-subtitle">Informations complètes et tournées associées</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <button class="btn-back" (click)="goBack()">
+                <i class="bi bi-arrow-left"></i> Retour
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des détails...</p>
+          </div>
+
+          <!-- Error -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <!-- Content -->
+          <div *ngIf="!isLoading && !errorMessage && collecteDetail">
+            <!-- Summary Cards -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-tree-fill"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Verger</span>
+                  <span class="stat-number">{{ vergerName || 'N/A' }}</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Année</span>
+                  <span class="stat-number">{{ collecteDetail?.collecte?.annee || 'N/A' }}</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Quantité totale</span>
+                  <span class="stat-number highlight">{{ (collecteDetail?.collecte?.quantiteTotaleKg || 0) | number }} kg</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-truck"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Tournées</span>
+                  <span class="stat-number">{{ collecteDetail?.collecte?.nbreTournees || 0 }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" *ngIf="(collecteDetail?.collecte?.nbreTournees ?? 0) > 0">
+              <div class="progress-header">
+                <span><i class="bi bi-pie-chart"></i> Progression de la collecte</span>
+                <span class="progress-percent">{{ getProgressPercentage() | number:'1.0-0' }}%</span>
+              </div>
+              <div class="progress-bar-large">
+                <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+              </div>
+            </div>
+
+            <!-- Additional Stats -->
+            <div class="stats-subgrid">
+              <div class="stat-subcard">
+                <div class="stat-icon-small"><i class="bi bi-tree"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Arbres récoltés</span>
+                  <span class="stat-number">{{ collecteDetail?.collecte?.totalArbresRecoltes || 0 }}</span>
+                </div>
+           <div class="stat-details">
+  <span class="stat-label">Nombre d'arbres </span>
+  <span class="stat-number">{{ vergerNbArbres }}</span>
+</div>
+              </div>
+              <div class="stat-subcard">
+                <div class="stat-icon-small"><i class="bi bi-flower1"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Rendement moyen</span>
+                  <span class="stat-number">{{ (collecteDetail?.collecte?.rendementMoyenParArbre || 0) | number:'1.1-1' }} kg/arbre</span>
+                </div>
+              </div>
+              <div class="stat-subcard">
+                <div class="stat-icon-small"><i class="bi bi-speedometer2"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Efficacité moyenne</span>
+                  <span class="stat-number">{{ (collecteDetail?.collecte?.efficaciteMoyenne || 0) | number:'1.0-0' }}%</span>
+                </div>
+              </div>
+              <div class="stat-subcard">
+                <div class="stat-icon-small"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-details">
+                  <span class="stat-label">Début campagne</span>
+                  <span class="stat-number">{{ formatDate(collecteDetail?.collecte?.dateDebutCampagne) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tournées List -->
+            <div class="tournees-section">
+              <div class="section-header">
+                <h3>
+                  <i class="bi bi-list-ul"></i>
+                  Tournées de cette collecte
+                </h3>
+                <span class="badge">{{ collecteDetail?.tournees?.length || 0 }} tournée(s)</span>
+              </div>
+
+              <div *ngIf="!collecteDetail?.tournees?.length" class="empty-state">
+                <i class="bi bi-calendar-x"></i>
+                <p>Aucune tournée pour cette collecte</p>
+              </div>
+
+              <div class="table-container" *ngIf="collecteDetail?.tournees?.length">
+                <table class="tournees-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Statut</th>
+                      <th>Date début</th>
+                      <th>Date fin</th>
+                      <th>Arbres</th>
+                      <th>Quantité</th>
+                      <th>Distance</th>
+                      <th>Durée</th>
+                      <th>Efficacité</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let tournee of collecteDetail?.tournees">
+                      <td data-label="Code"><strong>{{ tournee?.code }}</strong></td>
+                      <td data-label="Statut">
+                        <span class="status-badge" [class]="getStatutClass(tournee?.statut)">
+                          {{ getStatutText(tournee?.statut) }}
+                        </span>
+                      </td>
+                      <td data-label="Date début">{{ formatDateTime(tournee?.dateDebut) }}</td>
+                      <td data-label="Date fin">{{ formatDateTime(tournee?.dateFin) }}</td>
+                      <td data-label="Arbres">{{ tournee?.nbreArbre || '-' }}</td>
+                      <td data-label="Quantité" class="quantity-cell">
+                        <strong>{{ (tournee?.quantiteCollecteeKg || 0) | number }} kg</strong>
+                      </td>
+                      <td data-label="Distance">{{ tournee?.distanceTotale || '-' }} km</td>
+<td data-label="Durée">{{ formatTime(tournee?.tempsTotal) }}</td>                      <td data-label="Efficacité">
+                        <div class="efficiency" *ngIf="tournee?.efficacite">
+                          <div class="efficiency-bar">
+                            <div class="efficiency-fill" [style.width.%]="tournee?.efficacite"></div>
+                          </div>
+                          <span>{{ (tournee?.efficacite || 0) | number:'1.0-0' }}%</span>
+                        </div>
+                        <span *ngIf="!tournee?.efficacite">-</span>
+                      </td>
+                      <td data-label="Action">
+                        <button class="btn-icon view" (click)="viewTournee(tournee?.id)" title="Voir détails">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr class="total-row">
+                      <td colspan="5"><strong>TOTAL</strong></td>
+                      <td class="quantity-cell"><strong>{{ totalQuantiteTournees | number }} kg</strong></td>
+                      <td colspan="4"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

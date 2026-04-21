@@ -73,7 +73,59 @@ getProfil(): Observable<any> {
     headers: this.getHeaders()
   });
 }
+// src/app/services/utilisateur.service.ts
+// Ajoute cette méthode vers la fin du fichier, avant la dernière accolade
 
+// ========== GESTION DES TRAVAILLEURS ==========
+
+
+// Si tu veux aussi récupérer les travailleurs actifs uniquement
+// src/app/services/utilisateur.service.ts
+
+// Ajoute cette méthode complète sans utiliser apiUrl
+getTravailleursActifs(): Observable<Utilisateur[]> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
+
+  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs?actif=true', {
+    headers: headers
+  });
+}
+// src/app/services/utilisateur.service.ts
+
+// ✅ MODIFIÉ : utilise l'URL complète sans apiUrl
+getTravailleurs(): Observable<Utilisateur[]> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
+
+  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs', {
+    headers: headers
+  }).pipe(
+    tap({
+      next: (data) => console.log('Travailleurs reçus:', data),
+      error: (err) => console.error('Erreur chargement travailleurs:', err)
+    })
+  );
+}
+
+// ✅ MODIFIÉ : utilise l'URL complète sans apiUrl
+getTravailleursBySpecialite(specialite: string): Observable<Utilisateur[]> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
+
+  return this.http.get<Utilisateur[]>(`http://localhost:8080/api/responsable/travailleurs/specialite/${specialite}`, {
+    headers: headers
+  });
+}
 
 mettreAJourProfil(updates: any): Observable<any> {
   return this.http.put(`${this.apiUrl}/profil`, updates, {
