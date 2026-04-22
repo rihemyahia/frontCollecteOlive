@@ -1,0 +1,345 @@
+<!-- gestion-alertes.component.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <!-- Main Card -->
+      <div class="oh-card">
+
+        <!-- Card Header -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION</p>
+                <h2 class="oh-header__title">Gestion des alertes</h2>
+                <p class="header-subtitle">
+                  {{ isAdmin ? 'Toutes les alertes du système' : 'Alertes de vos vergers' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="oh-card__body">
+
+          <!-- Filters Section -->
+          <div class="oh-search-filters" *ngIf="!isLoading && alertes.length > 0">
+            <!-- Search Bar -->
+            <div class="oh-search-bar">
+              <input type="text" 
+                     placeholder="🔍 Rechercher par description, agriculteur, verger..."
+                     [(ngModel)]="searchQuery"
+                     (change)="onFilterChange()"
+                     class="oh-search-input">
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="oh-filter-controls">
+              <!-- Status Filter -->
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="EN_ATTENTE">En attente</option>
+                  <option value="EN_COURS">En cours</option>
+                  <option value="TRAITEE">Traitée</option>
+                </select>
+              </div>
+
+              <!-- Urgence Filter -->
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Urgence</label>
+                <select [(ngModel)]="selectedUrgence" (change)="onFilterChange()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="FAIBLE">Faible</option>
+                  <option value="MOYENNE">Moyenne</option>
+                  <option value="ELEVEE">Élevée</option>
+                  <option value="CRITIQUE">Critique</option>
+                </select>
+              </div>
+
+              <!-- Type Filter -->
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Type</label>
+                <select [(ngModel)]="selectedType" (change)="onFilterChange()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option *ngFor="let type of typesAlerte" [value]="type.value">{{ type.label }}</option>
+                </select>
+              </div>
+
+              <!-- Reset Button -->
+              <button type="button" (click)="resetFilters()" class="oh-filter-reset" 
+                      [class.hidden]="!searchQuery && !selectedStatus && !selectedUrgence && !selectedType">
+                🔄 Réinitialiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <p>Chargement des alertes...</p>
+          </div>
+
+          <!-- Alerts List -->
+          <div class="alerts-list" *ngIf="!isLoading">
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="filteredAlertes.length === 0">
+              <div class="empty-icon">
+                <i class="bi bi-inbox"></i>
+              </div>
+              <h3>Aucune alerte trouvée</h3>
+              <p>{{ isAdmin ? 'Il n\'y a aucune alerte dans le système.' : 'Aucune alerte pour vos vergers.' }}</p>
+            </div>
+
+            <!-- Alerts Table -->
+            <div class="table-responsive" *ngIf="filteredAlertes.length > 0">
+              <table class="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Agriculteur</th>
+                    <th>Verger</th>
+                    <th>Type</th>
+                    <th>Urgence</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let alerte of paginatedAlertes" 
+                      [class.critical]="alerte.niveauUrgence === 'CRITIQUE'"
+                      [class.elevated]="alerte.niveauUrgence === 'ELEVEE'">
+                    <td class="date-cell">
+                      <span class="date-text">{{ alerte.dateSignalement | date }}</span>
+                    </td>
+                    <td class="agriculteur-cell">
+                      <div class="agriculteur-info">
+                        <strong>{{ alerte.agriculteurNom }}</strong>
+                        <small>{{ alerte.agriculteurEmail }}</small>
+                      </div>
+                    </td>
+                    <td class="verger-cell">
+                      <span class="badge badge-verger">{{ alerte.vergerTypeOlive ? alerte.vergerTypeOlive : 'N/A' }}</span>
+                    </td>
+                    <td class="type-label">{{ getTypeLabel(alerte.type) }}</td>
+                    <td class="urgence-cell">
+                      <span class="urgence-badge" 
+                            [style.background-color]="getUrgenceColor(alerte.niveauUrgence)">
+                        {{ getUrgenceLabel(alerte.niveauUrgence) }}
+                      </span>
+                    </td>
+                    <td class="statut-cell">
+                      <span class="statut-badge" 
+                            [style.background-color]="getStatutColor(alerte.statut)">
+                        {{ getStatutLabel(alerte.statut) }}
+                      </span>
+                    </td>
+                    <td class="actions-cell">
+                      <button type="button" class="btn-icon" 
+                              (click)="openDetailModal(alerte)"
+                              title="Voir les détails">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-section" *ngIf="totalPages > 1">
+              <button type="button" class="btn-pagination" 
+                      (click)="previousPage()" 
+                      [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i> Précédent
+              </button>
+              
+              <div class="page-info">
+                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+              </div>
+
+              <button type="button" class="btn-pagination" 
+                      (click)="nextPage()" 
+                      [disabled]="currentPage === totalPages">
+                Suivant <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Détail de l'alerte</h2>
+      <button type="button" class="btn-close" (click)="closeDetailModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedAlerte">
+      <!-- Alert Info -->
+      <div class="alert-detail-section">
+        <h3>Informations générales</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>ID Alerte</label>
+            <p>{{ selectedAlerte.id }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Date de signalement</label>
+            <p>{{ selectedAlerte.dateSignalement | date }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Type d'alerte</label>
+            <p>{{ getTypeLabel(selectedAlerte.type) }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Phase culturale</label>
+            <p>{{ selectedAlerte.phase }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agriculteur Info -->
+      <div class="alert-detail-section">
+        <h3>Agriculteur</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Nom</label>
+            <p>{{ selectedAlerte.agriculteurNom }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Email</label>
+            <p><a href="mailto:{{ selectedAlerte.agriculteurEmail }}">{{ selectedAlerte.agriculteurEmail }}</a></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verger Info -->
+      <div class="alert-detail-section">
+        <h3>Verger</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Type d'olivier</label>
+            <p>{{ selectedAlerte.vergerTypeOlive }}</p>
+          </div>
+          <div class="detail-item">
+            <label>Geolocalisation</label>
+            <p>
+              Latitude: {{ selectedAlerte.geolocalisation.latitude }}<br>
+              Longitude: {{ selectedAlerte.geolocalisation.longitude }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="alert-detail-section">
+        <h3>Description du problème</h3>
+        <p class="description-text">{{ selectedAlerte.description }}</p>
+      </div>
+
+      <!-- Status & Urgence -->
+      <div class="alert-detail-section">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Urgence</label>
+            <span class="urgence-badge" 
+                  [style.background-color]="getUrgenceColor(selectedAlerte.niveauUrgence)">
+              {{ getUrgenceLabel(selectedAlerte.niveauUrgence) }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <label>Statut actuel</label>
+            <span class="statut-badge" 
+                  [style.background-color]="getStatutColor(selectedAlerte.statut)">
+              {{ getStatutLabel(selectedAlerte.statut) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Treatment Comment -->
+      <div class="alert-detail-section" *ngIf="selectedAlerte.commentaireTraitement">
+        <h3>Commentaire de traitement</h3>
+        <p class="comment-text">{{ selectedAlerte.commentaireTraitement }}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="alert-detail-section">
+        <h3>Actions</h3>
+        
+        <!-- Change Status -->
+        <div class="action-group">
+          <label for="newStatut">Changer le statut</label>
+          <div class="action-row">
+            <select 
+              id="newStatut"
+              [(ngModel)]="newStatut"
+              [disabled]="isProcessing">
+              <option *ngFor="let option of statutOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <button type="button" class="btn-primary" 
+                    (click)="changeStatus()"
+                    [disabled]="isProcessing || newStatut === selectedAlerte.statut">
+              {{ isProcessing ? 'Mise à jour...' : '✓ Appliquer' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Mark as Treated -->
+        <div class="action-group">
+          <label for="treatmentComment">Marquer comme traitée</label>
+          <textarea 
+            id="treatmentComment"
+            [(ngModel)]="treatmentComment"
+            placeholder="Entrez le commentaire de traitement..."
+            [disabled]="isProcessing"
+            rows="3">
+          </textarea>
+          <button type="button" class="btn-success" 
+                  (click)="markAsTreated()"
+                  [disabled]="isProcessing || !treatmentComment.trim()">
+            {{ isProcessing ? 'Traitement...' : '✓ Marquer comme traitée' }}
+          </button>
+        </div>
+
+        <!-- Delete -->
+        <div class="action-group">
+          <button type="button" class="btn-danger" 
+                  (click)="deleteAlert()"
+                  [disabled]="isProcessing">
+            {{ isProcessing ? 'Suppression...' : 'Supprimer l\'alerte' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

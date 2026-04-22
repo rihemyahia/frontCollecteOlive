@@ -2,6 +2,7 @@ import { StatutVerger } from './enums/statut-verger';
 
 export interface VergerRequest {
   agriculteurId: string;
+  responsableId?: string;
   superficie: number;
   typeOlive: string;
   nbArbre: number;
@@ -18,6 +19,10 @@ export interface VergerResponse {
   agriculteurId: string;
   agriculteurNom: string;
   agriculteurEmail: string;
+  responsableId?: string;
+  responsableNom?: string;
+  responsableEmail?: string;
+  responsableFonction?: string;
   superficie: number;
   typeOlive: string;
   nbArbre: number;

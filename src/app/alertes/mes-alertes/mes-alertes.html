@@ -35,9 +35,9 @@
               </div>
             </div>
             <div class="oh-header__right">
-              <button class="btn-signal" (click)="showForm = !showForm">
+              <button class="btn-signal" (click)="openCreateAlertForm()">
                 <i class="bi bi-plus-circle-fill"></i>
-                {{ showForm ? 'Fermer' : 'Nouvelle alerte' }}
+                Nouvelle alerte
               </button>
             </div>
           </div>
@@ -45,15 +45,6 @@
 
         <!-- Card Body -->
         <div class="oh-card__body">
-
-          <!-- Alert Form Component -->
-          <app-cree-alerte
-            *ngIf="showForm"
-            [agriculteurId]="agriculteurId"
-            [mesVergers]="mesVergers"
-            (alerteCreated)="onAlerteCreated($event)"
-            (formClosed)="onFormClosed()">
-          </app-cree-alerte>
 
           <!-- Search & Filters -->
           <div class="oh-search-filters" *ngIf="!isLoading && alertes.length > 0">

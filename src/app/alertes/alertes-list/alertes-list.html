@@ -1,0 +1,221 @@
+<!-- alertes-list.html -->
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed" [class.sidebar-open]="!isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div class="alert-scene">
+      <div class="alert-card">
+        <!-- Header -->
+        <div class="alert-header">
+          <div class="alert-header__inner">
+            <div class="alert-header__left">
+              <div class="alert-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M24 2L2 10v15c0 18 22 21 22 21s22-3 22-21V10l-22-8z" fill="#E53935" opacity="0.9" />
+                  <path d="M24 14l-8 8 8 8 8-8-8-8z" fill="white" />
+                </svg>
+              </div>
+              <div class="alert-header__text">
+                <p class="alert-header__eyebrow">GESTION DES ALERTES</p>
+                <h2 class="alert-header__title">Alertes de terrain</h2>
+                <p class="alert-subtitle">{{ isAdmin() ? 'Toutes les alertes' : 'Alertes de vos vergers' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="alert-body">
+          <!-- Search & Filters -->
+          <div class="alert-search-section" *ngIf="!isLoading && alertes.length > 0">
+            <!-- Search Bar -->
+            <div class="alert-search-bar">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="🔍 Rechercher par description, agriculteur, verger..."
+                [(ngModel)]="searchQuery" (ngModelChange)="applyFilterDebounced()" class="alert-search-input">
+            </div>
+
+            <!-- Filters Row -->
+            <div class="alert-filters">
+              <div class="filter-group">
+                <label>Statut</label>
+                <select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()" class="filter-select">
+                  <option value="">Tous les statuts</option>
+                  <option *ngFor="let s of statuses" [value]="s">{{ getStatutLabel(s) }}</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label>Urgence</label>
+                <select [(ngModel)]="selectedUrgence" (ngModelChange)="applyFilters()" class="filter-select">
+                  <option value="">Tous les niveaux</option>
+                  <option *ngFor="let u of urgences" [value]="u">{{ u }}</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label>Phase</label>
+                <select [(ngModel)]="selectedPhase" (ngModelChange)="applyFilters()" class="filter-select">
+                  <option value="">Toutes les phases</option>
+                  <option *ngFor="let p of phases" [value]="p">{{ p }}</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label>Type</label>
+                <select [(ngModel)]="selectedType" (ngModelChange)="applyFilters()" class="filter-select">
+                  <option value="">Tous les types</option>
+                  <option *ngFor="let t of types" [value]="t">{{ getAlertTypeLabel(t) }}</option>
+                </select>
+              </div>
+
+              <button (click)="resetFilters()" class="btn-reset"
+                [class.hidden]="!searchQuery && !selectedStatus && !selectedUrgence && !selectedPhase && !selectedType">
+                🔄 Réinitialiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="alert-loading">
+            <div class="spinner"></div>
+            <p>Chargement des alertes...</p>
+          </div>
+
+          <!-- Error -->
+          <div *ngIf="errorMessage && !isLoading" class="alert-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ errorMessage }}
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && !errorMessage && alertes.length === 0" class="alert-empty">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔔</div>
+            <h3>Aucune alerte</h3>
+            <p>Aucune alerte n'a été signalée pour le moment.</p>
+          </div>
+
+          <!-- Alerts Table -->
+          <div *ngIf="!isLoading && !errorMessage && filteredAlertes.length > 0" class="alert-table-container">
+            <table class="alert-table">
+              <thead>
+                <tr>
+                  <th>Agriculteur</th>
+                  <th>Verger</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Phase</th>
+                  <th>Urgence</th>
+                  <th>Statut</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of paginatedAlertes; trackBy: trackByAlertId" class="alert-row">
+                  <td>
+                    <div class="alert-farmer">
+                      <div class="avatar">{{ (a.agriculteurNom || '').charAt(0).toUpperCase() }}</div>
+                      <div>
+                        <div class="name">{{ a.agriculteurNom }}</div>
+                        <div class="email">{{ a.agriculteurEmail }}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="badge-olive">{{ a.vergerTypeOlive }}</span>
+                  </td>
+
+                  <td>
+                    <span class="alert-type">{{ getAlertTypeLabel(a.type) }}</span>
+                  </td>
+
+                  <td>
+                    <span class="alert-description" [title]="a.description">
+                      {{ a.description.length > 50 ? (a.description | slice:0:50) + '...' : a.description }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span class="badge-phase">{{ a.phase }}</span>
+                  </td>
+
+                  <td>
+                    <span class="urgence-badge" [style.background]="getUrgenceColor(a.niveauUrgence)">
+                      {{ a.niveauUrgence }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span [class]="'statut-badge ' + getStatusBadgeClass(a.statut)">
+                      {{ getStatutLabel(a.statut) }}
+                    </span>
+                  </td>
+
+                  <td class="alert-date">
+                    {{ a.dateSignalement | date:'dd/MM/yyyy HH:mm' }}
+                  </td>
+
+                  <td>
+                    <button class="btn-view" (click)="viewAlert(a.id)" title="Voir les détails">
+                      <i class="bi bi-eye-fill"></i> Détails
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- No Results -->
+          <div *ngIf="!isLoading && !errorMessage && alertes.length > 0 && filteredAlertes.length === 0"
+            class="alert-empty">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3>Aucun résultat</h3>
+            <p>Aucune alerte ne correspond à vos filtres.</p>
+          </div>
+
+          <!-- Pagination -->
+          <div class="alert-pagination" *ngIf="!isLoading && filteredAlertes.length > 0 && totalPages > 1">
+            <button class="pagination-btn" (click)="previousPage()" [disabled]="currentPage === 1">
+              <i class="bi bi-chevron-left"></i> Précédent
+            </button>
+            <div class="pagination-info">
+              Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+              <span class="pagination-count">({{ filteredAlertes.length }} alertes)</span>
+            </div>
+            <button class="pagination-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">
+              Suivant <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- Stats Footer -->
+          <div class="alert-stats" *ngIf="!isLoading && filteredAlertes.length > 0">
+            <div class="stat-item">
+              <i class="bi bi-bell-fill" style="color: #E53935;"></i>
+              <span>Total : <strong>{{ filteredAlertes.length }}</strong></span>
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-hourglass-split" style="color: #F57C00;"></i>
+              <span>En attente : <strong>{{ getEnAttenteCount() }}</strong></span>
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-check-circle-fill" style="color: #388E3C;"></i>
+              <span>Traitées : <strong>{{ getTraiteesCount() }}</strong></span>
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-exclamation-circle-fill" style="color: #D32F2F;"></i>
+              <span>Critiques : <strong>{{ getCritiquesCount() }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

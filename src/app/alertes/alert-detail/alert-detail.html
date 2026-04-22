@@ -1,0 +1,232 @@
+<!-- alert-detail.html -->
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div class="detail-scene">
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Chargement des détails...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorMessage && !isLoading" class="alert-error">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Content -->
+      <div *ngIf="!isLoading && alert && !errorMessage">
+        <!-- Header -->
+        <div class="detail-header">
+          <button class="btn-back" (click)="goBack()">
+            <i class="bi bi-chevron-left"></i> Retour
+          </button>
+          <div class="detail-header__title">
+            <h1>Alerte #{{ alert.id.substring(0, 8).toUpperCase() }}</h1>
+            <span class="detail-header__date">{{ alert.dateSignalement | date:'dd/MM/yyyy à HH:mm' }}</span>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="detail-card">
+          <!-- Success Message -->
+          <div *ngIf="successMessage" class="alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            {{ successMessage }}
+          </div>
+
+          <div class="detail-grid">
+            <!-- Left Column: Alert Information -->
+            <div class="detail-column left">
+              <!-- Alert Info Card -->
+              <section class="detail-section">
+                <h2 class="section-title">Informations de l'alerte</h2>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <label>Agriculteur</label>
+                    <div class="info-value">
+                      <div class="farmer-info">
+                        <div class="avatar">{{ (alert.agriculteurNom || '').charAt(0).toUpperCase() }}</div>
+                        <div>
+                          <div class="name">{{ alert.agriculteurNom }}</div>
+                          <div class="email">{{ alert.agriculteurEmail }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <label>Verger</label>
+                    <div class="info-value">{{ alert.vergerTypeOlive }}</div>
+                  </div>
+
+                  <div class="info-item">
+                    <label>Type d'alerte</label>
+                    <div class="info-value badge-type">{{ alert.type }}</div>
+                  </div>
+
+                  <div class="info-item">
+                    <label>Phase culturale</label>
+                    <div class="info-value">{{ getPhaseLabel(alert.phase) }}</div>
+                  </div>
+
+                  <div class="info-item">
+                    <label>Urgence</label>
+                    <div class="info-value">
+                      <span class="urgence-badge" [style.background]="getUrgenceColor(alert.niveauUrgence)">
+                        {{ alert.niveauUrgence }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <label>Statut</label>
+                    <div class="info-value">
+                      <span [class]="'statut-badge ' + getStatusBadgeClass(alert.statut)">
+                        {{ getStatutLabel(alert.statut) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Description -->
+              <section class="detail-section">
+                <h2 class="section-title">Description</h2>
+                <div class="description-box">
+                  {{ alert.description }}
+                </div>
+              </section>
+
+              <!-- Location (if available) -->
+              <section class="detail-section" *ngIf="alert.geolocalisation">
+                <h2 class="section-title">Localisation</h2>
+                <div class="location-info">
+                  <p><strong>Latitude:</strong> {{ alert.geolocalisation.latitude | number:'1.6-6' }}</p>
+                  <p><strong>Longitude:</strong> {{ alert.geolocalisation.longitude | number:'1.6-6' }}</p>
+                  <p *ngIf="alert.geolocalisation.adresseIndicative">
+                    <strong>Adresse:</strong> {{ alert.geolocalisation.adresseIndicative }}
+                  </p>
+                </div>
+              </section>
+            </div>
+
+            <!-- Right Column: Actions & Comments -->
+            <div class="detail-column right">
+              <!-- Status Change Section -->
+              <section class="detail-section" *ngIf="canChangeStatus()">
+                <h2 class="section-title">Changer le statut</h2>
+                <div class="status-section">
+                  <div class="current-status">
+                    <label>Statut actuel</label>
+                    <span [class]="'statut-badge ' + getStatusBadgeClass(alert.statut)">
+                      {{ getStatutLabel(alert.statut) }}
+                    </span>
+                  </div>
+
+                  <button class="btn-action" (click)="toggleStatusForm()" *ngIf="!showStatusForm">
+                    <i class="bi bi-pencil-fill"></i> Modifier le statut
+                  </button>
+
+                  <div *ngIf="showStatusForm" class="form-group">
+                    <label>Nouveau statut</label>
+                    <select [(ngModel)]="newStatus" class="form-select">
+                      <option value="">Sélectionner un statut</option>
+                      <option value="EN_ATTENTE">En attente</option>
+                      <option value="TRAITEE">Traitée</option>
+                      <option value="IGNOREE">Ignorée</option>
+                    </select>
+
+                    <label>Notes (optionnel)</label>
+                    <textarea [(ngModel)]="statusNotes" placeholder="Ajouter des notes sur ce changement..."
+                      class="form-textarea"></textarea>
+
+                    <div class="form-actions">
+                      <button class="btn-cancel" (click)="toggleStatusForm()">Annuler</button>
+                      <button class="btn-save" (click)="changeStatus()" [disabled]="isSaving || !newStatus">
+                        <i class="bi bi-check-lg"></i> {{ isSaving ? 'Sauvegarde...' : 'Confirmer' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Comments Section -->
+              <section class="detail-section">
+                <h2 class="section-title">
+                  <i class="bi bi-chat-dots-fill"></i> Commentaires
+                  <span class="comment-count">{{ comments.length }}</span>
+                </h2>
+
+                <!-- Comments List -->
+                <div class="comments-list">
+                  <div *ngIf="comments.length === 0" class="empty-comments">
+                    <p>Aucun commentaire pour le moment.</p>
+                  </div>
+
+                  <div *ngFor="let comment of comments" class="comment-item">
+                    <div class="comment-header">
+                      <div class="comment-author">
+                        <strong>{{ comment.auteur }}</strong>
+                        <span class="comment-type" *ngIf="comment.type">{{ comment.type }}</span>
+                      </div>
+                      <span class="comment-date">{{ comment.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="comment-text">{{ comment.texte }}</div>
+                    <button class="btn-delete-comment" (click)="deleteComment(comment.id)" *ngIf="canDeleteComment(comment)"
+                      title="Supprimer">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Add Comment Form -->
+                <button class="btn-action" (click)="toggleCommentForm()" *ngIf="!showCommentForm">
+                  <i class="bi bi-plus-lg"></i> Ajouter un commentaire
+                </button>
+
+                <div *ngIf="showCommentForm" class="comment-form">
+                  <textarea [(ngModel)]="newComment" placeholder="Tapez votre commentaire..." class="form-textarea"></textarea>
+                  <div class="form-actions">
+                    <button class="btn-cancel" (click)="toggleCommentForm()">Annuler</button>
+                    <button class="btn-save" (click)="addComment()" [disabled]="isSaving || !newComment.trim()">
+                      <i class="bi bi-send-fill"></i> {{ isSaving ? 'Envoi...' : 'Envoyer' }}
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Status History -->
+              <section class="detail-section" *ngIf="statusHistory && statusHistory.length > 0">
+                <h2 class="section-title">Historique des statuts</h2>
+                <div class="timeline">
+                  <div *ngFor="let event of statusHistory" class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                      <div class="timeline-status">
+                        <span [class]="'statut-badge ' + getStatusBadgeClass(event.statut)">
+                          {{ getStatutLabel(event.statut) }}
+                        </span>
+                      </div>
+                      <p class="timeline-user">{{ event.utilisateur || 'Système' }}</p>
+                      <p class="timeline-date">{{ event.date | date:'dd/MM/yyyy à HH:mm' }}</p>
+                      <p class="timeline-notes" *ngIf="event.notes">{{ event.notes }}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

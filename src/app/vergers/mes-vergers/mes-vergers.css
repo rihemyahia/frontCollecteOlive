@@ -316,6 +316,52 @@
   transition: width 0.4s ease;
 }
 
+/* Responsable Section */
+.oh-responsable-section {
+  padding: 0.75rem;
+  background: rgba(138, 158, 110, 0.08);
+  border-left: 3px solid #8A9E6E;
+  border-radius: 6px;
+}
+
+.oh-responsable-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.oh-responsable-item svg {
+  color: #8A9E6E;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.oh-responsable-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.oh-responsable-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3A4A12;
+}
+
+.oh-responsable-email {
+  font-size: 0.75rem;
+  color: #5C7A2E;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.oh-responsable-email:hover {
+  color: #7A9A3E;
+  border-bottom-color: #8A9E6E;
+  cursor: pointer;
+}
+
 .oh-last-harvest {
   display: flex;
   align-items: center;
