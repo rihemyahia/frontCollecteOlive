@@ -968,3 +968,33 @@
   animation: fadeIn 0.3s ease-out;
 }
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+.oh-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;         /* clip the photo to the circle */
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+ 
+/* Photo fills the avatar circle */
+.oh-avatar__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+ 
+/* Initials stay white, vertically centered */
+.oh-avatar__initials {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  line-height: 1;
+}
+ 

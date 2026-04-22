@@ -1,9 +1,11 @@
+// src/app/profile/profile/profile.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+import { UtilisateurService } from '../../services/utilisateur';
 
 interface UserProfile {
   id: string;
@@ -13,6 +15,7 @@ interface UserProfile {
   telephone: string;
   adresse: string;
   role: string;
+  photoProfile?: string;
 }
 
 @Component({
@@ -29,13 +32,8 @@ export class ProfilComponent implements OnInit {
   userRole = '';
 
   profile: UserProfile = {
-    id: '',
-    email: '',
-    nom: '',
-    prenom: '',
-    telephone: '',
-    adresse: '',
-    role: ''
+    id: '', email: '', nom: '', prenom: '',
+    telephone: '', adresse: '', role: '', photoProfile: ''
   };
 
   isLoading = true;
@@ -43,17 +41,18 @@ export class ProfilComponent implements OnInit {
   errorMessage = '';
 
   showPasswordForm = false;
-  passwordData = {
-    ancienMotDePasse: '',
-    nouveauMotDePasse: '',
-    confirmMotDePasse: ''
-  };
+  passwordData = { ancienMotDePasse: '', nouveauMotDePasse: '', confirmMotDePasse: '' };
   isChangingPassword = false;
+
+  // Photo upload state
+  isUploadingPhoto = false;
+  photoPreview: string | null = null; // Temporary preview before save
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private utilisateurService: UtilisateurService
   ) {}
 
   ngOnInit(): void {
@@ -86,9 +85,10 @@ export class ProfilComponent implements OnInit {
     }).subscribe({
       next: (data) => {
         this.profile = { ...this.profile, ...data };
+        // If a photo is already saved, show it (no pending preview)
+        this.photoPreview = null;
         this.isLoading = false;
         this.cdr.detectChanges();
-        console.log('✅ Profile loaded successfully:', this.profile);
       },
       error: (err) => {
         console.error('❌ Load profile error:', err);
@@ -98,39 +98,107 @@ export class ProfilComponent implements OnInit {
       }
     });
   }
-updateProfile(): void {
-  this.isLoading = true;
-  this.successMessage = '';
-  this.errorMessage = '';
 
-  const updates = {
-    nom: this.profile.nom,
-    prenom: this.profile.prenom,
-    telephone: this.profile.telephone,
-    adresse: this.profile.adresse
-  };
+  // ========== PHOTO HANDLING ==========
 
-  this.http.put('http://localhost:8080/api/profile', updates, {
-    headers: this.getHeaders()
-  }).subscribe({
-    next: () => {
-      this.successMessage = 'Profil mis à jour avec succès ✅';
-      this.updateLocalStorage();
-      this.isLoading = false;
+  /** Returns the URL/base64 to display in the avatar: pending preview or saved photo. */
+  get displayPhoto(): string | null {
+    return this.photoPreview || this.profile.photoProfile || null;
+  }
 
-      // 👇 ADD THIS LINE - Redirect to dashboard after 1.5 seconds
-      setTimeout(() => this.router.navigate(['/dashboard']), 1500);
+  /** Called when user picks a file from the file input. Converts to base64 and shows preview. */
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
 
-      setTimeout(() => this.successMessage = '', 3000);
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      this.errorMessage = err.error?.message || 'Erreur lors de la mise à jour';
-      this.isLoading = false;
-      this.cdr.detectChanges();
+    const file = input.files[0];
+
+    // Validate type
+    if (!file.type.startsWith('image/')) {
+      this.errorMessage = 'Veuillez sélectionner une image (JPG, PNG, etc.)';
+      return;
     }
-  });
-}
+
+    // Validate size (max 2 MB)
+    if (file.size > 2 * 1024 * 1024) {
+      this.errorMessage = 'La photo ne doit pas dépasser 2 Mo';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.photoPreview = reader.result as string; // data:image/...;base64,...
+      this.errorMessage = '';
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /** Sends the pending photo preview to the backend and persists it. */
+  savePhoto(): void {
+    if (!this.photoPreview) return;
+
+    this.isUploadingPhoto = true;
+    this.errorMessage = '';
+
+    this.utilisateurService.updateMyPhoto(this.photoPreview).subscribe({
+      next: (res: any) => {
+        this.profile.photoProfile = this.photoPreview!;
+        this.photoPreview = null; // Clear pending preview
+        this.isUploadingPhoto = false;
+        this.successMessage = 'Photo de profil mise à jour ✅';
+        this.updateLocalStorage(); // Persist in localStorage too
+        setTimeout(() => this.successMessage = '', 3000);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('❌ Photo upload error:', err);
+        this.errorMessage = 'Erreur lors de l\'enregistrement de la photo';
+        this.isUploadingPhoto = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /** Cancels pending photo preview without saving. */
+  cancelPhotoPreview(): void {
+    this.photoPreview = null;
+    this.errorMessage = '';
+    this.cdr.detectChanges();
+  }
+
+  // ========== PROFILE UPDATE ==========
+
+  updateProfile(): void {
+    this.isLoading = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    const updates = {
+      nom: this.profile.nom,
+      prenom: this.profile.prenom,
+      telephone: this.profile.telephone,
+      adresse: this.profile.adresse
+    };
+
+    this.http.put('http://localhost:8080/api/profile', updates, {
+      headers: this.getHeaders()
+    }).subscribe({
+      next: () => {
+        this.successMessage = 'Profil mis à jour avec succès ✅';
+        this.updateLocalStorage();
+        this.isLoading = false;
+        setTimeout(() => this.router.navigate(['/dashboard']), 1500);
+        setTimeout(() => this.successMessage = '', 3000);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Erreur lors de la mise à jour';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   private updateLocalStorage(): void {
     const userStr = localStorage.getItem('currentUser');
@@ -141,12 +209,15 @@ updateProfile(): void {
           nom: this.profile.nom,
           prenom: this.profile.prenom,
           telephone: this.profile.telephone,
-          adresse: this.profile.adresse
+          adresse: this.profile.adresse,
+          photoProfile: this.profile.photoProfile
         });
         localStorage.setItem('currentUser', JSON.stringify(user));
       } catch (e) {}
     }
   }
+
+  // ========== PASSWORD ==========
 
   changePassword(): void {
     if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
@@ -184,21 +255,18 @@ updateProfile(): void {
     });
   }
 
-  private getHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  }
-
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
-  }
-
   cancelPasswordChange(): void {
     this.showPasswordForm = false;
     this.passwordData = { ancienMotDePasse: '', nouveauMotDePasse: '', confirmMotDePasse: '' };
     this.errorMessage = '';
+  }
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 }

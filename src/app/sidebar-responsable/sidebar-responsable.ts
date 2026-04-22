@@ -23,8 +23,15 @@ export interface MenuItem {
   styleUrls: ['./sidebar-responsable.css']
 })
 export class SideBarResponsable implements OnInit {
-  @Input() isCollapsed: boolean = false;
-  @Output() toggleSidebar = new EventEmitter<void>();
+  @Input() set collapsed(value: boolean) {
+    this._isCollapsed = value;
+  }
+  get isCollapsed(): boolean {
+    return this._isCollapsed;
+  }
+  private _isCollapsed: boolean = false;
+  
+  @Output() toggleSidebar = new EventEmitter<boolean>();
   @Input() userRole: string = '';
 
   activeRoute: string = '';
@@ -47,85 +54,15 @@ export class SideBarResponsable implements OnInit {
       route: '/dashboard',
       roles: ['ADMIN', 'RESPONSABLE']
     },
-{
-      id: 'mes-vergers',
-      label: 'Mes vergers',
-      icon: 'tree',
-      route: '/mes-vergers',
-      roles: ['AGRICULTEUR']
-    },
-{
-      id: 'collectes',
-      label: 'Collectes',
-      icon: 'tree',
-      route: '/collectes',
-      roles: [ 'RESPONSABLE', 'ADMIN']
-    },
-    {
-      id: 'alertes',
-      label: 'Alertes',
-      icon: 'bell',
-      route: '/alertes',
-      roles: ['AGRICULTEUR', 'ADMIN', 'RESPONSABLE'],
-      children: [
-        {
-          id: 'mes-alerte',
-          label: 'Mes alerte',
-          icon: '',
-          route: '/alertes/mes-alertes',
-          roles: ['AGRICULTEUR']
-        },
-        {
-          id: 'creer-alerte',
-          label: 'Crée alerte',
-          icon: '',
-          route: '/alertes/creer',
-          roles: ['AGRICULTEUR']
-        },
-        {
-          id: 'gestion-alertes',
-          label: 'Gestion des alertes',
-          icon: '',
-          route: '/alertes/gestion',
-          roles: ['ADMIN', 'RESPONSABLE']
-        }
-      ]
-    },
-    {
-      id: 'activation',
-      label: 'Activation des comptes',
-      icon: 'user-check',
-      route: '/admin/activation',
-      roles: ['ADMIN']
-    },
+    // Utilisateurs
     {
       id: 'utilisateurs',
       label: 'Utilisateurs',
-      icon: 'users-cog',
+      icon: 'users',
       route: '/utilisateurs',
       roles: ['ADMIN']
     },
-    {
-      id: 'vergers',
-      label: 'Vergers',
-      icon: 'tree',
-      route: '/vergers',
-      roles: ['ADMIN', 'RESPONSABLE']
-    },
-       {
-      id: 'tournees',
-      label: 'Tournées',
-      icon: 'tree',
-      route: '/tournees',
-      roles: ['ADMIN', 'RESPONSABLE']
-    },
-    {
-      id: 'calendrier',
-      label: 'Calendrier',
-      icon: 'calendar',
-      route: '/calendrier',
-    roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR']
-    },
+    // Ressources
     {
       id: 'ressources',
       label: 'Ressources',
@@ -136,7 +73,7 @@ export class SideBarResponsable implements OnInit {
         {
           id: 'bennes',
           label: 'Bennes',
-          icon: 'box',
+          icon: 'truck',
           route: '/ressources/bennes',
           roles: ['ADMIN', 'RESPONSABLE']
         },
@@ -145,6 +82,75 @@ export class SideBarResponsable implements OnInit {
           label: 'Tracteurs',
           icon: 'tractor',
           route: '/ressources/tracteurs',
+          roles: ['ADMIN', 'RESPONSABLE']
+        }
+      ]
+    },
+    // Vergers
+    {
+      id: 'vergers',
+      label: 'Vergers',
+      icon: 'leaf',
+      route: '/vergers',
+      roles: ['ADMIN', 'RESPONSABLE']
+    },
+    {
+      id: 'mes-vergers',
+      label: 'Mes vergers',
+      icon: 'trees',
+      route: '/mes-vergers',
+      roles: ['AGRICULTEUR']
+    },
+    // Tournées
+    {
+      id: 'tournees',
+      label: 'Tournées',
+      icon: 'map-pin',
+      route: '/tournees',
+      roles: ['ADMIN', 'RESPONSABLE']
+    },
+    // Collectes
+    {
+      id: 'collectes',
+      label: 'Collectes',
+      icon: 'basket',
+      route: '/collectes',
+      roles: ['RESPONSABLE', 'ADMIN']
+    },
+    // Autres
+    {
+      id: 'calendrier',
+      label: 'Calendrier',
+      icon: 'calendar',
+      route: '/calendrier',
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR']
+    },
+    {
+      id: 'alertes',
+      label: 'Alertes',
+      icon: 'alert',
+      route: '/alertes',
+      roles: ['AGRICULTEUR', 'ADMIN', 'RESPONSABLE'],
+      children: [
+        {
+          id: 'mes-alerte',
+          label: 'Mes alertes',
+          icon: '',
+          route: '/alertes/mes-alertes',
+          roles: ['AGRICULTEUR']
+        },
+        {
+          id: 'creer-alerte',
+          label: 'Créer une alerte',
+          icon: '',
+          route: '/alertes/creer',
+          roles: ['AGRICULTEUR']
+        },
+        {
+          id: 'gestion-alertes',
+          label: 'Gestion des alertes',
+          icon: '',
+          route: '/alertes/gestion',
           roles: ['ADMIN', 'RESPONSABLE']
         }
       ]
@@ -175,8 +181,8 @@ export class SideBarResponsable implements OnInit {
   checkMobile(): void {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile && this.isCollapsed) {
-      this.isCollapsed = false;
-      this.toggleSidebar.emit();
+      this._isCollapsed = false;
+      this.toggleSidebar.emit(this._isCollapsed);
     }
   }
 
@@ -290,15 +296,15 @@ export class SideBarResponsable implements OnInit {
 
   navigate(route: string): void {
     if (this.isMobile) {
-      this.isCollapsed = true;
-      this.toggleSidebar.emit();
+      this._isCollapsed = true;
+      this.toggleSidebar.emit(this._isCollapsed);
     }
     this.router.navigate([route]);
   }
 
   toggle(): void {
-    this.isCollapsed = !this.isCollapsed;
-    this.toggleSidebar.emit();
+    this._isCollapsed = !this._isCollapsed;
+    this.toggleSidebar.emit(this._isCollapsed);
   }
 
   logout(): void {
@@ -309,18 +315,18 @@ export class SideBarResponsable implements OnInit {
 
   getIconPath(iconName: string): string {
     const icons: { [key: string]: string } = {
-      dashboard: 'M3 12h6V3H3v9zm12 0h6V3h-6v9zM3 21h6v-6H3v6zm12 0h6v-6h-6v6z',
-      users: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-      farmer: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-      tree: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-      route: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-      bell: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-      'user-check': 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-      'users-cog': 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-      package: 'M4 8h16M4 16h16M8 3v18M16 3v18',
-      box: 'M4 8h16M4 16h16M8 3v18M16 3v18',
-      tractor: 'M5 10h14M5 14h14M7 6h10M7 18h10M12 2v4M12 18v4',
-      user: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'
+      dashboard: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z',
+      users: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
+      package: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
+      leaf: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z',
+      trees: 'M8 19h3v4h2v-4h3l-4-4-4 4zm6-15h3V2h-2v2h-1V2h-2v2h3v2zm5.5 2.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM12 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c2.97 0 6-1.46 6-3.5V8h1.5c1.1 0 2-.9 2-2s-.9-2-2-2h-1.5V2h-2v2h-3V2h-2v2H6c-1.1 0-2 .9-2 2s.9 2 2 2H7.5v4.5C7.5 14.54 9.03 16 12 16z',
+      'map-pin': 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.5 5c.83 0 1.5.67 1.5 1.5S14.33 10 13.5 10 12 9.33 12 8.5s.67-1.5 1.5-1.5zm0 9l-6-6h12l-6 6z',
+      basket: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z',
+      calendar: 'M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zm-5-5h4v4h-4z',
+      alert: 'M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z',
+      user: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z', 
+      truck: 'M18 18.5a1.5 1.5 0 01-1.5-1.5 1.5 1.5 0 011.5-1.5 1.5 1.5 0 011.5 1.5 1.5 1.5 0 01-1.5 1.5m1.5-9l-6-6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V11m-9 9a1.5 1.5 0 01-1.5-1.5 1.5 1.5 0 011.5-1.5 1.5 1.5 0 011.5 1.5 1.5 1.5 0 01-1.5 1.5z',
+      tractor: 'M9.5 11c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m0-9C5.6 2 2.5 5.1 2.5 9s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7m10 6v4c0 .55.45 1 1 1h2v-2h-2v-2h-1c-.55 0-1 .45-1 1zm0-4h6v2h-6V3z',
     };
     return icons[iconName] || icons['dashboard'];
   }
