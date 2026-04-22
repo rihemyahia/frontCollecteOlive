@@ -21,7 +21,6 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
   isLoading = true;
   selectedAlerte: AlerteResponse | null = null;
   showDetailModal = false;
-  showCommentModal = false;
 
   isSidebarCollapsed = false;
   isMobile = false;
@@ -40,6 +39,7 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
 
   // Modal Properties
   newStatut: StatutAlerte | '' = '';
+  newUrgence: NiveauUrgence | '' = '';
   treatmentComment = '';
   isProcessing = false;
 
@@ -221,6 +221,7 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     this.selectedAlerte = alerte;
     this.showDetailModal = true;
     this.newStatut = alerte.statut;
+    this.newUrgence = alerte.niveauUrgence;
     this.treatmentComment = alerte.commentaireTraitement || '';
   }
 
@@ -228,6 +229,7 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     this.showDetailModal = false;
     this.selectedAlerte = null;
     this.newStatut = '';
+    this.newUrgence = '';
     this.treatmentComment = '';
   }
 
@@ -287,6 +289,34 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
         console.error('Error marking as treated:', err);
         this.isProcessing = false;
         this.showErrorNotification('Erreur lors du traitement de l\'alerte');
+      }
+    });
+  }
+
+  // Change Urgency/Criticality
+  changeUrgence(): void {
+    if (!this.selectedAlerte || !this.newUrgence) return;
+
+    this.isProcessing = true;
+    const endpoint$ = this.isAdmin
+      ? this.alerteService.changeUrgence(this.selectedAlerte.id, this.newUrgence as NiveauUrgence)
+      : this.alerteService.changerUrgenceResponsable(this.selectedAlerte.id, this.newUrgence as NiveauUrgence);
+
+    endpoint$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (updated) => {
+        this.selectedAlerte = updated;
+        const index = this.alertes.findIndex(a => a.id === updated.id);
+        if (index !== -1) {
+          this.alertes[index] = updated;
+          this.applyFilters();
+        }
+        this.isProcessing = false;
+        this.showSuccessNotification('Niveau de criticité mis à jour avec succès');
+      },
+      error: (err) => {
+        console.error('Error changing urgency:', err);
+        this.isProcessing = false;
+        this.showErrorNotification('Erreur lors de la mise à jour de la criticité');
       }
     });
   }

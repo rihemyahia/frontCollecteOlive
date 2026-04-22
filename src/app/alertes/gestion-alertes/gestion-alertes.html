@@ -314,6 +314,26 @@
           </div>
         </div>
 
+        <!-- Change Criticality -->
+        <div class="action-group">
+          <label for="newUrgence">Changer la criticité</label>
+          <div class="action-row">
+            <select
+              id="newUrgence"
+              [(ngModel)]="newUrgence"
+              [disabled]="isProcessing">
+              <option *ngFor="let option of urgenceOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <button type="button" class="btn-primary"
+                    (click)="changeUrgence()"
+                    [disabled]="isProcessing || newUrgence === selectedAlerte.niveauUrgence">
+              {{ isProcessing ? 'Mise à jour...' : '✓ Appliquer' }}
+            </button>
+          </div>
+        </div>
+
         <!-- Mark as Treated -->
         <div class="action-group">
           <label for="treatmentComment">Marquer comme traitée</label>

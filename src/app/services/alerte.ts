@@ -92,6 +92,11 @@ export class AlerteService {
     return this.http.patch<AlerteResponse>(`${this.API}/${id}/statut`, null, { params: { statut } });
   }
 
+  // Change alert urgency/criticality (RESPONSABLE/ADMIN only)
+  changeUrgence(id: string, urgence: NiveauUrgence): Observable<AlerteResponse> {
+    return this.http.patch<AlerteResponse>(`${this.API}/${id}/urgence`, null, { params: { urgence } });
+  }
+
   // Mark alert as treated (RESPONSABLE/ADMIN only)
   markAsProcessed(id: string, comment: string): Observable<AlerteResponse> {
     return this.http.patch<AlerteResponse>(`${this.API}/${id}/traiter`, null, { params: { commentaire: comment } });
@@ -204,6 +209,11 @@ export class AlerteService {
   // Change alert status for responsable
   changerStatutResponsable(id: string, statut: StatutAlerte): Observable<AlerteResponse> {
     return this.http.patch<AlerteResponse>(`${this.API}/responsable/${id}/statut`, null, { params: { statut } });
+  }
+
+  // Change alert urgency for responsable
+  changerUrgenceResponsable(id: string, urgence: NiveauUrgence): Observable<AlerteResponse> {
+    return this.http.patch<AlerteResponse>(`${this.API}/responsable/${id}/urgence`, null, { params: { urgence } });
   }
 
   // Mark alert as treated for responsable
