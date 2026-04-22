@@ -27,6 +27,9 @@ export class CreeAlerte implements OnInit {
   formSuccess = '';
   formError = '';
   showUrgenceInfo = false;
+  selectedFiles: File[] = [];
+  photoPreviews: string[] = [];
+  readonly maxPhotos = 3;
 
   // Sidebar & Responsive
   isSidebarCollapsed = false;
@@ -153,17 +156,23 @@ export class CreeAlerte implements OnInit {
 
     this.alerteService.signaler(requestData).subscribe({
       next: (created: AlerteResponse) => {
-        console.log('✅ Alert created:', created);
-        this.formSuccess = 'Alerte signalée avec succès !';
-        this.isSubmitting = false;
-        this.cdr.markForCheck();
-        this.alerteCreated.emit(created);
-        this.alerteForm.reset();
-        setTimeout(() => {
-          this.formClosed.emit();
-          this.formSuccess = '';
-          this.cdr.markForCheck();
-        }, 2000);
+        const upload$ = this.selectedFiles.length > 0
+          ? this.alerteService.uploadPhotos(created.id, this.selectedFiles)
+          : null;
+
+        if (!upload$) {
+          this.finishSuccess(created);
+          return;
+        }
+
+        upload$.subscribe({
+          next: (updatedWithPhotos) => this.finishSuccess(updatedWithPhotos),
+          error: (err: any) => {
+            console.error('❌ Error uploading photos:', err);
+            // Alert is created; photos are optional — show success + warning
+            this.finishSuccess(created, 'Alerte créée, mais échec lors de l’envoi des photos.');
+          }
+        });
       },
       error: (err: any) => {
         console.error('❌ Error submitting alert:', err);
@@ -186,10 +195,51 @@ export class CreeAlerte implements OnInit {
     });
   }
 
+  private finishSuccess(created: AlerteResponse, warning?: string): void {
+    console.log('✅ Alert created:', created);
+    this.formSuccess = warning || 'Alerte signalée avec succès !';
+    this.isSubmitting = false;
+    this.cdr.markForCheck();
+    this.alerteCreated.emit(created);
+    this.alerteForm.reset();
+    this.clearSelectedFiles();
+    setTimeout(() => {
+      this.formClosed.emit();
+      this.formSuccess = '';
+      this.cdr.markForCheck();
+    }, 2000);
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files || []);
+    this.clearSelectedFiles();
+    if (files.length > this.maxPhotos) {
+      this.formError = `Vous pouvez envoyer au maximum ${this.maxPhotos} photos.`;
+    }
+    const limited = files.slice(0, this.maxPhotos);
+    this.selectedFiles = limited;
+    this.photoPreviews = limited.map(f => URL.createObjectURL(f));
+  }
+
+  removePhoto(index: number): void {
+    const preview = this.photoPreviews[index];
+    if (preview) URL.revokeObjectURL(preview);
+    this.photoPreviews.splice(index, 1);
+    this.selectedFiles.splice(index, 1);
+  }
+
+  clearSelectedFiles(): void {
+    this.photoPreviews.forEach(p => URL.revokeObjectURL(p));
+    this.photoPreviews = [];
+    this.selectedFiles = [];
+  }
+
   resetForm(): void {
     this.alerteForm.reset();
     this.alerteForm.markAsUntouched();
     this.formError = '';
+    this.clearSelectedFiles();
   }
 
   onCancel(): void {

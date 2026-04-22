@@ -120,6 +120,7 @@
                     <th>Agriculteur</th>
                     <th>Verger</th>
                     <th>Type</th>
+                    <th>Photos</th>
                     <th>Urgence</th>
                     <th>Statut</th>
                     <th>Actions</th>
@@ -142,6 +143,26 @@
                       <span class="badge badge-verger">{{ alerte.vergerTypeOlive ? alerte.vergerTypeOlive : 'N/A' }}</span>
                     </td>
                     <td class="type-label">{{ getTypeLabel(alerte.type) }}</td>
+                    <td class="photos-cell">
+                      <ng-container *ngIf="alerte.photoUrls && alerte.photoUrls.length > 0; else noPhotos">
+                        <div class="photos-preview">
+                          <a class="photo-thumb"
+                             *ngFor="let url of alerte.photoUrls.slice(0, 3)"
+                             [href]="url"
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             title="Ouvrir la photo">
+                            <img [src]="url" alt="Photo alerte" />
+                          </a>
+                          <span class="photo-more" *ngIf="alerte.photoUrls.length > 3">
+                            +{{ alerte.photoUrls.length - 3 }}
+                          </span>
+                        </div>
+                      </ng-container>
+                      <ng-template #noPhotos>
+                        <span class="no-photos">Aucune</span>
+                      </ng-template>
+                    </td>
                     <td class="urgence-cell">
                       <span class="urgence-badge" 
                             [style.background-color]="getUrgenceColor(alerte.niveauUrgence)">

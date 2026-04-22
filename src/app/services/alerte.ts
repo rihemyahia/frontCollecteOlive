@@ -27,6 +27,7 @@ export interface AlerteResponse {
   vergerTypeOlive: string;
   type: TypeAlerte;
   description: string;
+  photoUrls?: string[];
   geolocalisation: {
     latitude: number;
     longitude: number;
@@ -50,6 +51,13 @@ export class AlerteService {
   // Create a new alert
   signaler(request: AlerteRequest): Observable<AlerteResponse> {
     return this.http.post<AlerteResponse>(`${this.API}`, request);
+  }
+
+  // Upload optional photos for an alert (AGRICULTEUR only)
+  uploadPhotos(alerteId: string, files: File[]): Observable<AlerteResponse> {
+    const form = new FormData();
+    (files || []).forEach(f => form.append('files', f, f.name));
+    return this.http.post<AlerteResponse>(`${this.API}/${alerteId}/photos`, form);
   }
 
   // Get all alerts (RESPONSABLE/ADMIN only)

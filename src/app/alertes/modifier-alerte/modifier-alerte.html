@@ -94,6 +94,23 @@
             </div>
 
             <div class="section">
+              <h3>Photos</h3>
+              <div *ngIf="alerte.photoUrls && alerte.photoUrls.length > 0; else noPhotos" class="photo-grid">
+                <a class="photo-item"
+                   *ngFor="let url of alerte.photoUrls"
+                   [href]="url"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Ouvrir la photo">
+                  <img [src]="url" alt="Photo alerte" />
+                </a>
+              </div>
+              <ng-template #noPhotos>
+                <p class="no-photos">Aucune image.</p>
+              </ng-template>
+            </div>
+
+            <div class="section">
               <h3>Etat actuel</h3>
               <div class="detail-grid">
                 <div class="detail-item">
