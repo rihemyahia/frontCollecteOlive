@@ -49,8 +49,8 @@
 
             <div class="oh-header__right">
               <div class="oh-stats-pill" *ngIf="!isLoading">
-                <strong class="stats-pill__count">{{ utilisateurs.length }}</strong>
-                <span class="stats-pill__label">{{ utilisateurs.length === 1 ? 'utilisateur' : 'utilisateurs' }}</span>
+                <strong class="stats-pill__count">{{ filteredUtilisateurs.length }}</strong>
+                <span class="stats-pill__label">{{ filteredUtilisateurs.length === 1 ? 'utilisateur' : 'utilisateurs' }}</span>
               </div>
 
               <button class="oh-btn-primary" (click)="navigateToCreateUser()">
@@ -104,7 +104,42 @@
           </form>
         </div>
 
-        <!-- TABS -->
+        <!-- BARRE DE RECHERCHE -->
+        <div class="oh-search-bar" *ngIf="!showEditForm">
+          <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Rechercher par nom, prénom, email ou téléphone..."
+              [(ngModel)]="searchTerm"
+              (input)="onSearchChange()">
+            <button *ngIf="searchTerm" class="search-clear-btn" (click)="clearSearch()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- FILTRES PAR RÔLE -->
+        <div class="oh-role-filters" *ngIf="!showEditForm">
+          <div class="role-filters-container">
+            <div class="role-filters-label">
+              <i class="bi bi-funnel-fill"></i>
+              <span>Filtrer par rôle :</span>
+            </div>
+            <div class="role-filters-buttons">
+              <button *ngFor="let role of filterRoles"
+                      class="role-filter-btn"
+                      [class.active]="selectedRole === role.value"
+                      (click)="changeRoleFilter(role.value)">
+                <i [class]="'bi ' + role.icon"></i>
+                <span>{{ role.label }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABS (Actifs/Désactivés/Tous) -->
         <div class="oh-tabs" *ngIf="!showEditForm">
           <div class="tab" [class.active]="activeTab === 'actifs'" (click)="changeTab('actifs')">
             <i class="bi bi-check-circle-fill"></i> Actifs
@@ -125,12 +160,15 @@
           <div *ngIf="!isLoading && filteredUtilisateurs.length > 0 && !showEditForm" class="oh-grid">
             <div *ngFor="let u of filteredUtilisateurs; let i = index" class="oh-worker" [style.animation-delay]="(i * 0.06) + 's'">
               <div class="oh-worker__top">
-                <div class="oh-avatar">
+                <div class="oh-avatar" [style.background]="getAvatarColor(u.role)">
                   <span class="oh-avatar__initials">{{ (u.prenom || '').charAt(0) }}{{ (u.nom || '').charAt(0) }}</span>
                 </div>
                 <div class="oh-worker__info">
                   <strong class="oh-worker__name">{{ u.nom }} {{ u.prenom }}</strong>
-                  <span class="oh-worker__role">{{ u.role }}</span>
+                  <span class="oh-worker__role">
+                    <i [class]="'bi ' + getRoleIcon(u.role)"></i>
+                    {{ u.role }}
+                  </span>
                 </div>
                 <span class="oh-badge" [class.oh-badge--actif]="u.compteActif" [class.oh-badge--inactif]="!u.compteActif">
                   <span class="oh-badge__dot"></span>
@@ -154,12 +192,11 @@
               </div>
 
               <div class="oh-worker__actions">
-<button (click)="router.navigate(['/utilisateurs/modifier', u.id])">
+                <button (click)="router.navigate(['/utilisateurs/modifier', u.id])">
                   <i class="bi bi-pencil-fill"></i>
                   Modifier
                 </button>
 
-                <!-- DESACTIVATE BUTTON (only for active accounts) -->
                 <button *ngIf="u.compteActif"
                   class="oh-action-btn oh-action-btn--desactiver"
                   (click)="desactiverCompte(u.id!)"
@@ -168,10 +205,6 @@
                   Désactiver
                 </button>
 
-                <button class="oh-action-btn oh-action-btn--delete" (click)="deleteUtilisateur(u.id)" title="Supprimer" *ngIf="u.id">
-                  <i class="bi bi-trash-fill"></i>
-                  Supprimer
-                </button>
               </div>
             </div>
           </div>
@@ -189,7 +222,9 @@
           <div *ngIf="!isLoading && filteredUtilisateurs.length === 0 && !showEditForm" class="oh-state">
             <i class="bi bi-people" style="font-size: 3.5rem; color: #A8B84B; opacity: 0.6;"></i>
             <p class="oh-state__title">Aucun utilisateur trouvé</p>
-            <p class="oh-state__desc">Commencez par ajouter un nouvel utilisateur.</p>
+            <p class="oh-state__desc" *ngIf="searchTerm">Aucun résultat pour "{{ searchTerm }}"</p>
+            <p class="oh-state__desc" *ngIf="!searchTerm && selectedRole !== 'tous'">Aucun utilisateur avec le rôle "{{ getRoleLabel(selectedRole) }}"</p>
+            <p class="oh-state__desc" *ngIf="!searchTerm && selectedRole === 'tous'">Commencez par ajouter un nouvel utilisateur.</p>
           </div>
 
           <div *ngIf="errorMessage && !showEditForm" class="oh-error">

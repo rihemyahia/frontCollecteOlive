@@ -17,8 +17,6 @@ export interface Utilisateur {
   motDePasse?: string;  // ← Ajoutez cette ligne (optionnel)
 
   // Pour agriculteur
-  nomExploitation?: string;
-  vergers?: any[];
 
   // Pour travailleur ()
   cin?: string;
@@ -29,7 +27,6 @@ export interface Utilisateur {
   collectesAssignees?: any[];
 
   // Pour responsable
-  fonction?: string;
   datePrisePoste?: Date;
 
   // Pour transporteur

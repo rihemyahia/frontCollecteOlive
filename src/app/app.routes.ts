@@ -28,7 +28,6 @@ import { MesAlertesComponent } from './alertes/mes-alertes/mes-alertes';
 import { AlertesListComponent } from './alertes/alertes-list/alertes-list';
 import { AlertDetailComponent } from './alertes/alert-detail/alert-detail';
 import { CalendrierComponent } from './calendrier/calendrier/calendrier';
-import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
 import { TourneeListComponent } from './tournee/tournee-list/tournee-list';
 import { TourneeCreateComponent } from './tournee/tournee-create/tournee-create';
 import { TourneeDetailComponent } from './tournee/tournee-detail/tournee-detail';
