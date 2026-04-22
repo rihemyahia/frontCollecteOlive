@@ -176,5 +176,39 @@ export class AlerteService {
   getStatusHistory(alerteId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.API}/${alerteId}/status-history`);
   }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // RESPONSABLE-SPECIFIC METHODS
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // Get all alerts for responsable (from their managed vergers)
+  getAlertesResponsable(): Observable<AlerteResponse[]> {
+    return this.http.get<AlerteResponse[]>(`${this.API}/responsable`);
+  }
+
+  // Get single alert detail for responsable (with ownership verification)
+  getAlertDetailResponsable(id: string): Observable<AlerteResponse> {
+    return this.http.get<AlerteResponse>(`${this.API}/responsable/${id}`);
+  }
+
+  // Get alerts filtered by status (responsable only sees their vergers)
+  getAlertesResponsableByStatut(statut: StatutAlerte): Observable<AlerteResponse[]> {
+    return this.http.get<AlerteResponse[]>(`${this.API}/responsable/statut`, { params: { statut } });
+  }
+
+  // Get alerts filtered by urgency level (responsable only sees their vergers)
+  getAlertesResponsableByUrgence(urgence: NiveauUrgence): Observable<AlerteResponse[]> {
+    return this.http.get<AlerteResponse[]>(`${this.API}/responsable/urgence`, { params: { urgence } });
+  }
+
+  // Change alert status for responsable
+  changerStatutResponsable(id: string, statut: StatutAlerte): Observable<AlerteResponse> {
+    return this.http.patch<AlerteResponse>(`${this.API}/responsable/${id}/statut`, null, { params: { statut } });
+  }
+
+  // Mark alert as treated for responsable
+  marquerTraiteeResponsable(id: string, commentaire: string): Observable<AlerteResponse> {
+    return this.http.patch<AlerteResponse>(`${this.API}/responsable/${id}/traiter`, null, { params: { commentaire } });
+  }
   
 }

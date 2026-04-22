@@ -34,6 +34,8 @@ import { TourneeDetailComponent } from './tournee/tournee-detail/tournee-detail'
 import { CollecteListComponent } from './collecte/collecte-list/collecte-list';
 import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-detail';
 import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
+import { GestionAlertesComponent } from './alertes/gestion-alertes/gestion-alertes';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -240,7 +242,8 @@ export const routes: Routes = [
       // Admin/Responsable alert management
       {
         path: 'gestion',
-        component: AlertesListComponent,
+        component: GestionAlertesComponent,
+        canActivate: [AuthGuard, roleGuard],
         data: { role: ['ADMIN', 'RESPONSABLE'] }
       },
       {
