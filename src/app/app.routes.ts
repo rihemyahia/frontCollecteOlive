@@ -35,6 +35,7 @@ import { CollecteListComponent } from './collecte/collecte-list/collecte-list';
 import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-detail';
 import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
 import { GestionAlertesComponent } from './alertes/gestion-alertes/gestion-alertes';
+import { ModifierAlerteComponent } from './alertes/modifier-alerte/modifier-alerte';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -243,6 +244,12 @@ export const routes: Routes = [
       {
         path: 'gestion',
         component: GestionAlertesComponent,
+        canActivate: [AuthGuard, roleGuard],
+        data: { role: ['ADMIN', 'RESPONSABLE'] }
+      },
+      {
+        path: 'modifier/:id',
+        component: ModifierAlerteComponent,
         canActivate: [AuthGuard, roleGuard],
         data: { role: ['ADMIN', 'RESPONSABLE'] }
       },
