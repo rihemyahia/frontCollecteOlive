@@ -1,4 +1,3 @@
-// app.routes.ts - COMPLETE FIXED VERSION
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
@@ -26,13 +25,15 @@ import { CreerVergerComponent } from './vergers/creer-verger/creer-verger';
 import { ModifierVergerComponent } from './vergers/modifier-verger/modifier-verger';
 import { MesVergersComponent } from './vergers/mes-vergers/mes-vergers';
 import { MesAlertesComponent } from './alertes/mes-alertes/mes-alertes';
+import { AlertesListComponent } from './alertes/alertes-list/alertes-list';
+import { AlertDetailComponent } from './alertes/alert-detail/alert-detail';
 import { CalendrierComponent } from './calendrier/calendrier/calendrier';
 import { TourneeListComponent } from './tournee/tournee-list/tournee-list';
 import { TourneeCreateComponent } from './tournee/tournee-create/tournee-create';
 import { TourneeDetailComponent } from './tournee/tournee-detail/tournee-detail';
 import { CollecteListComponent } from './collecte/collecte-list/collecte-list';
 import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-detail';
-
+import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -219,11 +220,35 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['AGRICULTEUR'] }
   },
+
+  // Alertes
   {
-    path: 'mes-alertes',
-    component: MesAlertesComponent,
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['AGRICULTEUR'] }
+    path: 'alertes',
+    canActivate: [AuthGuard],
+    children: [
+      // Farmer alerts
+      {
+        path: 'mes-alertes',
+        component: MesAlertesComponent,
+        data: { role: ['AGRICULTEUR'] }
+      },
+      {
+        path: 'creer',
+        component: CreeAlerte,
+        data: { role: ['AGRICULTEUR'] }
+      },
+      // Admin/Responsable alert management
+      {
+        path: 'gestion',
+        component: AlertesListComponent,
+        data: { role: ['ADMIN', 'RESPONSABLE'] }
+      },
+      {
+        path: 'detail/:id',
+        component: AlertDetailComponent,
+        data: { role: ['ADMIN', 'RESPONSABLE'] }
+      }
+    ]
   },
 
   // Default redirect - MUST BE LAST

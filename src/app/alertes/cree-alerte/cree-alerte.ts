@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { AlerteService, AlerteResponse, TypeAlerte, AlerteRequest } from '../../services/alerte';
 import { VergerService } from '../../services/verger';
 import { VergerResponse } from '../../models/verger';
@@ -53,7 +54,8 @@ export class CreeAlerte implements OnInit {
     private fb: FormBuilder,
     private alerteService: AlerteService,
     private vergerService: VergerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute
   ) {}
 
   @HostListener('window:resize')
@@ -103,11 +105,22 @@ export class CreeAlerte implements OnInit {
   }
 
   checkForPreSelectedVerger(): void {
-    const preSelectedVergerId = sessionStorage.getItem('preSelectedVergerId');
-    if (preSelectedVergerId) {
-      sessionStorage.removeItem('preSelectedVergerId');
-      this.alerteForm.patchValue({ vergerId: preSelectedVergerId });
-    }
+    // Check query parameters first (from mes-vergers navigation)
+    this.route.queryParams.subscribe(params => {
+      if (params['vergerId']) {
+        console.log('🌳 Pre-selected verger from query params:', params['vergerId']);
+        this.alerteForm.patchValue({ vergerId: params['vergerId'] });
+        return;
+      }
+
+      // Fallback to sessionStorage (for backward compatibility)
+      const preSelectedVergerId = sessionStorage.getItem('preSelectedVergerId');
+      if (preSelectedVergerId) {
+        console.log('🌳 Pre-selected verger from sessionStorage:', preSelectedVergerId);
+        sessionStorage.removeItem('preSelectedVergerId');
+        this.alerteForm.patchValue({ vergerId: preSelectedVergerId });
+      }
+    });
   }
 
   isInvalid(field: string): boolean {

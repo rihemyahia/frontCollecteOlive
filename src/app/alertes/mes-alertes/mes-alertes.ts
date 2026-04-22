@@ -9,12 +9,11 @@ import { VergerResponse } from '../../models/verger';
 import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { RelativeDatePipe } from '../../shared/pipes/relative-date.pipe';
-import { CreeAlerte } from '../cree-alerte/cree-alerte';
 
 @Component({
   selector: 'app-mes-alertes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, LowerCasePipe, SideBarResponsable, RelativeDatePipe, CreeAlerte],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, LowerCasePipe, SideBarResponsable, RelativeDatePipe],
   templateUrl: './mes-alertes.html',
   styleUrl: './mes-alertes.css'
 })
@@ -23,7 +22,6 @@ export class MesAlertesComponent implements OnInit {
   alertes: AlerteResponse[] = [];
   mesVergers: VergerResponse[] = [];
 
-  showForm = false;
   isLoading = true;
 
   isSidebarCollapsed = false;
@@ -156,7 +154,8 @@ export class MesAlertesComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private alerteService: AlerteService,
     private vergerService: VergerService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   @HostListener('window:resize')
@@ -167,6 +166,10 @@ export class MesAlertesComponent implements OnInit {
 
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  openCreateAlertForm(): void {
+    this.router.navigate(['/alertes/creer']);
   }
 
   ngOnInit(): void {
@@ -218,16 +221,7 @@ export class MesAlertesComponent implements OnInit {
     return false;
   }
 
-  // Event handlers from signaler-cree-alerte component
-  onAlerteCreated(alerte: AlerteResponse): void {
-    this.alertes.unshift(alerte);
-    this.cdr.markForCheck();
-  }
 
-  onFormClosed(): void {
-    this.showForm = false;
-    this.cdr.markForCheck();
-  }
 
   // Helper methods for display
   getTypeLabel(type: TypeAlerte): string {

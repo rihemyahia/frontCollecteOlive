@@ -76,20 +76,34 @@ export class SideBarResponsable implements OnInit {
       roles: [ 'RESPONSABLE', 'ADMIN']
     },
     {
-      id: 'Mes alertes',
-      label: 'Mes alertes',
+      id: 'alertes',
+      label: 'Alertes',
       icon: 'bell',
-      route: '/mes-alertes',
-      roles: ['AGRICULTEUR'],
-      badge: 3,
-       children: [
+      route: '/alertes',
+      roles: ['AGRICULTEUR', 'ADMIN', 'RESPONSABLE'],
+      children: [
+        {
+          id: 'mes-alerte',
+          label: 'Mes alerte',
+          icon: '',
+          route: '/alertes/mes-alertes',
+          roles: ['AGRICULTEUR']
+        },
         {
           id: 'creer-alerte',
           label: 'Crée alerte',
           icon: '',
-          route: '/cree-alerte',
+          route: '/alertes/creer',
           roles: ['AGRICULTEUR']
-        }]
+        },
+        {
+          id: 'gestion-alertes',
+          label: 'Gestion des alertes',
+          icon: '',
+          route: '/alertes/gestion',
+          roles: ['ADMIN', 'RESPONSABLE']
+        }
+      ]
     },
     {
       id: 'activation',
