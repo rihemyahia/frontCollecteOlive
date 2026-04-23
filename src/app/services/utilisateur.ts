@@ -94,6 +94,16 @@ export class UtilisateurService {
     });
   }
 
+  // Admin: update responsable + managed vergers
+  adminUpdateResponsable(id: string, body: { managedVergerIds?: string[]; replaceManagedVergers?: boolean } & Partial<Utilisateur>): Observable<Utilisateur> {
+    return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/responsables/${id}`, body, { headers: this.getHeaders() });
+  }
+
+  // Admin: update agriculteur + owned vergers
+  adminUpdateAgriculteur(id: string, body: { ownedVergerIds?: string[]; replaceOwnedVergers?: boolean } & Partial<Utilisateur>): Observable<Utilisateur> {
+    return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/agriculteurs/${id}`, body, { headers: this.getHeaders() });
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/utilisateurs/${id}`, {
       headers: this.getHeaders()

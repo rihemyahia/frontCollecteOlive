@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { Agriculteur, AgriculteurService } from '../../services/agriculteur';
 import { VergerMapComponent } from '../../shared/verger-map/verger-map';
+import { Utilisateur, UtilisateurService } from '../../services/utilisateur';
 
 @Component({
   selector: 'app-modifier-verger',
@@ -35,6 +36,9 @@ export class ModifierVergerComponent implements OnInit {
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = '';
+  isAdmin = false;
+
+  responsables: Utilisateur[] = [];
 
   statuts = Object.values(StatutVerger);
   typesOlive = ['Chemlali', 'Chétoui', 'Picholine', 'Arbequina', 'Koroneiki', 'Sigoise', 'Lucques'];
@@ -55,6 +59,7 @@ export class ModifierVergerComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     public router: Router,
     private agriculteurService: AgriculteurService,
+    private utilisateurService: UtilisateurService,
   ) {}
 
   @HostListener('window:resize')
@@ -69,11 +74,13 @@ export class ModifierVergerComponent implements OnInit {
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
+    this.isAdmin = this.userRole === 'ADMIN';
     this.checkMobile();
     this.vergerId = this.route.snapshot.paramMap.get('id')!;
 
     this.vergerForm = this.fb.group({
       agriculteurId:    ['', Validators.required],
+      responsableId:    [''],
       superficie:       [null, [Validators.required, Validators.min(0.01)]],
       typeOlive:        ['', Validators.required],
       nbArbre:          [null, [Validators.required, Validators.min(1)]],
@@ -84,6 +91,15 @@ export class ModifierVergerComponent implements OnInit {
       longitude:        [null],
       adresseIndicative: ['']
     });
+
+    if (this.isAdmin) {
+      this.vergerForm.get('responsableId')?.setValidators([Validators.required]);
+      this.vergerForm.get('responsableId')?.updateValueAndValidity();
+
+      this.utilisateurService.getAll().subscribe(list => {
+        this.responsables = (list || []).filter(u => (u.role || '').toUpperCase() === 'RESPONSABLE');
+      });
+    }
 
     this.agriculteurService.getAll().subscribe(list => {
       this.agriculteurs = list;
@@ -99,6 +115,7 @@ export class ModifierVergerComponent implements OnInit {
       next: (v: any) => {
         this.vergerForm.patchValue({
           agriculteurId:    v.agriculteurId,
+          responsableId:    v.responsableId || '',
           superficie:       v.superficie,
           typeOlive:        v.typeOlive,
           nbArbre:          v.nbArbre,
@@ -229,7 +246,11 @@ export class ModifierVergerComponent implements OnInit {
       adresseIndicative: this.selectedAddress
     };
 
-    this.vergerService.mettreAJour(this.vergerId, payload).subscribe({
+    const endpoint$ = this.isAdmin
+      ? this.vergerService.mettreAJourAdmin(this.vergerId, payload)
+      : this.vergerService.mettreAJour(this.vergerId, payload);
+
+    endpoint$.subscribe({
       next: () => {
         this.successMessage = 'Verger mis à jour avec succès !';
         this.isLoading = false;

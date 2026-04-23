@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UtilisateurService, Utilisateur } from '../../services/utilisateur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+import { VergerService } from '../../services/verger';
+import { VergerResponse } from '../../models/verger';
 
 @Component({
   selector: 'app-modifier-utilisateur',
@@ -46,10 +48,20 @@ export class ModifierUtilisateur implements OnInit {
 
   roles = ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR', 'TRANSPORTEUR'];
 
+  // Verger assignment (admin only)
+  vergers: VergerResponse[] = [];
+  selectedOwnedVergerIds: string[] = [];
+  selectedManagedVergerIds: string[] = [];
+  replaceVergers = true;
+  vergerSearch = '';
+  vergerPage = 1;
+  vergerPageSize = 50;
+
   constructor(
     private route: ActivatedRoute,
     public router: Router,
     private utilisateurService: UtilisateurService,
+    private vergerService: VergerService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -99,6 +111,7 @@ export class ModifierUtilisateur implements OnInit {
       next: (data) => {
         console.log('✅ User loaded successfully:', data);
         this.utilisateur = { ...this.utilisateur, ...data };
+        this.loadVergersForAssignments();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -109,6 +122,140 @@ export class ModifierUtilisateur implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+  getPaginationPages(): number[] {
+    const total = this.totalVergerPages;
+    const current = this.vergerPage;
+   
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+   
+    const pages: number[] = [];
+    const addPage = (p: number) => {
+      if (!pages.includes(p)) pages.push(p);
+    };
+    const addEllipsis = () => {
+      const last = pages[pages.length - 1];
+      if (last !== -1) pages.push(-1);
+    };
+   
+    // Always show first 2
+    addPage(1);
+    addPage(2);
+   
+    // Left ellipsis
+    if (current > 4) addEllipsis();
+   
+    // Pages around current
+    for (let p = Math.max(3, current - 1); p <= Math.min(total - 2, current + 1); p++) {
+      addPage(p);
+    }
+   
+    // Right ellipsis
+    if (current < total - 3) addEllipsis();
+   
+    // Always show last 2
+    addPage(total - 1);
+    addPage(total);
+   
+    return pages;
+  }
+  
+  private loadVergersForAssignments(): void {
+    this.vergerService.getAll().subscribe({
+      next: (list) => {
+        this.vergers = list || [];
+
+        const role = (this.utilisateur.role || '').toUpperCase();
+        if (role === 'AGRICULTEUR') {
+          this.selectedOwnedVergerIds = this.vergers
+            .filter(v => v.agriculteurId === this.utilisateur.id)
+            .map(v => v.id);
+        } else if (role === 'RESPONSABLE') {
+          this.selectedManagedVergerIds = this.vergers
+            .filter(v => v.responsableId === this.utilisateur.id)
+            .map(v => v.id);
+        }
+
+        this.vergerPage = 1;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Non-blocking: keep user edit form usable even if vergers fail to load
+      }
+    });
+  }
+
+  private norm(s: unknown): string {
+    return String(s ?? '').toLowerCase().trim();
+  }
+
+  hasText(s: unknown): boolean {
+    const v = String(s ?? '').toLowerCase().trim();
+    return v.length > 0 && v !== 'null' && v !== 'null null' && v !== 'undefined';
+  }
+  
+
+  get filteredVergers(): VergerResponse[] {
+    const q = this.norm(this.vergerSearch);
+    if (!q) return this.vergers;
+    return this.vergers.filter(v => {
+      const hay = [
+        v.id,
+        v.typeOlive,
+        v.superficie,
+        v.agriculteurNom,
+        v.agriculteurEmail,
+        v.responsableNom,
+        v.responsableEmail
+      ].map(x => this.norm(x)).join(' ');
+      return hay.includes(q);
+    });
+  }
+
+  get totalVergerPages(): number {
+    return Math.max(1, Math.ceil(this.filteredVergers.length / this.vergerPageSize));
+  }
+
+  get pagedVergers(): VergerResponse[] {
+    const start = (this.vergerPage - 1) * this.vergerPageSize;
+    return this.filteredVergers.slice(start, start + this.vergerPageSize);
+  }
+
+  setVergerPage(p: number): void {
+    const next = Math.min(this.totalVergerPages, Math.max(1, p));
+    this.vergerPage = next;
+  }
+
+  getSelectedOwnedVergers(): VergerResponse[] {
+    const set = new Set(this.selectedOwnedVergerIds);
+    return this.vergers.filter(v => set.has(v.id));
+  }
+
+  getSelectedManagedVergers(): VergerResponse[] {
+    const set = new Set(this.selectedManagedVergerIds);
+    return this.vergers.filter(v => set.has(v.id));
+  }
+
+  toggleOwnedVerger(vergerId: string, checked: boolean): void {
+    if (checked) {
+      if (!this.selectedOwnedVergerIds.includes(vergerId)) this.selectedOwnedVergerIds.push(vergerId);
+    } else {
+      this.selectedOwnedVergerIds = this.selectedOwnedVergerIds.filter(id => id !== vergerId);
+    }
+  }
+
+  toggleManagedVerger(vergerId: string, checked: boolean): void {
+    if (checked) {
+      if (!this.selectedManagedVergerIds.includes(vergerId)) this.selectedManagedVergerIds.push(vergerId);
+    } else {
+      this.selectedManagedVergerIds = this.selectedManagedVergerIds.filter(id => id !== vergerId);
+    }
+  }
+
+  onVergerSearchChange(): void {
+    this.vergerPage = 1;
   }
 onSubmit(): void {
   if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
@@ -124,6 +271,21 @@ onSubmit(): void {
   // 1. D'abord, mettre à jour les informations de l'utilisateur
   this.utilisateurService.update(this.id, this.utilisateur).subscribe({
     next: () => {
+      const role = (this.utilisateur.role || '').toUpperCase();
+
+      const assign$ =
+        role === 'AGRICULTEUR'
+          ? this.utilisateurService.adminUpdateAgriculteur(this.id, {
+              ownedVergerIds: this.selectedOwnedVergerIds,
+              replaceOwnedVergers: this.replaceVergers
+            })
+          : role === 'RESPONSABLE'
+            ? this.utilisateurService.adminUpdateResponsable(this.id, {
+                managedVergerIds: this.selectedManagedVergerIds,
+                replaceManagedVergers: this.replaceVergers
+              })
+            : null;
+
       // 2. Si un nouveau mot de passe a été saisi, le changer aussi
       if (this.passwordData.nouveauMotDePasse && this.passwordData.nouveauMotDePasse.trim() !== '') {
         // Vérifier que les mots de passe correspondent
@@ -144,14 +306,25 @@ onSubmit(): void {
         this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
           .subscribe({
             next: () => {
-              this.successMessage = 'Utilisateur et mot de passe modifiés avec succès !';
-              this.isSaving = false;
-              this.showPasswordForm = false;
-              this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
-              this.cdr.detectChanges();
-              setTimeout(() => {
-                this.router.navigate(['/utilisateurs']);
-              }, 1500);
+              const afterAssignments = () => {
+                this.successMessage = 'Utilisateur et mot de passe modifiés avec succès !';
+                this.isSaving = false;
+                this.showPasswordForm = false;
+                this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
+                this.cdr.detectChanges();
+                setTimeout(() => {
+                  this.router.navigate(['/utilisateurs']);
+                }, 1500);
+              };
+
+              if (assign$) {
+                assign$.subscribe({
+                  next: () => afterAssignments(),
+                  error: () => afterAssignments()
+                });
+              } else {
+                afterAssignments();
+              }
             },
             error: (err) => {
               this.errorMessage = 'Erreur lors du changement de mot de passe: ' + (err.error?.message || 'Erreur inconnue');
@@ -160,13 +333,23 @@ onSubmit(): void {
             }
           });
       } else {
-        // Pas de changement de mot de passe
-        this.successMessage = 'Utilisateur modifié avec succès !';
-        this.isSaving = false;
-        this.cdr.detectChanges();
-        setTimeout(() => {
-          this.router.navigate(['/utilisateurs']);
-        }, 1500);
+        const afterAssignments = () => {
+          this.successMessage = 'Utilisateur modifié avec succès !';
+          this.isSaving = false;
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.router.navigate(['/utilisateurs']);
+          }, 1500);
+        };
+
+        if (assign$) {
+          assign$.subscribe({
+            next: () => afterAssignments(),
+            error: () => afterAssignments()
+          });
+        } else {
+          afterAssignments();
+        }
       }
     },
     error: (err) => {

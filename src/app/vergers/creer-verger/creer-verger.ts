@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { Agriculteur, AgriculteurService } from '../../services/agriculteur';
 import { VergerMapComponent } from '../../shared/verger-map/verger-map';   // ← AJOUTÉ
+import { Utilisateur, UtilisateurService } from '../../services/utilisateur';
 
 @Component({
   selector: 'app-creer-verger',
@@ -26,6 +27,7 @@ export class CreerVergerComponent implements OnInit {
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = '';
+  isAdmin = false;
 
   statuts = Object.values(StatutVerger);
   typesOlive = ['Chemlali', 'Chétoui', 'Picholine', 'Arbequina', 'Koroneiki', 'Sigoise', 'Lucques'];
@@ -41,6 +43,8 @@ export class CreerVergerComponent implements OnInit {
   selectedLng: number | null = null;
   selectedAddress = '';
 
+  responsables: Utilisateur[] = [];
+
   constructor(
     private fb: FormBuilder,
     private vergerService: VergerService,
@@ -48,6 +52,7 @@ export class CreerVergerComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     public router: Router,
     private agriculteurService: AgriculteurService,
+    private utilisateurService: UtilisateurService,
   ) {}
 
   @HostListener('window:resize')
@@ -62,14 +67,22 @@ export class CreerVergerComponent implements OnInit {
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole();
+    this.isAdmin = this.userRole === 'ADMIN';
     this.checkMobile();
 
     this.agriculteurService.getAll().subscribe(list => {
       this.agriculteurs = list;
     });
 
+    if (this.isAdmin) {
+      this.utilisateurService.getAll().subscribe(list => {
+        this.responsables = (list || []).filter(u => (u.role || '').toUpperCase() === 'RESPONSABLE');
+      });
+    }
+
     this.vergerForm = this.fb.group({
       agriculteurId:    ['', Validators.required],
+      responsableId:    [''],
       superficie:       [null, [Validators.required, Validators.min(0.01)]],
       typeOlive:        ['', Validators.required],
       nbArbre:          [null, [Validators.required, Validators.min(1)]],
@@ -80,6 +93,11 @@ export class CreerVergerComponent implements OnInit {
       longitude:        [null],
       adresseIndicative: ['']
     });
+
+    if (this.isAdmin) {
+      this.vergerForm.get('responsableId')?.setValidators([Validators.required]);
+      this.vergerForm.get('responsableId')?.updateValueAndValidity();
+    }
   }
 
   // ====================== GESTION DE LA CARTE ======================

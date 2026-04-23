@@ -41,6 +41,11 @@ export class VergerService {
     return this.http.put<VergerResponse>(`${this.API}/${id}`, req);
   }
 
+  // ADMIN only (can change responsableId/agriculteurId)
+  mettreAJourAdmin(id: string, req: VergerRequest): Observable<VergerResponse> {
+    return this.http.put<VergerResponse>(`${this.API}/${id}/admin`, req);
+  }
+
   // RESPONSABLE / AGRICULTEUR (owner)
   changerStatut(id: string, statut: StatutVerger): Observable<VergerResponse> {
     const params = new HttpParams().set('statut', statut);

@@ -61,6 +61,21 @@
                 <i class="bi bi-person-badge"></i> Identification & Localisation
               </div>
 
+              <!-- Admin: Responsable selection -->
+              <div class="form-group" *ngIf="isAdmin">
+                <label class="form-label">Responsable (gestionnaire) <span class="req">*</span></label>
+                <select class="form-control" formControlName="responsableId"
+                        [class.invalid]="isInvalid('responsableId')">
+                  <option value="">Sélectionner un responsable...</option>
+                  <option *ngFor="let r of responsables" [value]="r.id">
+                    {{ r.prenom }} {{ r.nom }} — {{ r.email }}
+                  </option>
+                </select>
+                <span class="error-msg" *ngIf="isInvalid('responsableId')">
+                  Veuillez sélectionner un responsable
+                </span>
+              </div>
+
               <!-- Selected farmer card -->
               <div class="selected-agri-card" *ngIf="selectedAgriculteur">
                 <div class="agri-avatar large">{{ selectedAgriculteur.nom | slice:0:1 }}</div>
