@@ -156,7 +156,7 @@ export class CalendrierComponent implements OnInit, AfterViewInit {
 loadTravailleurs() {
   // Alternative : utiliser la méthode dédiée
   this.utilisateurService.getTravailleursPourResponsable().subscribe({
-    next: (data) => {
+    next: (data: any[]) => {
       this.travailleurs = data;
       console.log('Travailleurs loaded:', this.travailleurs.length);
     },
@@ -165,7 +165,7 @@ loadTravailleurs() {
       // Fallback pour ADMIN
       if (this.userRole === 'ADMIN') {
         this.utilisateurService.getAll().subscribe({
-          next: (adminData) => {
+          next: (adminData: any[]) => {
             this.travailleurs = adminData.filter((u: any) => u.role === 'TRAVAILLEUR');
           }
         });

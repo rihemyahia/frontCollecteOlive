@@ -162,7 +162,15 @@ export class UtilisateurService {
   }
 
   // ========== TRAVAILLEURS ==========
+getTravailleursPourResponsable(): Observable<Utilisateur[]> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
 
+  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs', { headers });
+}
   getTravailleurs(): Observable<Utilisateur[]> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({
