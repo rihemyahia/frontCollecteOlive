@@ -693,5 +693,308 @@
     justify-content: center;
   }
 }
+/* ========== BARRE DE RECHERCHE ========== */
+.oh-search-bar {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #F8F9FA 0%, #FFFFFF 100%);
+  border-bottom: 1px solid #E9ECEF;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ADB5BD;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.7rem 2.5rem 0.7rem 2.5rem;
+  border: 1px solid #E9ECEF;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: white;
+  transition: all 0.2s ease;
+  color: #212529;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #A8B84B;
+  box-shadow: 0 0 0 3px rgba(168, 184, 75, 0.1);
+}
+
+.search-input:focus + .search-icon {
+  color: #A8B84B;
+}
+
+.search-input::placeholder {
+  color: #ADB5BD;
+  font-size: 0.85rem;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #F8F9FA;
+  border: none;
+  color: #ADB5BD;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.search-clear-btn:hover {
+  background: #E9ECEF;
+  color: #5A6E1A;
+}
+
+/* ========== FILTRES PAR RÔLE ========== */
+.oh-role-filters {
+  padding: 1rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.role-filters-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.role-filters-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6C757D;
+  padding: 0.25rem 0;
+}
+
+.role-filters-label i {
+  color: #A8B84B;
+  font-size: 0.9rem;
+}
+
+.role-filters-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.role-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #E9ECEF;
+  background: white;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-filter-btn i {
+  font-size: 0.9rem;
+  color: #ADB5BD;
+  transition: all 0.2s ease;
+}
+
+.role-filter-btn:hover {
+  border-color: #A8B84B;
+  background: #F8F9FA;
+  transform: translateY(-1px);
+}
+
+.role-filter-btn:hover i {
+  color: #A8B84B;
+}
+
+.role-filter-btn.active {
+  background: linear-gradient(135deg, #5A6E1A 0%, #A8B84B 100%);
+  border-color: #5A6E1A;
+  color: white;
+  box-shadow: 0 2px 4px rgba(90, 110, 26, 0.2);
+}
+
+.role-filter-btn.active i {
+  color: white;
+}
+
+/* ========== TABS ========== */
+.oh-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  background: white;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6C757D;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab i {
+  font-size: 0.9rem;
+}
+
+.tab:hover {
+  color: #5A6E1A;
+}
+
+.tab.active {
+  color: #5A6E1A;
+  border-bottom-color: #A8B84B;
+}
+
+.badge {
+  background: #F8F9FA;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6C757D;
+  transition: all 0.2s ease;
+}
+
+.tab.active .badge {
+  background: rgba(168, 184, 75, 0.15);
+  color: #5A6E1A;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .oh-search-bar {
+    padding: 1rem;
+  }
+
+  .search-container {
+    max-width: 100%;
+  }
+
+  .oh-role-filters {
+    padding: 0.75rem 1rem;
+  }
+
+  .role-filters-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .role-filters-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .role-filter-btn {
+    flex: 0 1 auto;
+    min-width: 80px;
+  }
+
+  .oh-tabs {
+    padding: 0 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+  }
+
+  .tab {
+    white-space: nowrap;
+  }
+}
+
+/* Desktop only - center tabs */
+@media (min-width: 769px) {
+  .oh-tabs {
+    justify-content: center;
+  }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.oh-search-bar,
+.oh-role-filters,
+.oh-tabs {
+  animation: fadeIn 0.3s ease-out;
+}
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+.oh-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;         /* clip the photo to the circle */
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+ 
+/* Photo fills the avatar circle */
+.oh-avatar__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+ 
+/* Initials stay white, vertically centered */
+.oh-avatar__initials {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  line-height: 1;
+}
+ 

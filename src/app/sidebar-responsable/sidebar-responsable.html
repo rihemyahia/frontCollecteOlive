@@ -98,3 +98,10 @@
   <!-- Overlay pour mobile -->
   <div class="sidebar-overlay" *ngIf="isMobile && !isCollapsed" (click)="toggle()"></div>
 </aside>
+
+<!-- Hamburger menu button when sidebar is collapsed -->
+<button *ngIf="isCollapsed" class="sidebar-hamburger" (click)="toggle()" title="Ouvrir le menu">
+  <svg viewBox="0 0 24 24" fill="none">
+    <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>

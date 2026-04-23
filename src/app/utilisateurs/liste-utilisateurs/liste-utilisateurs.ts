@@ -19,6 +19,8 @@ export class ListeUtilisateurs implements OnInit {
   utilisateursActifs: Utilisateur[] = [];
   utilisateursDesactives: Utilisateur[] = [];
   activeTab: string = 'actifs';
+  selectedRole: string = 'tous';
+  searchTerm: string = ''; // Nouvelle propriété pour la recherche
   utilisateurs: Utilisateur[] = [];
   isLoading = false;
   errorMessage = '';
@@ -31,6 +33,15 @@ export class ListeUtilisateurs implements OnInit {
   editUtilisateur: Utilisateur | null = null;
 
   roles = ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR', 'AGRICULTEUR', 'TRAVAILLEUR'];
+
+  filterRoles = [
+    { value: 'tous', label: 'Tous les rôles', icon: 'bi-people-fill' },
+    { value: 'ADMIN', label: 'Admin', icon: 'bi-shield-lock-fill' },
+    { value: 'RESPONSABLE', label: 'Responsable', icon: 'bi-briefcase-fill' },
+    { value: 'TRANSPORTEUR', label: 'Transporteur', icon: 'bi-truck' },
+    { value: 'AGRICULTEUR', label: 'Agriculteur', icon: 'bi-tree-fill' },
+    { value: 'TRAVAILLEUR', label: 'Travailleur', icon: 'bi-person-badge-fill' }
+  ];
 
   constructor(
     private utilisateurService: UtilisateurService,
@@ -85,25 +96,63 @@ export class ListeUtilisateurs implements OnInit {
   }
 
   filterUtilisateurs(): void {
-    this.utilisateursActifs = this.utilisateurs.filter(u => u.compteActif === true);
-    this.utilisateursDesactives = this.utilisateurs.filter(u => u.compteActif === false);
+    // Filtrer par statut (actif/désactivé)
+    let filteredByStatus: Utilisateur[] = [];
 
     switch(this.activeTab) {
       case 'actifs':
-        this.filteredUtilisateurs = this.utilisateursActifs;
+        filteredByStatus = this.utilisateurs.filter(u => u.compteActif === true);
         break;
       case 'desactives':
-        this.filteredUtilisateurs = this.utilisateursDesactives;
+        filteredByStatus = this.utilisateurs.filter(u => u.compteActif === false);
         break;
       case 'tous':
       default:
-        this.filteredUtilisateurs = this.utilisateurs;
+        filteredByStatus = this.utilisateurs;
         break;
     }
+
+    // Filtrer par rôle
+    if (this.selectedRole !== 'tous') {
+      filteredByStatus = filteredByStatus.filter(u => u.role === this.selectedRole);
+    }
+
+    // Filtrer par recherche (nom, prénom, email, téléphone)
+    if (this.searchTerm.trim() !== '') {
+      const searchLower = this.searchTerm.toLowerCase().trim();
+      filteredByStatus = filteredByStatus.filter(u =>
+        u.nom?.toLowerCase().includes(searchLower) ||
+        u.prenom?.toLowerCase().includes(searchLower) ||
+        u.email?.toLowerCase().includes(searchLower) ||
+        u.telephone?.toLowerCase().includes(searchLower) ||
+        (u.nom + ' ' + u.prenom).toLowerCase().includes(searchLower) ||
+        (u.prenom + ' ' + u.nom).toLowerCase().includes(searchLower)
+      );
+    }
+
+    this.filteredUtilisateurs = filteredByStatus;
+
+    // Mettre à jour les compteurs pour les onglets
+    this.utilisateursActifs = this.utilisateurs.filter(u => u.compteActif === true);
+    this.utilisateursDesactives = this.utilisateurs.filter(u => u.compteActif === false);
   }
 
   changeTab(tab: string): void {
     this.activeTab = tab;
+    this.filterUtilisateurs();
+  }
+
+  changeRoleFilter(role: string): void {
+    this.selectedRole = role;
+    this.filterUtilisateurs();
+  }
+
+  onSearchChange(): void {
+    this.filterUtilisateurs();
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
     this.filterUtilisateurs();
   }
 
@@ -178,4 +227,40 @@ export class ListeUtilisateurs implements OnInit {
   navigateToCreateUser(): void {
     this.router.navigate(['/utilisateurs/creer']);
   }
-}
+
+  // ========== MÉTHODES UTILITAIRES POUR L'AFFICHAGE ==========
+
+  getRoleIcon(role: string): string {
+    const icons: { [key: string]: string } = {
+      'ADMIN': 'bi-shield-lock-fill',
+      'RESPONSABLE': 'bi-briefcase-fill',
+      'TRANSPORTEUR': 'bi-truck',
+      'AGRICULTEUR': 'bi-tree-fill',
+      'TRAVAILLEUR': 'bi-person-badge-fill'
+    };
+    return icons[role] || 'bi-person-fill';
+  }
+
+  getAvatarColor(role: string): string {
+    const colors: { [key: string]: string } = {
+      'ADMIN': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      'RESPONSABLE': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      'TRANSPORTEUR': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      'AGRICULTEUR': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      'TRAVAILLEUR': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+    };
+    return colors[role] || 'linear-gradient(135deg, #A8B84B 0%, #C8D880 100%)';
+  }
+
+  getRoleLabel(roleValue: string): string {
+    const role = this.filterRoles.find(r => r.value === roleValue);
+    return role ? role.label : roleValue;
+  }
+
+  getRoleCount(role: string): number {
+    if (role === 'tous') {
+      return this.filteredUtilisateurs.length;
+    }
+    return this.filteredUtilisateurs.filter(u => u.role === role).length;
+  }
+}""
