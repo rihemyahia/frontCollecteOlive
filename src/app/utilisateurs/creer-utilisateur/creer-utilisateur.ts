@@ -17,7 +17,7 @@ export class CreerUtilisateur {
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = 'ADMIN';
-submitted: boolean = false;
+  submitted: boolean = false;
 
   utilisateur: Utilisateur = {
     nom: '',
@@ -29,11 +29,25 @@ submitted: boolean = false;
     estActif: true
   };
 
-  fonction: string = '';
+  // Champs communs
+
+  // Champs transporteur
   permis: string = '';
   tarifKm: number | null = null;
   anneesExperience: number | null = null;
   disponibleTransport: boolean = true;
+
+  // Champs agriculteur
+
+  // Champs travailleur
+  cin: string = '';
+  dateEmbauche: string = '';
+  salaire: number | null = null;
+  statutEmploye: string = 'SAISONNIER';
+  selectedSpecialites: string[] = [];
+
+  specialites: string[] = ['cueillette', 'tamisage', 'secouage', 'ramassage', 'tri'];
+  statuts: string[] = ['SAISONNIER', 'PERMANENT'];
 
   generatedPassword: string = '';
   isLoading = false;
@@ -43,7 +57,9 @@ submitted: boolean = false;
   roles = [
     { value: 'ADMIN', label: 'Admin' },
     { value: 'RESPONSABLE', label: 'Responsable' },
-    { value: 'TRANSPORTEUR', label: 'Transporteur' }
+    { value: 'TRANSPORTEUR', label: 'Transporteur' },
+    { value: 'AGRICULTEUR', label: 'Agriculteur' },
+    { value: 'TRAVAILLEUR', label: 'Travailleur' }
   ];
 
   constructor(
@@ -53,6 +69,10 @@ submitted: boolean = false;
     this.loadUserRole();
     this.checkMobile();
     this.generatePassword();
+
+    // Date d'embauche par défaut = aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    this.dateEmbauche = today;
   }
 
   loadUserRole(): void {
@@ -99,9 +119,15 @@ submitted: boolean = false;
     this.generatedPassword = password.split('').sort(() => 0.5 - Math.random()).join('');
   }
 
-  copyPassword(): void {
-    navigator.clipboard.writeText(this.generatedPassword);
-    alert('Mot de passe copié !');
+  onSpecialiteChange(event: any, specialite: string): void {
+    if (event.target.checked) {
+      this.selectedSpecialites.push(specialite);
+    } else {
+      const index = this.selectedSpecialites.indexOf(specialite);
+      if (index > -1) {
+        this.selectedSpecialites.splice(index, 1);
+      }
+    }
   }
 
   prepareUtilisateur(): void {
@@ -118,7 +144,6 @@ submitted: boolean = false;
 
     switch (this.utilisateur.role) {
       case 'RESPONSABLE':
-        this.utilisateur.fonction = this.fonction;
         this.utilisateur.datePrisePoste = new Date();
         break;
       case 'TRANSPORTEUR':
@@ -127,30 +152,41 @@ submitted: boolean = false;
         this.utilisateur.anneesExperience = this.anneesExperience || undefined;
         this.utilisateur.disponibleTransport = this.disponibleTransport;
         break;
+
+        break;
+      case 'TRAVAILLEUR':
+        this.utilisateur.cin = this.cin;
+        this.utilisateur.specialites = this.selectedSpecialites;
+        this.utilisateur.dateEmbauche = this.dateEmbauche ? new Date(this.dateEmbauche) : new Date();
+        this.utilisateur.salaire = this.salaire || undefined;
+        this.utilisateur.statutEmploye = this.statutEmploye;
+        this.utilisateur.collectesAssignees = [];
+        break;
       default:
         break;
     }
   }
-navigateToUtilisateurs(): void {
+
+  navigateToUtilisateurs(): void {
     this.router.navigate(['/utilisateurs']);
   }
+
   onSubmit(): void {
+    // Validation commune
     if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
-  this.submitted = true;
+    this.submitted = true;
 
     if (!this.generatedPassword) {
       this.errorMessage = 'Veuillez générer un mot de passe';
       return;
     }
 
-    if (this.utilisateur.role === 'RESPONSABLE' && !this.fonction) {
-      this.errorMessage = 'La fonction est requise pour un responsable';
-      return;
-    }
+    
 
+    // Validation TRANSPORTEUR
     if (this.utilisateur.role === 'TRANSPORTEUR') {
       if (!this.permis) {
         this.errorMessage = 'Le permis est requis pour un transporteur';
@@ -158,6 +194,37 @@ navigateToUtilisateurs(): void {
       }
       if (!this.tarifKm) {
         this.errorMessage = 'Le tarif au km est requis pour un transporteur';
+        return;
+      }
+    }
+
+    // Validation AGRICULTEUR
+
+
+    // Validation TRAVAILLEUR
+    if (this.utilisateur.role === 'TRAVAILLEUR') {
+      if (!this.cin) {
+        this.errorMessage = 'Le CIN est requis pour un travailleur';
+        return;
+      }
+      if (this.cin.length !== 8) {
+        this.errorMessage = 'Le CIN doit contenir exactement 8 chiffres';
+        return;
+      }
+      if (!this.salaire) {
+        this.errorMessage = 'Le salaire est requis pour un travailleur';
+        return;
+      }
+      if (this.salaire < 30 || this.salaire > 100) {
+        this.errorMessage = 'Le salaire doit être entre 30 et 100 DT';
+        return;
+      }
+      if (!this.dateEmbauche) {
+        this.errorMessage = 'La date d\'embauche est requise';
+        return;
+      }
+      if (this.selectedSpecialites.length === 0) {
+        this.errorMessage = 'Veuillez sélectionner au moins une spécialité';
         return;
       }
     }
@@ -181,9 +248,19 @@ navigateToUtilisateurs(): void {
       error: (err) => {
         this.isLoading = false;
         console.error('❌ Erreur:', err);
-        this.errorMessage = err.error?.message || err.error?.error || 'Erreur lors de la création';
+
+        // Gestion spécifique des erreurs pour les travailleurs
+        const errorBody = err.error?.message || err.error?.error || '';
+        if (errorBody.includes('duplicate key') && errorBody.includes('email')) {
+          this.errorMessage = '❌ Cet email existe déjà. Veuillez utiliser une adresse email différente.';
+        }
+        else if (errorBody.includes('duplicate key') && errorBody.includes('cin')) {
+          this.errorMessage = '❌ Ce CIN existe déjà. Un travailleur avec ce numéro de CIN est déjà enregistré.';
+        }
+        else {
+          this.errorMessage = err.error?.message || err.error?.error || 'Erreur lors de la création';
+        }
       }
     });
   }
-
 }

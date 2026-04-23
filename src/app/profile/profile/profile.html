@@ -34,14 +34,35 @@
 
       <!-- Profile Content -->
       <div *ngIf="!isLoading" class="profile-grid">
-        <!-- Informations personnelles -->
+
+        <!-- ===== INFORMATIONS PERSONNELLES ===== -->
         <div class="profile-card">
+
+          <!-- Card Header with photo avatar -->
           <div class="card-header">
-            <div class="avatar">
-              <span class="avatar-initials">
-                {{ (profile.prenom || '')[0] }}{{ (profile.nom || '')[0] }}
-              </span>
+
+            <!-- Avatar: shows photo if available, else initials -->
+            <div class="avatar-wrapper">
+              <div class="avatar" [class.avatar--has-photo]="displayPhoto">
+                <img *ngIf="displayPhoto"
+                     [src]="displayPhoto"
+                     alt="Photo de profil"
+                     class="avatar-photo">
+                <span *ngIf="!displayPhoto" class="avatar-initials">
+                  {{ (profile.prenom || '')[0] }}{{ (profile.nom || '')[0] }}
+                </span>
+              </div>
+
+              <!-- Camera overlay button -->
+              <label class="avatar-edit-btn" title="Changer la photo">
+                <i class="bi bi-camera-fill"></i>
+                <input type="file"
+                       accept="image/*"
+                       style="display:none"
+                       (change)="onPhotoSelected($event)">
+              </label>
             </div>
+
             <div class="user-info">
               <h3>{{ profile.prenom }} {{ profile.nom }}</h3>
               <span class="user-role">
@@ -52,6 +73,23 @@
                 <i class="bi bi-envelope"></i>
                 {{ profile.email }}
               </span>
+            </div>
+          </div>
+
+          <!-- Photo pending actions (shown only when a new photo is selected but not yet saved) -->
+          <div *ngIf="photoPreview" class="photo-pending-bar">
+            <span class="photo-pending-bar__label">
+              <i class="bi bi-image"></i> Nouvelle photo sélectionnée
+            </span>
+            <div class="photo-pending-bar__actions">
+              <button class="btn-photo-cancel" (click)="cancelPhotoPreview()" [disabled]="isUploadingPhoto">
+                <i class="bi bi-x"></i> Annuler
+              </button>
+              <button class="btn-photo-save" (click)="savePhoto()" [disabled]="isUploadingPhoto">
+                <span *ngIf="isUploadingPhoto" class="spinner-sm"></span>
+                <i *ngIf="!isUploadingPhoto" class="bi bi-check-lg"></i>
+                {{ isUploadingPhoto ? 'Enregistrement...' : 'Enregistrer la photo' }}
+              </button>
             </div>
           </div>
 
@@ -88,7 +126,7 @@
           </div>
         </div>
 
-        <!-- Sécurité -->
+        <!-- ===== SÉCURITÉ ===== -->
         <div class="profile-card">
           <div class="card-header security-header">
             <i class="bi bi-shield-lock"></i>
@@ -131,6 +169,7 @@
             </button>
           </div>
         </div>
+
       </div>
     </div>
   </main>
