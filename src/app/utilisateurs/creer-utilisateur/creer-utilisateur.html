@@ -123,7 +123,6 @@
                 <select class="form-select" [(ngModel)]="utilisateur.role" name="role" required
                         [class.is-invalid]="submitted && !utilisateur.role">
                   <option value="">Sélectionner...</option>
-                  <option value="ADMIN">Admin</option>
                   <option value="RESPONSABLE">Responsable</option>
                   <option value="TRANSPORTEUR">Transporteur</option>
                   <option value="AGRICULTEUR">Agriculteur</option>
@@ -171,7 +170,7 @@
               </div>
             </div>
 
-       
+
 
             <!-- ========== CHAMPS SPÉCIFIQUES POUR TRAVAILLEUR ========== -->
             <div class="form-section" *ngIf="utilisateur.role === 'TRAVAILLEUR'" style="margin-top: 1.5rem;">

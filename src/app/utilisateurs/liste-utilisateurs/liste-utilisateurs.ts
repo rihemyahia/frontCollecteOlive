@@ -28,7 +28,7 @@ export class ListeUtilisateurs implements OnInit {
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = '';
-
+successMessage="";
   showEditForm = false;
   editUtilisateur: Utilisateur | null = null;
 
@@ -62,6 +62,74 @@ export class ListeUtilisateurs implements OnInit {
       this.isSidebarCollapsed = false;
     }
   }
+
+
+// Méthode pour supprimer un utilisateur
+supprimerUtilisateur(id: string | undefined): void {
+  if (!id) {
+    console.error('ID utilisateur non fourni');
+    return;
+  }
+
+  // Confirmation avant suppression
+  const confirmMessage = '⚠️ Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ?\n\nCette action est irréversible.';
+
+  if (!confirm(confirmMessage)) {
+    return;
+  }
+
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  // Appel direct à la méthode delete du service
+  this.utilisateurService.delete(id).subscribe({
+    next: () => {
+      // Suppression réussie
+      console.log('Utilisateur supprimé avec succès');
+      this.isLoading = false;
+
+      // Recharger la liste des utilisateurs
+      this.loadUtilisateurs();
+
+      // Optionnel: Afficher un message de succès
+      this.showSuccessMessage('Utilisateur supprimé avec succès');
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      // Gestion des erreurs
+      console.error('Erreur lors de la suppression:', err);
+
+      // Extraire le message d'erreur
+      let errorMsg = 'Erreur lors de la suppression de l\'utilisateur';
+      if (err.error?.message) errorMsg = err.error.message;
+      else if (err.error?.error) errorMsg = err.error.error;
+      else if (typeof err.error === 'string') errorMsg = err.error;
+      else if (err.message) errorMsg = err.message;
+
+      this.errorMessage = errorMsg;
+      this.isLoading = false;
+      this.cdr.markForCheck();
+
+      // Masquer l'erreur après 5 secondes
+      setTimeout(() => {
+        this.errorMessage = '';
+        this.cdr.markForCheck();
+      }, 5000);
+    }
+  });
+}
+
+// Méthode utilitaire pour afficher un message de succès temporaire
+private showSuccessMessage(message: string): void {
+  this.successMessage = message;
+  this.cdr.markForCheck();
+
+  setTimeout(() => {
+    this.successMessage = '';
+    this.cdr.markForCheck();
+  }, 3000);
+}
+
 
   loadUserRole(): void {
     const userStr = localStorage.getItem('currentUser');
@@ -175,6 +243,25 @@ export class ListeUtilisateurs implements OnInit {
     });
   }
 
+
+  reactiverCompte(id: string): void {
+    if (!confirm('⚠️ Voulez-vous vraiment réactiver ce compte ? L\'utilisateur pourra à nouveau se connecter.')) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.utilisateurService.reactiverCompte(id).subscribe({
+      next: () => {
+        this.loadUtilisateurs();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur lors de la réactivation:', err);
+        this.errorMessage = 'Erreur lors de la réactivation du compte';
+        this.isLoading = false;
+      }
+    });
+  }
   goToCreateUser(): void {
     this.router.navigate(['/creer-utilisateur']);
   }

@@ -110,68 +110,119 @@ export class ModifierUtilisateur implements OnInit {
       }
     });
   }
+onSubmit(): void {
+  if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
+    this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+    this.cdr.detectChanges();
+    return;
+  }
 
-  onSubmit(): void {
-    if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
-      this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
-      this.cdr.detectChanges();
-      return;
-    }
+  this.isSaving = true;
+  this.errorMessage = '';
+  this.successMessage = '';
 
-    this.isSaving = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+  // 1. D'abord, mettre à jour les informations de l'utilisateur
+  this.utilisateurService.update(this.id, this.utilisateur).subscribe({
+    next: () => {
+      // 2. Si un nouveau mot de passe a été saisi, le changer aussi
+      if (this.passwordData.nouveauMotDePasse && this.passwordData.nouveauMotDePasse.trim() !== '') {
+        // Vérifier que les mots de passe correspondent
+        if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
+          this.errorMessage = 'Les mots de passe ne correspondent pas';
+          this.isSaving = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        if (this.passwordData.nouveauMotDePasse.length < 6) {
+          this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+          this.isSaving = false;
+          this.cdr.detectChanges();
+          return;
+        }
 
-    this.utilisateurService.update(this.id, this.utilisateur).subscribe({
-      next: () => {
+        // Changer le mot de passe
+        this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
+          .subscribe({
+            next: () => {
+              this.successMessage = 'Utilisateur et mot de passe modifiés avec succès !';
+              this.isSaving = false;
+              this.showPasswordForm = false;
+              this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                this.router.navigate(['/utilisateurs']);
+              }, 1500);
+            },
+            error: (err) => {
+              this.errorMessage = 'Erreur lors du changement de mot de passe: ' + (err.error?.message || 'Erreur inconnue');
+              this.isSaving = false;
+              this.cdr.detectChanges();
+            }
+          });
+      } else {
+        // Pas de changement de mot de passe
         this.successMessage = 'Utilisateur modifié avec succès !';
         this.isSaving = false;
         this.cdr.detectChanges();
-
         setTimeout(() => {
           this.router.navigate(['/utilisateurs']);
         }, 1500);
+      }
+    },
+    error: (err) => {
+      this.errorMessage = err.error?.message || 'Erreur lors de la modification';
+      this.isSaving = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
+changePassword(): void {
+  console.log('🔑=== DÉBUT changePassword() ===');
+  console.log('📝 ID utilisateur:', this.id);
+  console.log('📝 Nouveau mot de passe:', this.passwordData.nouveauMotDePasse);
+  console.log('📝 Confirmation:', this.passwordData.confirmMotDePasse);
+
+  if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
+    console.log('❌ Erreur: mots de passe non correspondants');
+    this.errorMessage = 'Les mots de passe ne correspondent pas';
+    this.cdr.detectChanges();
+    return;
+  }
+  if (this.passwordData.nouveauMotDePasse.length < 6) {
+    console.log('❌ Erreur: mot de passe trop court');
+    this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.isChangingPassword = true;
+  this.errorMessage = '';
+
+  console.log('📤 Appel du service changerMotDePasseAdmin...');
+  console.log('🔗 URL appelée:', `${this.utilisateurService['apiUrl']}/admin/changer-mot-de-passe/${this.id}`);
+
+  this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
+    .subscribe({
+      next: (response) => {
+        console.log('✅ Succès! Réponse:', response);
+        this.successMessage = 'Mot de passe changé avec succès !';
+        this.isChangingPassword = false;
+        this.showPasswordForm = false;
+        this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
+        this.cdr.detectChanges();
+        setTimeout(() => this.successMessage = '', 3000);
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Erreur lors de la modification';
-        this.isSaving = false;
+        console.error('❌ Erreur complète:', err);
+        console.error('❌ Statut:', err.status);
+        console.error('❌ Message:', err.message);
+        console.error('❌ Corps erreur:', err.error);
+        this.errorMessage = err.error?.message || err.error?.error || 'Erreur lors du changement de mot de passe';
+        this.isChangingPassword = false;
         this.cdr.detectChanges();
       }
     });
-  }
-
-  changePassword(): void {
-    if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
-      this.errorMessage = 'Les mots de passe ne correspondent pas';
-      this.cdr.detectChanges();
-      return;
-    }
-    if (this.passwordData.nouveauMotDePasse.length < 6) {
-      this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    this.isChangingPassword = true;
-    this.errorMessage = '';
-
-    this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
-      .subscribe({
-        next: () => {
-          this.successMessage = 'Mot de passe changé avec succès !';
-          this.isChangingPassword = false;
-          this.showPasswordForm = false;
-          this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
-          this.cdr.detectChanges();
-          setTimeout(() => this.successMessage = '', 3000);
-        },
-        error: (err) => {
-          this.errorMessage = err.error?.message || 'Erreur lors du changement de mot de passe';
-          this.isChangingPassword = false;
-          this.cdr.detectChanges();
-        }
-      });
-  }
+}
 
   cancelPasswordChange(): void {
     this.showPasswordForm = false;

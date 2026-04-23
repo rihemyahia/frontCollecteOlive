@@ -63,6 +63,11 @@ desactiverCompte(id: string): Observable<any> {
     headers: this.getHeaders()
   });
 }
+  reactiverCompte(id: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/reactiver-compte/${id}`, {}, {
+      headers: this.getHeaders()
+    });
+  }
 
 // ========== GESTION DU PROFIL ==========
 getProfil(): Observable<any> {
@@ -101,7 +106,29 @@ getTravailleurs(): Observable<Utilisateur[]> {
     'Authorization': `Bearer ${token}`
   });
 
-  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs', {
+  // Récupérer le rôle de l'utilisateur connecté
+  const userStr = localStorage.getItem('currentUser');
+  let userRole = '';
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      userRole = user.role?.toUpperCase() || '';
+    } catch(e) {}
+  }
+
+  // Choisir le bon endpoint selon le rôle
+  let url = '';
+  if (userRole === 'ADMIN') {
+    url = 'http://localhost:8080/api/auth/admin/utilisateurs';
+  } else {
+    // Pour RESPONSABLE, utiliser l'endpoint responsable
+    url = 'http://localhost:8080/api/responsable/travailleurs';
+  }
+
+  console.log('📡 Appel API travailleurs avec URL:', url);
+  console.log('👤 Rôle utilisateur:', userRole);
+
+  return this.http.get<Utilisateur[]>(url, {
     headers: headers
   }).pipe(
     tap({
@@ -109,6 +136,16 @@ getTravailleurs(): Observable<Utilisateur[]> {
       error: (err) => console.error('Erreur chargement travailleurs:', err)
     })
   );
+}
+  // Dans utilisateur.service.ts
+getTravailleursPourResponsable(): Observable<Utilisateur[]> {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
+
+  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs', { headers });
 }
 
 // ✅ MODIFIÉ : utilise l'URL complète sans apiUrl
@@ -190,11 +227,11 @@ create(utilisateur: Utilisateur): Observable<Utilisateur> {
 }
 
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/utilisateurs/${id}`, {
-      headers: this.getHeaders()
+delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/admin/utilisateurs/${id}`, {  // ✅ Avec 'admin'
+        headers: this.getHeaders()
     });
-  }
+}
 
   getAgriculteursEnAttente(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/agriculteurs/en-attente`, {

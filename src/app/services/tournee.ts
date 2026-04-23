@@ -1,6 +1,6 @@
 // src/app/services/tournee.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaderResponse, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Tournee {
@@ -46,6 +46,7 @@ export interface TourneeRequest {
   observations?: string;
 }
 
+
 export interface TerminerTourneeRequest {
   quantiteCollecteeKg: number;
   distanceTotale?: number | null;
@@ -72,6 +73,20 @@ export class TourneeService {
   getById(id: string): Observable<Tournee> {
     return this.http.get<Tournee>(`${this.apiUrl}/${id}`);
   }
+private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token'); // ou comment vous stockez le token
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
+// Dans tournee.service.ts
+getTravailleurs(): Observable<any[]> {  // ⚠️ Important: retourne Observable<any[]> pas Observable<Tournee>
+  return this.http.get<any[]>(`${this.apiUrl}/travailleurs`, {
+    headers: this.getHeaders ()
+  });
+}
 
   getByVerger(vergerId: string): Observable<Tournee[]> {
     return this.http.get<Tournee[]>(`${this.apiUrl}/verger/${vergerId}`);

@@ -70,30 +70,20 @@ export class TourneeDetailComponent implements OnInit {
   }
 
 // Keep everything else the same, just update these two methods:
-
 formatDate(date: Date): string {
   if (!date) return 'N/A';
   const d = new Date(date);
 
-  // Option 1: Use UTC (recommended)
+  // Afficher en heure locale (sans spécifier UTC)
   return d.toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'UTC',
     hour12: false
   });
-
-  /* Option 2: Manual UTC extraction
-  const day = d.getUTCDate().toString().padStart(2, '0');
-  const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-  const year = d.getUTCFullYear();
-  const hours = d.getUTCHours().toString().padStart(2, '0');
-  const minutes = d.getUTCMinutes().toString().padStart(2, '0');
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
-  */
+  // Pas de timeZone: 'UTC' - donc utilise le fuseau local
 }
 
 formatDuration(seconds: number): string {

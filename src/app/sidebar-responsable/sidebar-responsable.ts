@@ -91,13 +91,7 @@ export class SideBarResponsable implements OnInit {
         }
       ]
     },
-    {
-      id: 'activation',
-      label: 'Activation des comptes',
-      icon: 'user-check',
-      route: '/admin/activation',
-      roles: ['ADMIN']
-    },
+   
     {
       id: 'utilisateurs',
       label: 'Utilisateurs',

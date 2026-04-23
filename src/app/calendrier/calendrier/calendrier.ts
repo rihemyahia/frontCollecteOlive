@@ -153,18 +153,28 @@ export class CalendrierComponent implements OnInit, AfterViewInit {
     });
   }
 
-  loadTravailleurs() {
-    this.utilisateurService.getAll().subscribe({
-      next: (data) => {
-        this.travailleurs = data.filter((u: any) => u.role === 'TRAVAILLEUR');
-        console.log('Travailleurs loaded:', this.travailleurs.length);
-      },
-      error: (err) => {
-        console.error('Erreur travailleurs:', err);
+loadTravailleurs() {
+  // Alternative : utiliser la méthode dédiée
+  this.utilisateurService.getTravailleursPourResponsable().subscribe({
+    next: (data) => {
+      this.travailleurs = data;
+      console.log('Travailleurs loaded:', this.travailleurs.length);
+    },
+    error: (err) => {
+      console.error('Erreur travailleurs:', err);
+      // Fallback pour ADMIN
+      if (this.userRole === 'ADMIN') {
+        this.utilisateurService.getAll().subscribe({
+          next: (adminData) => {
+            this.travailleurs = adminData.filter((u: any) => u.role === 'TRAVAILLEUR');
+          }
+        });
+      } else {
         this.errorMessage = 'Impossible de charger les travailleurs';
       }
-    });
-  }
+    }
+  });
+}
 
   handleDatesSetDebounced = (dateInfo: DatesSetArg) => {
     console.log('Dates set debounced called');

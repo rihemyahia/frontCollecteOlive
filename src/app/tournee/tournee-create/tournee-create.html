@@ -59,6 +59,7 @@
   <option *ngFor="let v of vergers" [value]="v.id">
     {{ v.typeOlive }} - {{ v.superficie }} ha ({{ v.nbArbre }} arbres)
   </option>
+
 </select>
               </div>
 
@@ -181,7 +182,7 @@
                 <label>Travailleurs assignés</label>
                 <select multiple [(ngModel)]="formData.travailleurIds" name="travailleurIds" required class="form-control" size="4">
                   <option *ngFor="let w of travailleurs" [value]="w.id">
-                    {{ w.prenom }} {{ w.nom }}
+                    {{ w.prenom }} {{ w.nom }} ({{ w.specialites }})
                   </option>
                 </select>
                 <div class="field-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs travailleurs</div>

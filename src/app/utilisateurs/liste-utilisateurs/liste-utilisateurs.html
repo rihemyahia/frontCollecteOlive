@@ -196,6 +196,13 @@
                   <i class="bi bi-pencil-fill"></i>
                   Modifier
                 </button>
+                 <!-- NOUVEAU: Bouton Supprimer -->
+  <button class="oh-action-btn oh-action-btn--delete"
+          (click)="supprimerUtilisateur(u.id)"
+          title="Supprimer définitivement">
+    <i class="bi bi-trash-fill"></i>
+    Supprimer
+  </button>
 
                 <button *ngIf="u.compteActif"
                   class="oh-action-btn oh-action-btn--desactiver"
@@ -203,6 +210,14 @@
                   title="Désactiver le compte">
                   <i class="bi bi-lock-fill"></i>
                   Désactiver
+                </button>
+
+                <button *ngIf="!u.compteActif"
+                  class="oh-action-btn oh-action-btn--reactiver"
+                  (click)="reactiverCompte(u.id!)"
+                  title="Réactiver le compte">
+                  <i class="bi bi-unlock-fill"></i>
+                  Réactiver
                 </button>
 
               </div>
