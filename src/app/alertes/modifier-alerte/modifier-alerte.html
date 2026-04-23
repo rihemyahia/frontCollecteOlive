@@ -1,0 +1,198 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-pencil-square"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION</p>
+                <h2 class="oh-header__title">Modifier une alerte</h2>
+                <p class="header-subtitle">Mettez a jour le statut, la criticite et le traitement</p>
+              </div>
+            </div>
+
+            <button type="button" class="oh-back-btn" (click)="backToList()">
+              <i class="bi bi-arrow-left"></i>
+              Retour a la liste
+            </button>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div class="loading-state" *ngIf="isLoading">
+            <div class="spinner"></div>
+            <p>Chargement de l'alerte...</p>
+          </div>
+
+          <div class="oh-alert oh-alert--error" *ngIf="!isLoading && errorMessage">
+            {{ errorMessage }}
+          </div>
+
+          <div *ngIf="!isLoading && alerte && !errorMessage">
+            <div class="section">
+              <h3>Informations generales</h3>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <label>Date de signalement</label>
+                  <p>{{ alerte.dateSignalement | date }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Type d'alerte</label>
+                  <p>{{ getTypeLabel(alerte.type) }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Phase culturale</label>
+                  <p>{{ alerte.phase }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Agriculteur et verger</h3>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <label>Agriculteur</label>
+                  <p>{{ alerte.agriculteurNom }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Email</label>
+                  <p>{{ alerte.agriculteurEmail }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Type olivier</label>
+                  <p>{{ alerte.vergerTypeOlive || 'N/A' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Geolocalisation</label>
+                  <p>{{ formatCoordinate(alerte.geolocalisation.latitude) }}, {{ formatCoordinate(alerte.geolocalisation.longitude) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Description</h3>
+              <p class="description-text">{{ alerte.description }}</p>
+            </div>
+
+            <div class="section">
+              <h3>Photos</h3>
+              <div *ngIf="alerte.photoUrls && alerte.photoUrls.length > 0; else noPhotos" class="photo-grid">
+                <a class="photo-item"
+                   *ngFor="let url of alerte.photoUrls"
+                   [href]="url"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   title="Ouvrir la photo">
+                  <img [src]="url" alt="Photo alerte" />
+                </a>
+              </div>
+              <ng-template #noPhotos>
+                <p class="no-photos">Aucune image.</p>
+              </ng-template>
+            </div>
+
+            <div class="section">
+              <h3>Etat actuel</h3>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <label>Criticite</label>
+                  <span class="urgence-badge" [style.background-color]="getUrgenceColor(alerte.niveauUrgence)">
+                    {{ getUrgenceLabel(alerte.niveauUrgence) }}
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <label>Statut</label>
+                  <span class="statut-badge" [style.background-color]="getStatutColor(alerte.statut)">
+                    {{ getStatutLabel(alerte.statut) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Actions</h3>
+
+              <div class="action-group">
+                <label for="newStatut">Changer le statut</label>
+                <p class="action-help">Mettez a jour l'avancement de traitement.</p>
+                <div class="action-row">
+                  <select id="newStatut" [(ngModel)]="newStatut" [disabled]="isUpdatingStatus">
+                    <option *ngFor="let option of statutOptions" [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                  <button type="button" class="btn-primary"
+                          (click)="changeStatus()"
+                          [disabled]="isUpdatingStatus || newStatut === alerte.statut">
+                    {{ isUpdatingStatus ? 'Mise a jour...' : 'Appliquer' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="action-group">
+                <label for="newUrgence">Changer la criticite</label>
+                <p class="action-help">Definissez la priorite de prise en charge.</p>
+                <div class="action-row">
+                  <select id="newUrgence" [(ngModel)]="newUrgence" [disabled]="isUpdatingCriticality">
+                    <option *ngFor="let option of urgenceOptions" [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                  <button type="button" class="btn-primary"
+                          (click)="changeCriticality()"
+                          [disabled]="isUpdatingCriticality || newUrgence === alerte.niveauUrgence">
+                    {{ isUpdatingCriticality ? 'Mise a jour...' : 'Appliquer' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="action-group">
+                <label for="treatmentComment">Marquer comme traitee</label>
+                <p class="action-help">Ajoutez un commentaire pour cloturer l'alerte.</p>
+                <textarea
+                  id="treatmentComment"
+                  [(ngModel)]="treatmentComment"
+                  placeholder="Entrez un commentaire de traitement..."
+                  [disabled]="isMarkingTreated"
+                  rows="3">
+                </textarea>
+                <button type="button" class="btn-success"
+                        (click)="markAsTreated()"
+                        [disabled]="isMarkingTreated || !treatmentComment.trim()">
+                  {{ isMarkingTreated ? 'Traitement...' : 'Marquer comme traitee' }}
+                </button>
+              </div>
+
+              <div class="action-group action-group--danger">
+                <button type="button" class="btn-danger"
+                        (click)="deleteAlerte()"
+                        [disabled]="isDeleting">
+                  {{ isDeleting ? 'Suppression...' : 'Supprimer l\'alerte' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

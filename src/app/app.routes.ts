@@ -1,9 +1,6 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
-import { ListeTravailleurs } from './travailleurs/liste-travailleurs/liste-travailleurs';
-import { CreerTravailleur } from './travailleurs/creer-travailleur/creer-travailleur';
-import { ModifierTravailleur } from './travailleurs/modifier-travailleur/modifier-travailleur';
 import { ListeUtilisateurs } from './utilisateurs/liste-utilisateurs/liste-utilisateurs';
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
@@ -31,6 +28,7 @@ import { CollecteListComponent } from './collecte/collecte-list/collecte-list';
 import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-detail';
 import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
 import { GestionAlertesComponent } from './alertes/gestion-alertes/gestion-alertes';
+import { ModifierAlerteComponent } from './alertes/modifier-alerte/modifier-alerte';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -46,26 +44,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }
   },
-  // Routes Travailleurs
-  {
-    path: 'travailleurs',
-    component: ListeTravailleurs,
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['RESPONSABLE', 'ADMIN'] }
-  },
-  {
-    path: 'travailleurs/creer',
-    component: CreerTravailleur,
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['RESPONSABLE', 'ADMIN'] }
-  },
-  {
-    path: 'travailleurs/modifier/:id',
-    component: ModifierTravailleur,
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['RESPONSABLE', 'ADMIN'] }
-  },
-  {
+   {
     path: 'utilisateurs/modifier/:id',
     component: ModifierUtilisateur,
     canActivate: [AuthGuard, roleGuard],
@@ -121,7 +100,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
-
 
   // Routes Ressources (Bennes)
   {
@@ -202,6 +180,12 @@ export const routes: Routes = [
       {
         path: 'gestion',
         component: GestionAlertesComponent,
+        canActivate: [AuthGuard, roleGuard],
+        data: { role: ['ADMIN', 'RESPONSABLE'] }
+      },
+      {
+        path: 'modifier/:id',
+        component: ModifierAlerteComponent,
         canActivate: [AuthGuard, roleGuard],
         data: { role: ['ADMIN', 'RESPONSABLE'] }
       },

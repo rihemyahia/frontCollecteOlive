@@ -27,6 +27,7 @@ export interface AlerteResponse {
   vergerTypeOlive: string;
   type: TypeAlerte;
   description: string;
+  photoUrls?: string[];
   geolocalisation: {
     latitude: number;
     longitude: number;
@@ -50,6 +51,13 @@ export class AlerteService {
   // Create a new alert
   signaler(request: AlerteRequest): Observable<AlerteResponse> {
     return this.http.post<AlerteResponse>(`${this.API}`, request);
+  }
+
+  // Upload optional photos for an alert (AGRICULTEUR only)
+  uploadPhotos(alerteId: string, files: File[]): Observable<AlerteResponse> {
+    const form = new FormData();
+    (files || []).forEach(f => form.append('files', f, f.name));
+    return this.http.post<AlerteResponse>(`${this.API}/${alerteId}/photos`, form);
   }
 
   // Get all alerts (RESPONSABLE/ADMIN only)
@@ -90,6 +98,11 @@ export class AlerteService {
   // Change alert status (RESPONSABLE/ADMIN only)
   changeStatut(id: string, statut: StatutAlerte): Observable<AlerteResponse> {
     return this.http.patch<AlerteResponse>(`${this.API}/${id}/statut`, null, { params: { statut } });
+  }
+
+  // Change alert urgency/criticality (RESPONSABLE/ADMIN only)
+  changeUrgence(id: string, urgence: NiveauUrgence): Observable<AlerteResponse> {
+    return this.http.patch<AlerteResponse>(`${this.API}/${id}/urgence`, null, { params: { urgence } });
   }
 
   // Mark alert as treated (RESPONSABLE/ADMIN only)
@@ -204,6 +217,11 @@ export class AlerteService {
   // Change alert status for responsable
   changerStatutResponsable(id: string, statut: StatutAlerte): Observable<AlerteResponse> {
     return this.http.patch<AlerteResponse>(`${this.API}/responsable/${id}/statut`, null, { params: { statut } });
+  }
+
+  // Change alert urgency for responsable
+  changerUrgenceResponsable(id: string, urgence: NiveauUrgence): Observable<AlerteResponse> {
+    return this.http.patch<AlerteResponse>(`${this.API}/responsable/${id}/urgence`, null, { params: { urgence } });
   }
 
   // Mark alert as treated for responsable

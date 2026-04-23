@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AlerteService, AlerteResponse, TypeAlerte, StatutAlerte, NiveauUrgence } from '../../services/alerte';
 import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -19,9 +20,6 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
   alertes: AlerteResponse[] = [];
   filteredAlertes: AlerteResponse[] = [];
   isLoading = true;
-  selectedAlerte: AlerteResponse | null = null;
-  showDetailModal = false;
-  showCommentModal = false;
 
   isSidebarCollapsed = false;
   isMobile = false;
@@ -37,11 +35,6 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
-
-  // Modal Properties
-  newStatut: StatutAlerte | '' = '';
-  treatmentComment = '';
-  isProcessing = false;
 
   // Alert type mapping
   readonly typesAlerte = [
@@ -78,7 +71,8 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
   constructor(
     private alerteService: AlerteService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -216,102 +210,8 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Modal Actions
-  openDetailModal(alerte: AlerteResponse): void {
-    this.selectedAlerte = alerte;
-    this.showDetailModal = true;
-    this.newStatut = alerte.statut;
-    this.treatmentComment = alerte.commentaireTraitement || '';
-  }
-
-  closeDetailModal(): void {
-    this.showDetailModal = false;
-    this.selectedAlerte = null;
-    this.newStatut = '';
-    this.treatmentComment = '';
-  }
-
-  // Change Status
-  changeStatus(): void {
-    if (!this.selectedAlerte || !this.newStatut) return;
-
-    this.isProcessing = true;
-    const endpoint$ = this.isAdmin
-      ? this.alerteService.changeStatut(this.selectedAlerte.id, this.newStatut as StatutAlerte)
-      : this.alerteService.changerStatutResponsable(this.selectedAlerte.id, this.newStatut as StatutAlerte);
-
-    endpoint$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (updated) => {
-        this.selectedAlerte = updated;
-        const index = this.alertes.findIndex(a => a.id === updated.id);
-        if (index !== -1) {
-          this.alertes[index] = updated;
-          this.applyFilters();
-        }
-        this.isProcessing = false;
-        this.showSuccessNotification('Statut mis à jour avec succès');
-      },
-      error: (err) => {
-        console.error('Error changing status:', err);
-        this.isProcessing = false;
-        this.showErrorNotification('Erreur lors de la mise à jour du statut');
-      }
-    });
-  }
-
-  // Mark as Treated
-  markAsTreated(): void {
-    if (!this.selectedAlerte || !this.treatmentComment.trim()) {
-      this.showErrorNotification('Veuillez entrer un commentaire de traitement');
-      return;
-    }
-
-    this.isProcessing = true;
-    const endpoint$ = this.isAdmin
-      ? this.alerteService.markAsProcessed(this.selectedAlerte.id, this.treatmentComment)
-      : this.alerteService.marquerTraiteeResponsable(this.selectedAlerte.id, this.treatmentComment);
-
-    endpoint$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (updated) => {
-        this.selectedAlerte = updated;
-        const index = this.alertes.findIndex(a => a.id === updated.id);
-        if (index !== -1) {
-          this.alertes[index] = updated;
-          this.applyFilters();
-        }
-        this.isProcessing = false;
-        this.treatmentComment = '';
-        this.showSuccessNotification('Alerte marquée comme traitée');
-      },
-      error: (err) => {
-        console.error('Error marking as treated:', err);
-        this.isProcessing = false;
-        this.showErrorNotification('Erreur lors du traitement de l\'alerte');
-      }
-    });
-  }
-
-  // Delete Alert
-  deleteAlert(): void {
-    if (!this.selectedAlerte) return;
-
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) {
-      this.isProcessing = true;
-      this.alerteService.delete(this.selectedAlerte.id).pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => {
-          this.alertes = this.alertes.filter(a => a.id !== this.selectedAlerte!.id);
-          this.applyFilters();
-          this.closeDetailModal();
-          this.isProcessing = false;
-          this.showSuccessNotification('Alerte supprimée avec succès');
-        },
-        error: (err) => {
-          console.error('Error deleting alert:', err);
-          this.isProcessing = false;
-          this.showErrorNotification('Erreur lors de la suppression de l\'alerte');
-        }
-      });
-    }
+  openModifierPage(alerteId: string): void {
+    this.router.navigate(['/alertes/modifier', alerteId]);
   }
 
   // Helper Methods
@@ -340,16 +240,4 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     return item ? item.color : '#6B7280';
   }
 
-  // Notifications
-  showSuccessNotification(message: string): void {
-    // You can implement a toast service here
-    console.log('Success:', message);
-    alert(message);
-  }
-
-  showErrorNotification(message: string): void {
-    // You can implement a toast service here
-    console.error('Error:', message);
-    alert(message);
-  }
 }

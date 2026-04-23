@@ -63,7 +63,7 @@
               </button>
             </div>
           </div>
-          <div class="oh-header__rule" aria-hidden="true">...</div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
         </div>
 
         <!-- EDIT FORM -->
@@ -139,7 +139,7 @@
           </div>
         </div>
 
-        <!-- TABS (Actifs/Désactivés/Tous) -->
+        <!-- TABS -->
         <div class="oh-tabs" *ngIf="!showEditForm">
           <div class="tab" [class.active]="activeTab === 'actifs'" (click)="changeTab('actifs')">
             <i class="bi bi-check-circle-fill"></i> Actifs
@@ -158,11 +158,23 @@
         <!-- LIST -->
         <div class="oh-card__body">
           <div *ngIf="!isLoading && filteredUtilisateurs.length > 0 && !showEditForm" class="oh-grid">
-            <div *ngFor="let u of filteredUtilisateurs; let i = index" class="oh-worker" [style.animation-delay]="(i * 0.06) + 's'">
+            <div *ngFor="let u of filteredUtilisateurs; let i = index"
+                 class="oh-worker"
+                 [style.animation-delay]="(i * 0.06) + 's'">
+
               <div class="oh-worker__top">
-                <div class="oh-avatar" [style.background]="getAvatarColor(u.role)">
-                  <span class="oh-avatar__initials">{{ (u.prenom || '').charAt(0) }}{{ (u.nom || '').charAt(0) }}</span>
+
+                <!-- Avatar: photo if available, else gradient initials -->
+                <div class="oh-avatar" [style.background]="u.photoProfile ? 'transparent' : getAvatarColor(u.role)">
+                  <img *ngIf="u.photoProfile"
+                       [src]="u.photoProfile"
+                       alt="Photo de {{ u.prenom }}"
+                       class="oh-avatar__photo">
+                  <span *ngIf="!u.photoProfile" class="oh-avatar__initials">
+                    {{ (u.prenom || '').charAt(0) }}{{ (u.nom || '').charAt(0) }}
+                  </span>
                 </div>
+
                 <div class="oh-worker__info">
                   <strong class="oh-worker__name">{{ u.nom }} {{ u.prenom }}</strong>
                   <span class="oh-worker__role">
@@ -170,7 +182,10 @@
                     {{ u.role }}
                   </span>
                 </div>
-                <span class="oh-badge" [class.oh-badge--actif]="u.compteActif" [class.oh-badge--inactif]="!u.compteActif">
+
+                <span class="oh-badge"
+                      [class.oh-badge--actif]="u.compteActif"
+                      [class.oh-badge--inactif]="!u.compteActif">
                   <span class="oh-badge__dot"></span>
                   {{ u.compteActif ? 'ACTIF' : 'DÉSACTIVÉ' }}
                 </span>
@@ -205,9 +220,9 @@
   </button>
 
                 <button *ngIf="u.compteActif"
-                  class="oh-action-btn oh-action-btn--desactiver"
-                  (click)="desactiverCompte(u.id!)"
-                  title="Désactiver le compte">
+                        class="oh-action-btn oh-action-btn--desactiver"
+                        (click)="desactiverCompte(u.id!)"
+                        title="Désactiver le compte">
                   <i class="bi bi-lock-fill"></i>
                   Désactiver
                 </button>

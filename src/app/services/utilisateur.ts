@@ -1,4 +1,4 @@
-// src/app/services/utilisateur.service.ts
+// src/app/services/utilisateur.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -14,11 +14,10 @@ export interface Utilisateur {
   adresse: string;
   estActif: boolean;
   compteActif?: boolean;
-  motDePasse?: string;  // ← Ajoutez cette ligne (optionnel)
+  motDePasse?: string;
+  photoProfile?: string;
 
-  // Pour agriculteur
-
-  // Pour travailleur ()
+  // Pour travailleur
   cin?: string;
   specialites?: string[];
   dateEmbauche?: Date;
@@ -55,151 +54,9 @@ export class UtilisateurService {
       'Authorization': `Bearer ${token}`
     });
   }
-  // Add these methods to your UtilisateurService
 
-// ========== GESTION DES COMPTES (DÉSACTIVATION) ==========
-desactiverCompte(id: string): Observable<any> {
-  return this.http.post(`${this.apiUrl}/admin/desactiver-compte/${id}`, {}, {
-    headers: this.getHeaders()
-  });
-}
-  reactiverCompte(id: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/admin/reactiver-compte/${id}`, {}, {
-      headers: this.getHeaders()
-    });
-  }
+  // ========== CRUD UTILISATEURS ==========
 
-// ========== GESTION DU PROFIL ==========
-getProfil(): Observable<any> {
-  return this.http.get(`${this.apiUrl}/profil`, {
-    headers: this.getHeaders()
-  });
-}
-// src/app/services/utilisateur.service.ts
-// Ajoute cette méthode vers la fin du fichier, avant la dernière accolade
-
-// ========== GESTION DES TRAVAILLEURS ==========
-
-
-// Si tu veux aussi récupérer les travailleurs actifs uniquement
-// src/app/services/utilisateur.service.ts
-
-// Ajoute cette méthode complète sans utiliser apiUrl
-getTravailleursActifs(): Observable<Utilisateur[]> {
-  const token = localStorage.getItem('token');
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
-
-  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs?actif=true', {
-    headers: headers
-  });
-}
-// src/app/services/utilisateur.service.ts
-
-// ✅ MODIFIÉ : utilise l'URL complète sans apiUrl
-getTravailleurs(): Observable<Utilisateur[]> {
-  const token = localStorage.getItem('token');
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
-
-  // Récupérer le rôle de l'utilisateur connecté
-  const userStr = localStorage.getItem('currentUser');
-  let userRole = '';
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      userRole = user.role?.toUpperCase() || '';
-    } catch(e) {}
-  }
-
-  // Choisir le bon endpoint selon le rôle
-  let url = '';
-  if (userRole === 'ADMIN') {
-    url = 'http://localhost:8080/api/auth/admin/utilisateurs';
-  } else {
-    // Pour RESPONSABLE, utiliser l'endpoint responsable
-    url = 'http://localhost:8080/api/responsable/travailleurs';
-  }
-
-  console.log('📡 Appel API travailleurs avec URL:', url);
-  console.log('👤 Rôle utilisateur:', userRole);
-
-  return this.http.get<Utilisateur[]>(url, {
-    headers: headers
-  }).pipe(
-    tap({
-      next: (data) => console.log('Travailleurs reçus:', data),
-      error: (err) => console.error('Erreur chargement travailleurs:', err)
-    })
-  );
-}
-  // Dans utilisateur.service.ts
-getTravailleursPourResponsable(): Observable<Utilisateur[]> {
-  const token = localStorage.getItem('token');
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
-
-  return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs', { headers });
-}
-
-// ✅ MODIFIÉ : utilise l'URL complète sans apiUrl
-getTravailleursBySpecialite(specialite: string): Observable<Utilisateur[]> {
-  const token = localStorage.getItem('token');
-  const headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
-
-  return this.http.get<Utilisateur[]>(`http://localhost:8080/api/responsable/travailleurs/specialite/${specialite}`, {
-    headers: headers
-  });
-}
-
-mettreAJourProfil(updates: any): Observable<any> {
-  return this.http.put(`${this.apiUrl}/profil`, updates, {
-    headers: this.getHeaders()
-  });
-}
-
-changerMotDePasse(ancienMotDePasse: string, nouveauMotDePasse: string): Observable<any> {
-  return this.http.post(`${this.apiUrl}/changer-mot-de-passe`, {
-    ancienMotDePasse,
-    nouveauMotDePasse
-  }, {
-    headers: this.getHeaders()
-  });
-}
-// Add this method to UtilisateurService
-// Get user by ID - make sure URL has /admin/
-getById(id: string): Observable<Utilisateur> {
-  console.log('Fetching user with ID:', id);
-  return this.http.get<Utilisateur>(`${this.apiUrl}/admin/utilisateurs/${id}`, {
-    headers: this.getHeaders()
-  });
-}
-
-// Update user - make sure URL has /admin/
-update(id: string, utilisateur: Partial<Utilisateur>): Observable<Utilisateur> {
-  console.log('Updating user with ID:', id);
-  return this.http.put<Utilisateur>(`${this.apiUrl}/admin/utilisateurs/${id}`, utilisateur, {
-    headers: this.getHeaders()
-  });
-}
-
-// Change password as admin
-changerMotDePasseAdmin(id: string, nouveauMotDePasse: string): Observable<any> {
-  console.log('Changing password for user ID:', id);
-  return this.http.post(`${this.apiUrl}/admin/changer-mot-de-passe/${id}`,
-    { nouveauMotDePasse },
-    { headers: this.getHeaders() }
-  );
-}
   getAll(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/utilisateurs`, {
       headers: this.getHeaders()
@@ -211,27 +68,154 @@ changerMotDePasseAdmin(id: string, nouveauMotDePasse: string): Observable<any> {
     );
   }
 
-
-// Dans utilisateur.service.ts
-creerUtilisateurParAdmin(utilisateur: Utilisateur): Observable<any> {
-  return this.http.post(`${this.apiUrl}/admin/utilisateurs`, utilisateur, {
-    headers: this.getHeaders()
-  });
-}
-
-// Si vous avez besoin de la méthode create pour d'autres usages
-create(utilisateur: Utilisateur): Observable<Utilisateur> {
-  return this.http.post<Utilisateur>(`${this.apiUrl}/utilisateurs`, utilisateur, {
-    headers: this.getHeaders()
-  });
-}
-
-
-delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/utilisateurs/${id}`, {  // ✅ Avec 'admin'
-        headers: this.getHeaders()
+  getById(id: string): Observable<Utilisateur> {
+    console.log('Fetching user with ID:', id);
+    return this.http.get<Utilisateur>(`${this.apiUrl}/admin/utilisateurs/${id}`, {
+      headers: this.getHeaders()
     });
-}
+  }
+
+  creerUtilisateurParAdmin(utilisateur: Utilisateur): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/utilisateurs`, utilisateur, {
+      headers: this.getHeaders()
+    });
+  }
+
+  create(utilisateur: Utilisateur): Observable<Utilisateur> {
+    return this.http.post<Utilisateur>(`${this.apiUrl}/utilisateurs`, utilisateur, {
+      headers: this.getHeaders()
+    });
+  }
+
+  update(id: string, utilisateur: Partial<Utilisateur>): Observable<Utilisateur> {
+    console.log('Updating user with ID:', id);
+    return this.http.put<Utilisateur>(`${this.apiUrl}/admin/utilisateurs/${id}`, utilisateur, {
+      headers: this.getHeaders()
+    });
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/admin/utilisateurs/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // ========== GESTION DES COMPTES ==========
+
+  desactiverCompte(id: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/desactiver-compte/${id}`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  reactiverCompte(id: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/admin/reactiver-compte/${id}`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // ========== GESTION DU PROFIL ==========
+
+  getProfil(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/profil`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  mettreAJourProfil(updates: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/profil`, updates, {
+      headers: this.getHeaders()
+    });
+  }
+
+  changerMotDePasse(ancienMotDePasse: string, nouveauMotDePasse: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/changer-mot-de-passe`, {
+      ancienMotDePasse,
+      nouveauMotDePasse
+    }, {
+      headers: this.getHeaders()
+    });
+  }
+
+  changerMotDePasseAdmin(id: string, nouveauMotDePasse: string): Observable<any> {
+    console.log('Changing password for user ID:', id);
+    return this.http.post(`${this.apiUrl}/admin/changer-mot-de-passe/${id}`,
+      { nouveauMotDePasse },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // ========== PHOTO DE PROFIL ==========
+
+  updateMyPhoto(photoBase64: string): Observable<any> {
+    return this.http.put('http://localhost:8080/api/profile/photo',
+      { photoProfile: photoBase64 },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  updateUserPhoto(id: string, photoBase64: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/admin/utilisateurs/${id}/photo`,
+      { photoProfile: photoBase64 },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // ========== TRAVAILLEURS ==========
+
+  getTravailleurs(): Observable<Utilisateur[]> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    const userStr = localStorage.getItem('currentUser');
+    let userRole = '';
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        userRole = user.role?.toUpperCase() || '';
+      } catch(e) {}
+    }
+
+    let url = '';
+    if (userRole === 'ADMIN') {
+      url = 'http://localhost:8080/api/auth/admin/utilisateurs';
+    } else {
+      url = 'http://localhost:8080/api/responsable/travailleurs';
+    }
+
+    console.log('📡 Appel API travailleurs avec URL:', url);
+    return this.http.get<Utilisateur[]>(url, { headers }).pipe(
+      tap({
+        next: (data) => console.log('Travailleurs reçus:', data),
+        error: (err) => console.error('Erreur chargement travailleurs:', err)
+      })
+    );
+  }
+
+  getTravailleursActifs(): Observable<Utilisateur[]> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    return this.http.get<Utilisateur[]>('http://localhost:8080/api/responsable/travailleurs?actif=true', { headers });
+  }
+
+  getTravailleursBySpecialite(specialite: string): Observable<Utilisateur[]> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    return this.http.get<Utilisateur[]>(
+      `http://localhost:8080/api/responsable/travailleurs/specialite/${specialite}`, { headers }
+    );
+  }
+
+  // ========== UTILISATEURS EN ATTENTE ==========
 
   getAgriculteursEnAttente(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.apiUrl}/admin/agriculteurs/en-attente`, {
@@ -251,6 +235,8 @@ delete(id: string): Observable<void> {
       { headers: this.getHeaders() }
     );
   }
+
+  // ========== ACTIVATION ==========
 
   activerAgriculteur(id: string, nouveauMotDePasse: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/activer-agriculteur/${id}`,

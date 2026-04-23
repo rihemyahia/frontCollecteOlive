@@ -106,6 +106,16 @@
                 </div>
               </section>
 
+              <!-- Photos -->
+              <section class="detail-section" *ngIf="alert.photoUrls && alert.photoUrls.length > 0">
+                <h2 class="section-title">Photos</h2>
+                <div class="photo-grid">
+                  <a class="photo-item" *ngFor="let url of alert.photoUrls" [href]="url" target="_blank" rel="noopener noreferrer">
+                    <img [src]="url" alt="Photo alerte" />
+                  </a>
+                </div>
+              </section>
+
               <!-- Location (if available) -->
               <section class="detail-section" *ngIf="alert.geolocalisation">
                 <h2 class="section-title">Localisation</h2>

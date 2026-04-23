@@ -104,6 +104,24 @@
                     </span>
                   </div>
 
+                  <!-- Optional Photos (Agriculteur only) -->
+                  <div class="oh-form-group oh-form-group--full">
+                    <label class="oh-form-label">Photos (optionnel)</label>
+                    <input class="oh-form-control"
+                           type="file"
+                           accept="image/*"
+                           multiple
+                           (change)="onFilesSelected($event)" />
+                    <div class="oh-photo-previews" *ngIf="photoPreviews.length > 0">
+                      <div class="oh-photo-preview" *ngFor="let p of photoPreviews; let i = index">
+                        <img [src]="p" alt="Photo" />
+                        <button type="button" class="oh-photo-remove" (click)="removePhoto(i)" title="Supprimer">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
 
                 <!-- Form Actions -->
