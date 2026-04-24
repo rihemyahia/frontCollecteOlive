@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core'; // 1. Added ChangeDetectorRef
+// src/app/dashboard/admin-dashboard/admin-dashboard.component.ts
+import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
@@ -24,22 +25,27 @@ export class AdminDashboardComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService, 
     private router: Router,
-    private cdr: ChangeDetectorRef // 2. Injected
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadUser();
     this.checkMobile();
+    this.loadDashboardData();
+  }
+
+  loadDashboardData(): void {
+    this.loading = true;
     this.dashboardService.getAdminDashboard().subscribe({
-      next: d => { 
-        this.data = d; 
-        this.loading = false; 
-        this.cdr.detectChanges(); // 3. Force update
+      next: (res) => {
+        this.data = res;
+        this.loading = false;
+        this.cdr.detectChanges();
       },
-      error: e => { 
-        this.error = 'Erreur de chargement'; 
-        this.loading = false; 
-        this.cdr.detectChanges(); 
+      error: (err) => {
+        this.error = 'Erreur de chargement';
+        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -50,7 +56,7 @@ export class AdminDashboardComponent implements OnInit {
       try { 
         this.user = JSON.parse(stored); 
         this.userRole = this.user.role?.toUpperCase() || 'ADMIN'; 
-      } catch (_) {}
+      } catch (_) { this.userRole = 'ADMIN'; }
     }
   }
 
@@ -58,7 +64,7 @@ export class AdminDashboardComponent implements OnInit {
   checkMobile(): void {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile) this.isSidebarCollapsed = false;
-    this.cdr.detectChanges(); // Keep UI in sync on resize
+    this.cdr.detectChanges();
   }
 
   toggleSidebar(val?: boolean): void {
@@ -75,10 +81,5 @@ export class AdminDashboardComponent implements OnInit {
   formatKg(kg: number): string {
     if (!kg) return '0 kg';
     return kg >= 1000 ? (kg / 1000).toFixed(1) + ' t' : kg.toFixed(0) + ' kg';
-  }
-
-  statutColor(s: string): string {
-    const colors: any = { 'Terminée': '#2d6a4f', 'En cours': '#d97706', 'Planifiée': '#2563eb' };
-    return colors[s] || '#6b7560';
   }
 }

@@ -1,22 +1,17 @@
-<!-- src/app/dashboard/admin-dashboard/admin-dashboard.html -->
 <div class="app-layout">
   <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
 
-    <!-- Loading -->
     <div *ngIf="loading" class="loading-screen">
       <div class="loader-ring"></div>
       <p>Chargement du tableau de bord...</p>
     </div>
 
-    <!-- Error -->
     <div *ngIf="error && !loading" class="error-banner">⚠️ {{ error }}</div>
 
-    <!-- Dashboard -->
     <div *ngIf="data && !loading" class="dashboard-wrapper">
 
-      <!-- ── TOP BAR ── -->
       <header class="topbar">
         <div class="topbar-left">
           <div class="page-label">Tableau de bord</div>
@@ -31,14 +26,12 @@
         </div>
       </header>
 
-      <!-- ── ALERT BANNER ── -->
       <div class="alert-banner" *ngIf="data.compteEnAttente > 0" (click)="navigate('/utilisateurs')">
         <span class="ab-icon">🔔</span>
         <span><strong>{{ data.compteEnAttente }}</strong> compte(s) en attente d'activation</span>
         <span class="ab-cta">Voir →</span>
       </div>
 
-      <!-- ── HERO METRICS ── -->
       <section class="hero-metrics">
         <div class="metric-card accent-green">
           <div class="mc-top">
@@ -48,7 +41,7 @@
           <div class="mc-value">{{ data.totalUtilisateurs }}</div>
           <div class="mc-label">Utilisateurs totaux</div>
           <div class="mc-bar">
-            <div class="mc-fill" [style.width.%]="100"></div>
+            <div class="mc-fill" style="width: 100%"></div>
           </div>
         </div>
 
@@ -89,10 +82,7 @@
         </div>
       </section>
 
-      <!-- ── MID SECTION ── -->
       <div class="mid-grid">
-
-        <!-- Utilisateurs breakdown -->
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Répartition des utilisateurs</span>
@@ -126,7 +116,6 @@
           </div>
         </div>
 
-        <!-- Vergers status donut-like -->
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">État des vergers</span>
@@ -136,23 +125,15 @@
             <div class="donut-ring">
               <svg viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="38" fill="none" stroke="#f1f5f9" stroke-width="12"/>
-                <!-- NON_RECOLTE -->
-<circle cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12"
-  [attr.stroke-dasharray]="(percent(data.vergersNonRecolte, data.totalVergers) * 2.39) + ' 239'"
-  [attr.stroke-dashoffset]="0"
-  transform="rotate(-90 50 50)"/>
-
-<!-- EN_COURS -->
-<circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="12"
-  [attr.stroke-dasharray]="(percent(data.vergersEnCours, data.totalVergers) * 2.39) + ' 239'"
-  [attr.stroke-dashoffset]="-1 * percent(data.vergersNonRecolte, data.totalVergers) * 2.39"
-  transform="rotate(-90 50 50)"/>
-
-<!-- RECOLTE -->
-<circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12"
-  [attr.stroke-dasharray]="(percent(data.vergersRecolte, data.totalVergers) * 2.39) + ' 239'"
-  [attr.stroke-dashoffset]="-1 * (percent(data.vergersNonRecolte, data.totalVergers) + percent(data.vergersEnCours, data.totalVergers)) * 2.39"
-  transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12"
+                  [attr.stroke-dasharray]="(percent(data.vergersNonRecolte, data.totalVergers) * 2.39) + ' 239'"
+                  [attr.stroke-dashoffset]="0" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="12"
+                  [attr.stroke-dasharray]="(percent(data.vergersEnCours, data.totalVergers) * 2.39) + ' 239'"
+                  [attr.stroke-dashoffset]="-1 * percent(data.vergersNonRecolte, data.totalVergers) * 2.39" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12"
+                  [attr.stroke-dasharray]="(percent(data.vergersRecolte, data.totalVergers) * 2.39) + ' 239'"
+                  [attr.stroke-dashoffset]="-1 * (percent(data.vergersNonRecolte, data.totalVergers) + percent(data.vergersEnCours, data.totalVergers)) * 2.39" transform="rotate(-90 50 50)"/>
               </svg>
               <div class="donut-center">
                 <div class="donut-total">{{ data.totalVergers }}</div>
@@ -167,7 +148,6 @@
           </div>
         </div>
 
-        <!-- Alertes panel -->
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Alertes terrain</span>
@@ -199,10 +179,7 @@
         </div>
       </div>
 
-      <!-- ── RESSOURCES & TOURNEES ── -->
       <div class="lower-grid">
-
-        <!-- Ressources -->
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Ressources</span>
@@ -234,7 +211,6 @@
           </div>
         </div>
 
-        <!-- Tournées status -->
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Tournées</span>
@@ -264,13 +240,12 @@
           </div>
         </div>
 
-        <!-- Top Vergers -->
         <div class="panel span-full">
           <div class="panel-header">
             <span class="panel-title">🏆 Top vergers par production</span>
             <button class="panel-btn" (click)="navigate('/vergers')">Voir tous →</button>
           </div>
-          <div class="top-vergers-table" *ngIf="data.topVergers?.length">
+          <div class="top-vergers-table" *ngIf="data.topVergers && data.topVergers.length > 0">
             <div class="tv-header">
               <span>#</span><span>Olive</span><span>Agriculteur</span><span>Responsable</span><span>Tournées</span><span>Production</span>
             </div>
@@ -283,29 +258,12 @@
               <span class="tv-kg">{{ formatKg(v.quantiteKg) }}</span>
             </div>
           </div>
-          <div *ngIf="!data.topVergers?.length" class="empty-state">Aucun verger avec production enregistrée.</div>
-        </div>
-
-      </div>
-
-      <!-- ── RECENT ACTIVITY ── -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Activité récente</span>
-        </div>
-        <div class="activity-list" *ngIf="data.recentActivity?.length">
-          <div class="act-row" *ngFor="let a of data.recentActivity">
-            <div class="act-dot" [style.background]="statutColor(a.statut)"></div>
-            <div class="act-body">
-              <span class="act-msg">{{ a.message }}</span>
-              <span class="act-statut" [style.color]="statutColor(a.statut)">{{ a.statut }}</span>
-            </div>
-            <span class="act-date">{{ a.date | date:'dd/MM HH:mm' }}</span>
+          <div *ngIf="!data.topVergers || data.topVergers.length === 0" class="empty-state">
+            Aucun verger avec production enregistrée.
           </div>
         </div>
-        <div *ngIf="!data.recentActivity?.length" class="empty-state">Aucune activité récente.</div>
       </div>
 
-    </div><!-- end dashboard-wrapper -->
+    </div>
   </main>
 </div>
