@@ -1,0 +1,311 @@
+<!-- src/app/dashboard/admin-dashboard/admin-dashboard.html -->
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-screen">
+      <div class="loader-ring"></div>
+      <p>Chargement du tableau de bord...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error && !loading" class="error-banner">⚠️ {{ error }}</div>
+
+    <!-- Dashboard -->
+    <div *ngIf="data && !loading" class="dashboard-wrapper">
+
+      <!-- ── TOP BAR ── -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="page-label">Tableau de bord</div>
+          <h1 class="page-title">Vue globale <span class="highlight">Administrateur</span></h1>
+        </div>
+        <div class="topbar-right">
+          <div class="season-chip">🌿 Saison active</div>
+          <div class="user-chip">
+            <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
+            <span>{{ user?.prenom }} {{ user?.nom }}</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── ALERT BANNER ── -->
+      <div class="alert-banner" *ngIf="data.compteEnAttente > 0" (click)="navigate('/utilisateurs')">
+        <span class="ab-icon">🔔</span>
+        <span><strong>{{ data.compteEnAttente }}</strong> compte(s) en attente d'activation</span>
+        <span class="ab-cta">Voir →</span>
+      </div>
+
+      <!-- ── HERO METRICS ── -->
+      <section class="hero-metrics">
+        <div class="metric-card accent-green">
+          <div class="mc-top">
+            <div class="mc-icon">👥</div>
+            <div class="mc-trend up">+{{ data.compteEnAttente }} en attente</div>
+          </div>
+          <div class="mc-value">{{ data.totalUtilisateurs }}</div>
+          <div class="mc-label">Utilisateurs totaux</div>
+          <div class="mc-bar">
+            <div class="mc-fill" [style.width.%]="100"></div>
+          </div>
+        </div>
+
+        <div class="metric-card accent-olive">
+          <div class="mc-top">
+            <div class="mc-icon">🌳</div>
+            <div class="mc-trend" [class.up]="data.vergersEnCours > 0">{{ data.vergersEnCours }} actifs</div>
+          </div>
+          <div class="mc-value">{{ data.totalVergers }}</div>
+          <div class="mc-label">Vergers enregistrés</div>
+          <div class="mc-bar">
+            <div class="mc-fill" [style.width.%]="percent(data.vergersRecolte, data.totalVergers)"></div>
+          </div>
+        </div>
+
+        <div class="metric-card accent-gold">
+          <div class="mc-top">
+            <div class="mc-icon">🚜</div>
+            <div class="mc-trend" [class.up]="data.tourneesEnCours > 0">{{ data.tourneesEnCours }} en cours</div>
+          </div>
+          <div class="mc-value">{{ data.totalTournees }}</div>
+          <div class="mc-label">Tournées totales</div>
+          <div class="mc-bar">
+            <div class="mc-fill gold" [style.width.%]="percent(data.tourneesTerminees, data.totalTournees)"></div>
+          </div>
+        </div>
+
+        <div class="metric-card accent-teal">
+          <div class="mc-top">
+            <div class="mc-icon">🫒</div>
+            <div class="mc-trend up">Cette saison</div>
+          </div>
+          <div class="mc-value">{{ formatKg(data.quantiteTotaleKgRecolteeCetteAnnee) }}</div>
+          <div class="mc-label">Quantité récoltée</div>
+          <div class="mc-bar">
+            <div class="mc-fill teal" style="width: 100%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── MID SECTION ── -->
+      <div class="mid-grid">
+
+        <!-- Utilisateurs breakdown -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Répartition des utilisateurs</span>
+            <button class="panel-btn" (click)="navigate('/utilisateurs')">Gérer →</button>
+          </div>
+          <div class="role-list">
+            <div class="role-row">
+              <span class="role-dot admin"></span>
+              <span class="role-name">Administrateurs</span>
+              <span class="role-count">{{ data.totalAdmins }}</span>
+              <div class="role-bar-track"><div class="role-bar-fill admin" [style.width.%]="percent(data.totalAdmins, data.totalUtilisateurs)"></div></div>
+            </div>
+            <div class="role-row">
+              <span class="role-dot resp"></span>
+              <span class="role-name">Responsables</span>
+              <span class="role-count">{{ data.totalResponsables }}</span>
+              <div class="role-bar-track"><div class="role-bar-fill resp" [style.width.%]="percent(data.totalResponsables, data.totalUtilisateurs)"></div></div>
+            </div>
+            <div class="role-row">
+              <span class="role-dot agri"></span>
+              <span class="role-name">Agriculteurs</span>
+              <span class="role-count">{{ data.totalAgriculteurs }}</span>
+              <div class="role-bar-track"><div class="role-bar-fill agri" [style.width.%]="percent(data.totalAgriculteurs, data.totalUtilisateurs)"></div></div>
+            </div>
+            <div class="role-row">
+              <span class="role-dot trav"></span>
+              <span class="role-name">Travailleurs</span>
+              <span class="role-count">{{ data.totalTravailleurs }}</span>
+              <div class="role-bar-track"><div class="role-bar-fill trav" [style.width.%]="percent(data.totalTravailleurs, data.totalUtilisateurs)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vergers status donut-like -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">État des vergers</span>
+            <button class="panel-btn" (click)="navigate('/vergers')">Voir →</button>
+          </div>
+          <div class="donut-wrapper">
+            <div class="donut-ring">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f1f5f9" stroke-width="12"/>
+                <!-- NON_RECOLTE -->
+<circle cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="12"
+  [attr.stroke-dasharray]="(percent(data.vergersNonRecolte, data.totalVergers) * 2.39) + ' 239'"
+  [attr.stroke-dashoffset]="0"
+  transform="rotate(-90 50 50)"/>
+
+<!-- EN_COURS -->
+<circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="12"
+  [attr.stroke-dasharray]="(percent(data.vergersEnCours, data.totalVergers) * 2.39) + ' 239'"
+  [attr.stroke-dashoffset]="-1 * percent(data.vergersNonRecolte, data.totalVergers) * 2.39"
+  transform="rotate(-90 50 50)"/>
+
+<!-- RECOLTE -->
+<circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="12"
+  [attr.stroke-dasharray]="(percent(data.vergersRecolte, data.totalVergers) * 2.39) + ' 239'"
+  [attr.stroke-dashoffset]="-1 * (percent(data.vergersNonRecolte, data.totalVergers) + percent(data.vergersEnCours, data.totalVergers)) * 2.39"
+  transform="rotate(-90 50 50)"/>
+              </svg>
+              <div class="donut-center">
+                <div class="donut-total">{{ data.totalVergers }}</div>
+                <div class="donut-sub">Total</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="dl-row"><span class="dl-dot" style="background:#3b82f6"></span><span>Non récoltés</span><strong>{{ data.vergersNonRecolte }}</strong></div>
+              <div class="dl-row"><span class="dl-dot" style="background:#f59e0b"></span><span>En cours</span><strong>{{ data.vergersEnCours }}</strong></div>
+              <div class="dl-row"><span class="dl-dot" style="background:#10b981"></span><span>Récoltés</span><strong>{{ data.vergersRecolte }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertes panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Alertes terrain</span>
+            <button class="panel-btn" (click)="navigate('/alertes/gestion')">Gérer →</button>
+          </div>
+          <div class="alert-stats">
+            <div class="as-row critique" *ngIf="data.alertesCritiques > 0">
+              <span class="as-icon">🔴</span>
+              <span class="as-label">Critiques</span>
+              <span class="as-count">{{ data.alertesCritiques }}</span>
+            </div>
+            <div class="as-row attente">
+              <span class="as-icon">🟡</span>
+              <span class="as-label">En attente</span>
+              <span class="as-count">{{ data.alertesEnAttente }}</span>
+            </div>
+            <div class="as-row cours">
+              <span class="as-icon">🔵</span>
+              <span class="as-label">En cours</span>
+              <span class="as-count">{{ data.alertesEnCours }}</span>
+            </div>
+            <div class="as-row traitees">
+              <span class="as-icon">🟢</span>
+              <span class="as-label">Traitées</span>
+              <span class="as-count">{{ data.alertesTraitees }}</span>
+            </div>
+          </div>
+          <div class="total-chip">Total : {{ data.totalAlertes }}</div>
+        </div>
+      </div>
+
+      <!-- ── RESSOURCES & TOURNEES ── -->
+      <div class="lower-grid">
+
+        <!-- Ressources -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Ressources</span>
+            <button class="panel-btn" (click)="navigate('/ressources/bennes')">Voir →</button>
+          </div>
+          <div class="ressource-grid">
+            <div class="res-card">
+              <div class="res-emoji">🪣</div>
+              <div class="res-info">
+                <div class="res-total">{{ data.totalBennes }}</div>
+                <div class="res-name">Bennes</div>
+              </div>
+              <div class="res-pills">
+                <span class="res-pill green">{{ data.bennesDisponibles }} dispo</span>
+                <span class="res-pill orange" *ngIf="data.bennesMaintenance > 0">{{ data.bennesMaintenance }} maint.</span>
+              </div>
+            </div>
+            <div class="res-card">
+              <div class="res-emoji">🚜</div>
+              <div class="res-info">
+                <div class="res-total">{{ data.totalTracteurs }}</div>
+                <div class="res-name">Tracteurs</div>
+              </div>
+              <div class="res-pills">
+                <span class="res-pill green">{{ data.tracteursDisponibles }} dispo</span>
+                <span class="res-pill orange" *ngIf="data.tracteursMaintenance > 0">{{ data.tracteursMaintenance }} maint.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tournées status -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Tournées</span>
+            <button class="panel-btn" (click)="navigate('/tournees')">Voir →</button>
+          </div>
+          <div class="tournee-bars">
+            <div class="tb-row">
+              <span class="tb-label">Planifiées</span>
+              <div class="tb-track"><div class="tb-fill blue" [style.width.%]="percent(data.tourneesPlanifiees, data.totalTournees)"></div></div>
+              <span class="tb-num">{{ data.tourneesPlanifiees }}</span>
+            </div>
+            <div class="tb-row">
+              <span class="tb-label">En cours</span>
+              <div class="tb-track"><div class="tb-fill amber" [style.width.%]="percent(data.tourneesEnCours, data.totalTournees)"></div></div>
+              <span class="tb-num">{{ data.tourneesEnCours }}</span>
+            </div>
+            <div class="tb-row">
+              <span class="tb-label">Terminées</span>
+              <div class="tb-track"><div class="tb-fill green" [style.width.%]="percent(data.tourneesTerminees, data.totalTournees)"></div></div>
+              <span class="tb-num">{{ data.tourneesTerminees }}</span>
+            </div>
+            <div class="tb-row">
+              <span class="tb-label">Annulées</span>
+              <div class="tb-track"><div class="tb-fill red" [style.width.%]="percent(data.tourneesAnnulees, data.totalTournees)"></div></div>
+              <span class="tb-num">{{ data.tourneesAnnulees }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Vergers -->
+        <div class="panel span-full">
+          <div class="panel-header">
+            <span class="panel-title">🏆 Top vergers par production</span>
+            <button class="panel-btn" (click)="navigate('/vergers')">Voir tous →</button>
+          </div>
+          <div class="top-vergers-table" *ngIf="data.topVergers?.length">
+            <div class="tv-header">
+              <span>#</span><span>Olive</span><span>Agriculteur</span><span>Responsable</span><span>Tournées</span><span>Production</span>
+            </div>
+            <div class="tv-row" *ngFor="let v of data.topVergers; let i = index">
+              <span class="tv-rank">{{ i + 1 }}</span>
+              <span class="tv-olive">🌿 {{ v.typeOlive }}</span>
+              <span class="tv-ag">{{ v.agriculteurNom }}</span>
+              <span class="tv-resp">{{ v.responsableNom }}</span>
+              <span class="tv-tours">{{ v.nbTournees }}</span>
+              <span class="tv-kg">{{ formatKg(v.quantiteKg) }}</span>
+            </div>
+          </div>
+          <div *ngIf="!data.topVergers?.length" class="empty-state">Aucun verger avec production enregistrée.</div>
+        </div>
+
+      </div>
+
+      <!-- ── RECENT ACTIVITY ── -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Activité récente</span>
+        </div>
+        <div class="activity-list" *ngIf="data.recentActivity?.length">
+          <div class="act-row" *ngFor="let a of data.recentActivity">
+            <div class="act-dot" [style.background]="statutColor(a.statut)"></div>
+            <div class="act-body">
+              <span class="act-msg">{{ a.message }}</span>
+              <span class="act-statut" [style.color]="statutColor(a.statut)">{{ a.statut }}</span>
+            </div>
+            <span class="act-date">{{ a.date | date:'dd/MM HH:mm' }}</span>
+          </div>
+        </div>
+        <div *ngIf="!data.recentActivity?.length" class="empty-state">Aucune activité récente.</div>
+      </div>
+
+    </div><!-- end dashboard-wrapper -->
+  </main>
+</div>

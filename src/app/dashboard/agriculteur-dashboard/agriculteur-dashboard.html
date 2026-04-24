@@ -1,0 +1,267 @@
+<!-- src/app/dashboard/agriculteur-dashboard/agriculteur-dashboard.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar($event)"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-screen">
+      <div class="loader-ring"></div>
+      <p>Chargement de votre tableau de bord...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error && !loading" class="error-banner">⚠️ {{ error }}</div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="data && !loading" class="dashboard-wrapper">
+
+      <!-- ── TOPBAR ── -->
+      <header class="topbar">
+        <div>
+          <div class="page-label">Tableau de bord</div>
+          <h1 class="page-title">Bonjour, <span class="highlight">{{ user?.prenom }}</span> 👋</h1>
+          <p class="page-sub">Vous avez <strong>{{ data.totalMesVergers }}</strong> verger(s) enregistré(s)</p>
+        </div>
+        <div class="topbar-right">
+          <div class="season-chip">🌿 Saison active</div>
+          <div class="user-chip">
+            <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
+            <span>{{ user?.prenom }} {{ user?.nom }}</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── CRITICAL ALERTS STRIP ── -->
+      <div
+        class="crit-strip"
+        *ngIf="data.mesAlertesEnAttente > 0"
+        (click)="navigate('/alertes/mes-alertes')">
+        <span>⚠️</span>
+        <span><strong>{{ data.mesAlertesEnAttente }}</strong> alerte(s) en attente de traitement</span>
+        <span class="strip-cta">Voir →</span>
+      </div>
+
+      <!-- ── KPI CARDS ── -->
+      <section class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-icon">🌳</div>
+          <div class="kpi-value">{{ data.totalMesVergers }}</div>
+          <div class="kpi-label">Mes vergers</div>
+          <div class="kpi-sub">{{ data.mesVergersEnCours }} en cours · {{ data.mesVergersRecolte }} récoltés</div>
+        </div>
+
+        <div class="kpi-card teal">
+          <div class="kpi-icon">🫒</div>
+          <div class="kpi-value">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
+          <div class="kpi-label">Ma production</div>
+          <div class="kpi-sub">{{ data.totalMesCollectes }} collecte(s) · {{ data.mesCollectesTerminees }} terminée(s)</div>
+        </div>
+
+        <div class="kpi-card gold">
+          <div class="kpi-icon">🚜</div>
+          <div class="kpi-value">{{ data.mesTourneesEnCours + data.mesTourneesPlanifiees }}</div>
+          <div class="kpi-label">Tournées actives</div>
+          <div class="kpi-sub">{{ data.mesTourneesPlanifiees }} planifiées · {{ data.mesTourneesEnCours }} en cours</div>
+        </div>
+
+        <div class="kpi-card red">
+          <div class="kpi-icon">🔔</div>
+          <div class="kpi-value">{{ data.totalMesAlertes }}</div>
+          <div class="kpi-label">Mes alertes</div>
+          <div class="kpi-sub">{{ data.mesAlertesEnAttente }} en attente · {{ data.mesAlertesEnCours }} en cours</div>
+        </div>
+      </section>
+
+      <!-- ── MID SECTION ── -->
+      <div class="mid-grid">
+
+        <!-- Statut des vergers -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">État de mes vergers</span>
+            <button class="panel-btn" (click)="navigate('/mes-vergers')">Voir →</button>
+          </div>
+          <div class="verger-status-list">
+            <div class="vs-row">
+              <span class="vs-dot blue"></span>
+              <span class="vs-label">Non récoltés</span>
+              <div class="vs-track">
+                <div class="vs-fill blue" [style.width.%]="percent(data.mesVergersNonRecolte, data.totalMesVergers)"></div>
+              </div>
+              <span class="vs-count">{{ data.mesVergersNonRecolte }}</span>
+            </div>
+            <div class="vs-row">
+              <span class="vs-dot amber"></span>
+              <span class="vs-label">En cours</span>
+              <div class="vs-track">
+                <div class="vs-fill amber" [style.width.%]="percent(data.mesVergersEnCours, data.totalMesVergers)"></div>
+              </div>
+              <span class="vs-count">{{ data.mesVergersEnCours }}</span>
+            </div>
+            <div class="vs-row">
+              <span class="vs-dot green"></span>
+              <span class="vs-label">Récoltés</span>
+              <div class="vs-track">
+                <div class="vs-fill green" [style.width.%]="percent(data.mesVergersRecolte, data.totalMesVergers)"></div>
+              </div>
+              <span class="vs-count">{{ data.mesVergersRecolte }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collectes -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Mes collectes</span>
+          </div>
+          <div class="collecte-summary">
+            <div class="col-box teal">
+              <span class="col-emoji">🪣</span>
+              <div class="col-num">{{ data.mesCollectesEnCours }}</div>
+              <div class="col-lbl">En cours</div>
+            </div>
+            <div class="col-box green">
+              <span class="col-emoji">✅</span>
+              <div class="col-num">{{ data.mesCollectesTerminees }}</div>
+              <div class="col-lbl">Terminées</div>
+            </div>
+            <div class="col-box gold">
+              <span class="col-emoji">🫒</span>
+              <div class="col-num">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
+              <div class="col-lbl">Total récolté</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertes -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Mes alertes</span>
+            <button class="panel-btn" (click)="navigate('/alertes/mes-alertes')">Voir →</button>
+          </div>
+          <div class="al-pills">
+            <div class="al-pill attente">
+              <span>🟡</span>
+              <span class="al-lbl">En attente</span>
+              <strong>{{ data.mesAlertesEnAttente }}</strong>
+            </div>
+            <div class="al-pill cours">
+              <span>🔵</span>
+              <span class="al-lbl">En cours</span>
+              <strong>{{ data.mesAlertesEnCours }}</strong>
+            </div>
+            <div class="al-pill traitees">
+              <span>🟢</span>
+              <span class="al-lbl">Traitées</span>
+              <strong>{{ data.mesAlertesTraitees }}</strong>
+            </div>
+          </div>
+          <div class="al-action">
+            <button class="al-create-btn" (click)="navigate('/alertes/creer')">
+              + Créer une alerte
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── MES VERGERS TABLE ── -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🌳 Mes vergers — détail</span>
+          <button class="panel-btn" (click)="navigate('/mes-vergers')">Voir tout →</button>
+        </div>
+
+        <div class="verger-table" *ngIf="data.mesVergers?.length">
+          <div class="vt-header">
+            <span>Type d'olive</span>
+            <span>Responsable</span>
+            <span>Phase</span>
+            <span>Statut</span>
+            <span>Maturité</span>
+            <span>Arbres</span>
+            <span>Tournées</span>
+            <span>Alertes</span>
+            <span>Production</span>
+          </div>
+
+          <div class="vt-row" *ngFor="let v of data.mesVergers" (click)="navigate('/mes-vergers')">
+            <span class="vt-olive">🌿 {{ v.typeOlive }}</span>
+            <span class="vt-resp">
+              <span class="resp-name">{{ v.responsableNom }}</span>
+              <span class="resp-email">{{ v.responsableEmail }}</span>
+            </span>
+            <span class="vt-phase">
+              {{ phaseIcon(v.phaseCulturale) }} {{ v.phaseCulturale }}
+            </span>
+            <span>
+              <span class="badge" [class]="statutBadge(v.statut)">{{ statutLabel(v.statut) }}</span>
+            </span>
+            <span>
+              <div class="mat-wrap">
+                <div class="mat-track">
+                  <div class="mat-fill"
+                    [style.width.%]="v.maturiteActuelle"
+                    [style.background]="maturiteColor(v.maturiteActuelle)">
+                  </div>
+                </div>
+                <span class="mat-pct">{{ v.maturiteActuelle }}%</span>
+              </div>
+            </span>
+            <span>{{ v.nbArbre }}</span>
+            <span>{{ v.nbTournees }}</span>
+            <span class="vt-alert" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}</span>
+            <span class="vt-kg">{{ formatKg(v.quantiteRecolteKg) }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="!data.mesVergers?.length" class="empty-state">
+          <span>🌳</span>
+          <p>Aucun verger enregistré pour l'instant.</p>
+        </div>
+      </div>
+
+      <!-- ── TOURNÉES ── -->
+      <div class="panel mt-1">
+        <div class="panel-header">
+          <span class="panel-title">🚜 Tournées sur mes vergers</span>
+        </div>
+        <div class="tournee-bars">
+          <div class="tb-row">
+            <span class="tb-label">Planifiées</span>
+            <div class="tb-track">
+              <div class="tb-fill blue"
+                [style.width.%]="percent(data.mesTourneesPlanifiees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)">
+              </div>
+            </div>
+            <span class="tb-num">{{ data.mesTourneesPlanifiees }}</span>
+          </div>
+          <div class="tb-row">
+            <span class="tb-label">En cours</span>
+            <div class="tb-track">
+              <div class="tb-fill amber"
+                [style.width.%]="percent(data.mesTourneesEnCours, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)">
+              </div>
+            </div>
+            <span class="tb-num">{{ data.mesTourneesEnCours }}</span>
+          </div>
+          <div class="tb-row">
+            <span class="tb-label">Terminées</span>
+            <div class="tb-track">
+              <div class="tb-fill green"
+                [style.width.%]="percent(data.mesTourneesTerminees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)">
+              </div>
+            </div>
+            <span class="tb-num">{{ data.mesTourneesTerminees }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end dashboard-wrapper -->
+  </main>
+</div>
