@@ -157,12 +157,20 @@ export class UtilisateurService {
 
   // ========== PHOTO DE PROFIL ==========
 
-  updateMyPhoto(photoBase64: string): Observable<any> {
-    return this.http.put('http://localhost:8080/api/profile/photo',
-      { photoProfile: photoBase64 },
-      { headers: this.getHeaders() }
-    );
-  }
+  updateMyPhoto(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return this.http.put(
+    'http://localhost:8080/api/profile/photo',
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 
   updateUserPhoto(id: string, photoBase64: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/admin/utilisateurs/${id}/photo`,
