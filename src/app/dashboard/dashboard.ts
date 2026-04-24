@@ -1,82 +1,41 @@
-import { Component, OnInit, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { SideBarResponsable } from '../sidebar-responsable/sidebar-responsable';   // Adjust the path if necessary
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    SideBarResponsable
-  ],
-  styleUrl: './dashboard.css',
-  templateUrl: './dashboard.html',
+  imports: [],
+  template: ``,
 })
 export class Dashboard implements OnInit {
-  user: any;
-
-  // Sidebar properties
-  isSidebarCollapsed = false;
-  isMobile = false;
-  userRole = '';
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      this.user = JSON.parse(stored);
+    const stored = localStorage.getItem('currentUser');
+
+    if (!stored) {
+      this.router.navigate(['/login']);
+      return;
     }
 
-    this.checkMobile();
-    this.loadUserRole();
-  }
+    try {
+      const user = JSON.parse(stored);
+      const role = user?.role?.toUpperCase();
 
-  // ==================== SIDEBAR METHODS ====================
-  @HostListener('window:resize')
-  checkMobile(): void {
-    this.isMobile = window.innerWidth <= 768;
-    if (!this.isMobile) {
-      this.isSidebarCollapsed = false;
-    }
-  }
-
-  loadUserRole(): void {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      try {
-        const userData = JSON.parse(stored);
-        this.userRole = userData.role?.toUpperCase() || '';
-      } catch (e) {
-        console.error('Error parsing user data', e);
+      if (role === 'ADMIN') {
+        this.router.navigate(['/admin/dashboard']);
+      } else if (role === 'RESPONSABLE') {
+        this.router.navigate(['/responsable/dashboard']);
+      } else if (role === 'AGRICULTEUR') {
+        this.router.navigate(['/agriculteur/dashboard']);
+      } else {
+        // Unknown role — send back to login
+        this.router.navigate(['/login']);
       }
+    } catch (e) {
+      console.error('Error parsing user data', e);
+      this.router.navigate(['/login']);
     }
-  }
-
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
-  }
-
-  // ==================== YOUR ORIGINAL METHODS ====================
-  goToTravailleurs(): void {
-    this.router.navigate(['/travailleurs']);
-  }  goToVergers(): void {
-    this.router.navigate(['/vergers']);
-  }
-
-  goToTournees(): void {
-    this.router.navigate(['/tournees']);
-  }
-
-  goToAlertes(): void {
-    this.router.navigate(['/alertes']);
-  }
-
-  logout(): void {
-    localStorage.clear();
-    this.router.navigate(['/login']);
   }
 }
