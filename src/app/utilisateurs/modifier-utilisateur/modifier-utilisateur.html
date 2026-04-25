@@ -109,7 +109,7 @@
               </div>
             </div>
 
-            <div class="verger-section" *ngIf="userRole === 'ADMIN' && (utilisateur.role === 'AGRICULTEUR' || utilisateur.role === 'RESPONSABLE')">
+            <div class="verger-section" *ngIf="userRole === 'ADMIN' && utilisateur.role === 'AGRICULTEUR'">
  
               <!-- Header -->
               <div class="verger-section__header">
@@ -119,11 +119,8 @@
                     <circle cx="12" cy="10" r="3"/>
                   </svg>
                   <span>Attribution des vergers</span>
-                  <span class="verger-badge" *ngIf="utilisateur.role === 'AGRICULTEUR'">
+                  <span class="verger-badge">
                     {{ selectedOwnedVergerIds.length }} sélectionné(s)
-                  </span>
-                  <span class="verger-badge" *ngIf="utilisateur.role === 'RESPONSABLE'">
-                    {{ selectedManagedVergerIds.length }} sélectionné(s)
                   </span>
                 </div>
                 <label class="verger-replace-toggle">
@@ -133,26 +130,12 @@
               </div>
              
               <!-- Selected chips -->
-              <div class="verger-chips" *ngIf="utilisateur.role === 'AGRICULTEUR' && selectedOwnedVergerIds.length > 0">
+              <div class="verger-chips" *ngIf="selectedOwnedVergerIds.length > 0">
                 <span class="verger-chips__label">Sélectionnés :</span>
                 <div class="verger-chips__list">
                   <span class="verger-chip" *ngFor="let v of getSelectedOwnedVergers()">
                     <span class="verger-chip__text">{{ v.typeOlive }} — {{ v.superficie }} ha</span>
                     <button type="button" class="verger-chip__remove" (click)="toggleOwnedVerger(v.id, false)" title="Retirer">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                      </svg>
-                    </button>
-                  </span>
-                </div>
-              </div>
-             
-              <div class="verger-chips" *ngIf="utilisateur.role === 'RESPONSABLE' && selectedManagedVergerIds.length > 0">
-                <span class="verger-chips__label">Sélectionnés :</span>
-                <div class="verger-chips__list">
-                  <span class="verger-chip" *ngFor="let v of getSelectedManagedVergers()">
-                    <span class="verger-chip__text">{{ v.typeOlive }} — {{ v.superficie }} ha</span>
-                    <button type="button" class="verger-chip__remove" (click)="toggleManagedVerger(v.id, false)" title="Retirer">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                       </svg>
@@ -198,7 +181,7 @@
               </div>
              
               <!-- Card grid — AGRICULTEUR -->
-              <div class="verger-grid" *ngIf="utilisateur.role === 'AGRICULTEUR' && pagedVergers.length > 0">
+              <div class="verger-grid" *ngIf="pagedVergers.length > 0">
                 <label
                   class="verger-card"
                   [class.verger-card--selected]="selectedOwnedVergerIds.includes(v.id)"
@@ -223,38 +206,6 @@
                       {{ v.agriculteurNom }}
                     </span>
                     <span class="verger-card__unassigned" *ngIf="!hasText(v.agriculteurNom) || v.agriculteurNom === 'null null'">
-                      Non assigné
-                    </span>
-                  </div>
-                </label>
-              </div>
-             
-              <!-- Card grid — RESPONSABLE -->
-              <div class="verger-grid" *ngIf="utilisateur.role === 'RESPONSABLE' && pagedVergers.length > 0">
-                <label
-                  class="verger-card"
-                  [class.verger-card--selected]="selectedManagedVergerIds.includes(v.id)"
-                  *ngFor="let v of pagedVergers">
-                  <input
-                    type="checkbox"
-                    class="verger-card__checkbox"
-                    [checked]="selectedManagedVergerIds.includes(v.id)"
-                    (change)="toggleManagedVerger(v.id, $any($event.target).checked)">
-                  <div class="verger-card__check-mark">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  </div>
-                  <div class="verger-card__body">
-                    <span class="verger-card__type">{{ v.typeOlive || '—' }}</span>
-                    <span class="verger-card__area">{{ v.superficie }} ha</span>
-                    <span class="verger-card__owner" *ngIf="hasText(v.responsableNom) && v.responsableNom !== 'null null'">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                      </svg>
-                      {{ v.responsableNom }}
-                    </span>
-                    <span class="verger-card__unassigned" *ngIf="!hasText(v.responsableNom) || v.responsableNom === 'null null'">
                       Non assigné
                     </span>
                   </div>

@@ -51,7 +51,6 @@ export class ModifierUtilisateur implements OnInit {
   // Verger assignment (admin only)
   vergers: VergerResponse[] = [];
   selectedOwnedVergerIds: string[] = [];
-  selectedManagedVergerIds: string[] = [];
   replaceVergers = true;
   vergerSearch = '';
   vergerPage = 1;
@@ -172,10 +171,6 @@ export class ModifierUtilisateur implements OnInit {
           this.selectedOwnedVergerIds = this.vergers
             .filter(v => v.agriculteurId === this.utilisateur.id)
             .map(v => v.id);
-        } else if (role === 'RESPONSABLE') {
-          this.selectedManagedVergerIds = this.vergers
-            .filter(v => v.responsableId === this.utilisateur.id)
-            .map(v => v.id);
         }
 
         this.vergerPage = 1;
@@ -233,24 +228,11 @@ export class ModifierUtilisateur implements OnInit {
     return this.vergers.filter(v => set.has(v.id));
   }
 
-  getSelectedManagedVergers(): VergerResponse[] {
-    const set = new Set(this.selectedManagedVergerIds);
-    return this.vergers.filter(v => set.has(v.id));
-  }
-
   toggleOwnedVerger(vergerId: string, checked: boolean): void {
     if (checked) {
       if (!this.selectedOwnedVergerIds.includes(vergerId)) this.selectedOwnedVergerIds.push(vergerId);
     } else {
       this.selectedOwnedVergerIds = this.selectedOwnedVergerIds.filter(id => id !== vergerId);
-    }
-  }
-
-  toggleManagedVerger(vergerId: string, checked: boolean): void {
-    if (checked) {
-      if (!this.selectedManagedVergerIds.includes(vergerId)) this.selectedManagedVergerIds.push(vergerId);
-    } else {
-      this.selectedManagedVergerIds = this.selectedManagedVergerIds.filter(id => id !== vergerId);
     }
   }
 
@@ -279,12 +261,7 @@ onSubmit(): void {
               ownedVergerIds: this.selectedOwnedVergerIds,
               replaceOwnedVergers: this.replaceVergers
             })
-          : role === 'RESPONSABLE'
-            ? this.utilisateurService.adminUpdateResponsable(this.id, {
-                managedVergerIds: this.selectedManagedVergerIds,
-                replaceManagedVergers: this.replaceVergers
-              })
-            : null;
+          : null;
 
       // 2. Si un nouveau mot de passe a été saisi, le changer aussi
       if (this.passwordData.nouveauMotDePasse && this.passwordData.nouveauMotDePasse.trim() !== '') {

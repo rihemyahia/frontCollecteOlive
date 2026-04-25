@@ -94,8 +94,8 @@ export class UtilisateurService {
     });
   }
 
-  // Admin: update responsable + managed vergers
-  adminUpdateResponsable(id: string, body: { managedVergerIds?: string[]; replaceManagedVergers?: boolean } & Partial<Utilisateur>): Observable<Utilisateur> {
+  // Admin: update responsable fields
+  adminUpdateResponsable(id: string, body: Partial<Utilisateur>): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/responsables/${id}`, body, { headers: this.getHeaders() });
   }
 
