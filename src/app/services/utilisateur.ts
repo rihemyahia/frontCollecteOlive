@@ -99,8 +99,8 @@ export class UtilisateurService {
     return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/responsables/${id}`, body, { headers: this.getHeaders() });
   }
 
-  // Admin: update agriculteur + owned vergers
-  adminUpdateAgriculteur(id: string, body: { ownedVergerIds?: string[]; replaceOwnedVergers?: boolean } & Partial<Utilisateur>): Observable<Utilisateur> {
+  // Admin: update agriculteur fields
+  adminUpdateAgriculteur(id: string, body: Partial<Utilisateur>): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/agriculteurs/${id}`, body, { headers: this.getHeaders() });
   }
 
