@@ -30,10 +30,23 @@
 
   <!-- Profil utilisateur -->
   <div class="user-section">
-    <div class="user-avatar">
-      <span class="avatar-initials">{{ userProfile.avatar }}</span>
-      <div class="status-dot"></div>
-    </div>
+   <div class="user-avatar">
+
+  <!-- ✅ If image exists -->
+  <img *ngIf="userProfile.photo; else initialsBlock"
+       [src]="userProfile.photo"
+       alt="Profile"
+       class="avatar-img" />
+
+  <!-- ✅ Fallback -->
+  <ng-template #initialsBlock>
+    <span class="avatar-initials">
+      {{ userProfile.avatar }}
+    </span>
+  </ng-template>
+
+  <div class="status-dot"></div>
+</div>
     <div class="user-info" *ngIf="!isCollapsed">
       <span class="user-name">{{ userProfile.prenom }} {{ userProfile.nom }}</span>
       <span class="user-role">{{ userProfile.role }}</span>

@@ -148,8 +148,12 @@ this.cdr.detectChanges();
 
       this.isUploadingPhoto = false;
       this.successMessage = 'Photo de profil mise à jour ✅';
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      user.photoProfile = res.photoProfile;
+      localStorage.setItem('currentUser', JSON.stringify(user));
 
-      this.updateLocalStorage();
+      // Notify components in the same tab (storage event won't fire there)
+      window.dispatchEvent(new Event('profile-updated'));
 
       setTimeout(() => this.successMessage = '', 3000);
       this.cdr.detectChanges();
@@ -216,6 +220,7 @@ this.cdr.detectChanges();
           photoProfile: this.profile.photoProfile
         });
         localStorage.setItem('currentUser', JSON.stringify(user));
+        window.dispatchEvent(new Event('profile-updated'));
       } catch (e) {}
     }
   }

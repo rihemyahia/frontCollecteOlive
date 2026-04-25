@@ -170,6 +170,18 @@ export class SideBarResponsable implements OnInit {
     this.setupRouterListener();
   }
 
+  @HostListener('window:storage', ['$event'])
+  onStorageChange(event: StorageEvent): void {
+    if (event.key === 'currentUser') {
+      this.refreshSidebarUserData();
+    }
+  }
+
+  @HostListener('window:profile-updated')
+  onProfileUpdated(): void {
+    this.refreshSidebarUserData();
+  }
+
   @HostListener('window:resize')
   checkMobile(): void {
     this.isMobile = window.innerWidth <= 768;
@@ -197,6 +209,7 @@ export class SideBarResponsable implements OnInit {
           nom: user.nom || '',
           role: user.role?.toUpperCase() || this.userRole,
           email: user.email || '',
+          photo: user.photoProfile || null, 
           avatar: user.prenom ? user.prenom.charAt(0).toUpperCase() : 'U'
         };
 
@@ -212,6 +225,11 @@ export class SideBarResponsable implements OnInit {
     }
   }
 
+  private refreshSidebarUserData(): void {
+    this.loadUserProfile();
+    this.filterMenuByRole();
+  }
+
   setDefaultProfile(): void {
     this.userProfile = {
       prenom: 'Utilisateur',
@@ -220,6 +238,7 @@ export class SideBarResponsable implements OnInit {
       email: '',
       avatar: 'U'
     };
+    
   }
 
   filterMenuByRole(): void {

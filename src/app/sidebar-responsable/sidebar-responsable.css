@@ -211,11 +211,14 @@
   width: 52px;
   height: 52px;
   background: linear-gradient(135deg, #5A7A1A, #8AAB3A);
-  border-radius: 16px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(90, 110, 26, 0.3);
+  padding: 2px;
+  overflow: visible;
+  box-shadow: 0 6px 16px rgba(90, 110, 26, 0.35);
+  border: 1px solid rgba(232, 240, 224, 0.2);
 }
 
 .avatar-initials {
@@ -226,13 +229,14 @@
 
 .status-dot {
   position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 10px;
-  height: 10px;
+  bottom: 1px;
+  right: 1px;
+  width: 12px;
+  height: 12px;
   background: #4CAF50;
   border: 2px solid #1A2A1A;
   border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(10, 26, 10, 0.35);
 }
 
 .user-info {
@@ -594,4 +598,27 @@
   .sidebar.collapsed.mobile-open {
     transform: translateX(0);
   }
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background-color: #223117;
+}
+
+.avatar-initials {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #A8B84B, #6E8D2D);
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
