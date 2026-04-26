@@ -1,3 +1,4 @@
+// src/app/ressources/vergers/liste-vergers/liste-vergers.ts
 import { AuthService } from './../../services/auth';
 import { Component, OnInit, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -20,10 +21,16 @@ export class ListeVergersComponent implements OnInit {
 
   vergers: VergerResponse[] = [];
   filteredVergers: VergerResponse[] = [];
+  paginatedVergers: VergerResponse[] = [];
   searchTerm = '';
+  selectedStatus = '';
   isLoading = false;
   errorMessage = '';
-  StatutVerger = StatutVerger;
+
+  // Pagination
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
 
   isSidebarCollapsed = false;
   isMobile = false;
@@ -33,7 +40,7 @@ export class ListeVergersComponent implements OnInit {
     private vergerService: VergerService,
     public router: Router,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef   // ← ADD THIS
+    private cdr: ChangeDetectorRef
   ) {}
 
   @HostListener('window:resize')
@@ -67,36 +74,73 @@ export class ListeVergersComponent implements OnInit {
 
     obs.subscribe({
       next: data => {
-        this.vergers = [...data];          // spread forces new reference
-        this.filteredVergers = [...data];  // spread forces new reference
+        this.vergers = [...data];
+        this.applyFilter();
         this.isLoading = false;
-        this.cdr.detectChanges();          // ← FORCE re-render
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage = 'Erreur lors du chargement.';
         this.isLoading = false;
-        this.cdr.detectChanges();          // ← also here
+        this.cdr.detectChanges();
       }
     });
   }
 
   applyFilter(): void {
-    const term = this.searchTerm.toLowerCase();
-    this.filteredVergers = this.vergers.filter(v =>
-      v.agriculteurNom.toLowerCase().includes(term) ||
-      v.typeOlive.toLowerCase().includes(term) ||
-      (v.statut || '').toString().toLowerCase().includes(term)
-    );
-    this.cdr.detectChanges();              // ← and after filter
+    let filtered = [...this.vergers];
+
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(v =>
+        v.agriculteurNom?.toLowerCase().includes(term) ||
+        v.typeOlive?.toLowerCase().includes(term) ||
+        (v.statut || '').toLowerCase().includes(term)
+      );
+    }
+
+    if (this.selectedStatus) {
+      filtered = filtered.filter(v => v.statut === this.selectedStatus);
+    }
+
+    this.filteredVergers = filtered;
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
-  private searchTimeout: any;
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredVergers.length / this.itemsPerPage) || 1;
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedVergers = this.filteredVergers.slice(startIndex, endIndex);
+    this.cdr.detectChanges();
+  }
+
   applyFilterDebounced(): void {
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => this.applyFilter(), 300);
+    this.applyFilter();
   }
 
-  getStatutCount(statut: StatutVerger): number {
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.selectedStatus = '';
+    this.applyFilter();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+    }
+  }
+
+  getStatutCount(statut: string): number {
     return this.filteredVergers.filter(v => v.statut === statut).length;
   }
 
@@ -111,24 +155,28 @@ export class ListeVergersComponent implements OnInit {
     });
   }
 
-  changerStatut(id: string, statut: StatutVerger): void {
-    const reason = prompt('Veuillez saisir la raison du changement manuel de statut :')?.trim();
-    if (!reason) return;
-    this.vergerService.changerStatut(id, statut, reason).subscribe({
-      next: () => this.loadVergers(),
-      error: () => {
-        this.errorMessage = 'Erreur lors du changement de statut.';
-        this.cdr.detectChanges();
-      }
-    });
+  getStatutClass(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'badge-warning';
+      case 'EN_COURS': return 'badge-info';
+      case 'RECOLTE': return 'badge-success';
+      default: return '';
+    }
   }
 
-  getStatutClass(statut: StatutVerger): string {
-    return ({
-      [StatutVerger.NON_RECOLTE]: 'badge-warning',
-      [StatutVerger.EN_COURS]:    'badge-info',
-      [StatutVerger.RECOLTE]:     'badge-success'
-    } as Record<string, string>)[statut] ?? '';
+  getStatutLabel(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'Non récolté';
+      case 'EN_COURS': return 'En cours';
+      case 'RECOLTE': return 'Récolté';
+      default: return statut;
+    }
+  }
+
+  getMaturiteColor(value: number): string {
+    if (value < 40) return '#E8A838';
+    if (value < 75) return '#A8B84B';
+    return '#4A7A2A';
   }
 
   isResponsableOrAdmin(): boolean {

@@ -1,267 +1,363 @@
 <!-- src/app/dashboard/agriculteur-dashboard/agriculteur-dashboard.html -->
 <div class="app-layout">
-  <app-sidebar
-    [isCollapsed]="isSidebarCollapsed"
-    (toggleSidebar)="toggleSidebar($event)"
-    [userRole]="userRole">
-  </app-sidebar>
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
 
-    <!-- Loading -->
+    <!-- Loading Screen -->
     <div *ngIf="loading" class="loading-screen">
-      <div class="loader-ring"></div>
-      <p>Chargement de votre tableau de bord...</p>
+      <div class="olive-loader">
+        <div class="olive-leaf"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+      </div>
+      <p class="loading-text">Chargement de votre tableau de bord...</p>
+      <p class="loading-sub">Vos données se préparent</p>
     </div>
 
-    <!-- Error -->
-    <div *ngIf="error && !loading" class="error-banner">⚠️ {{ error }}</div>
+    <div *ngIf="error && !loading" class="oh-error">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
 
-    <!-- Dashboard Content -->
     <div *ngIf="data && !loading" class="dashboard-wrapper">
 
-      <!-- ── TOPBAR ── -->
-      <header class="topbar">
-        <div>
-          <div class="page-label">Tableau de bord</div>
-          <h1 class="page-title">Bonjour, <span class="highlight">{{ user?.prenom }}</span> 👋</h1>
-          <p class="page-sub">Vous avez <strong>{{ data.totalMesVergers }}</strong> verger(s) enregistré(s)</p>
-        </div>
-        <div class="topbar-right">
-          <div class="season-chip">🌿 Saison active</div>
-          <div class="user-chip">
-            <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
-            <span>{{ user?.prenom }} {{ user?.nom }}</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- ── CRITICAL ALERTS STRIP ── -->
-      <div
-        class="crit-strip"
-        *ngIf="data.mesAlertesEnAttente > 0"
-        (click)="navigate('/alertes/mes-alertes')">
-        <span>⚠️</span>
-        <span><strong>{{ data.mesAlertesEnAttente }}</strong> alerte(s) en attente de traitement</span>
-        <span class="strip-cta">Voir →</span>
-      </div>
-
-      <!-- ── KPI CARDS ── -->
-      <section class="kpi-grid">
-        <div class="kpi-card green">
-          <div class="kpi-icon">🌳</div>
-          <div class="kpi-value">{{ data.totalMesVergers }}</div>
-          <div class="kpi-label">Mes vergers</div>
-          <div class="kpi-sub">{{ data.mesVergersEnCours }} en cours · {{ data.mesVergersRecolte }} récoltés</div>
-        </div>
-
-        <div class="kpi-card teal">
-          <div class="kpi-icon">🫒</div>
-          <div class="kpi-value">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
-          <div class="kpi-label">Ma production</div>
-          <div class="kpi-sub">{{ data.totalMesCollectes }} collecte(s) · {{ data.mesCollectesTerminees }} terminée(s)</div>
-        </div>
-
-        <div class="kpi-card gold">
-          <div class="kpi-icon">🚜</div>
-          <div class="kpi-value">{{ data.mesTourneesEnCours + data.mesTourneesPlanifiees }}</div>
-          <div class="kpi-label">Tournées actives</div>
-          <div class="kpi-sub">{{ data.mesTourneesPlanifiees }} planifiées · {{ data.mesTourneesEnCours }} en cours</div>
-        </div>
-
-        <div class="kpi-card red">
-          <div class="kpi-icon">🔔</div>
-          <div class="kpi-value">{{ data.totalMesAlertes }}</div>
-          <div class="kpi-label">Mes alertes</div>
-          <div class="kpi-sub">{{ data.mesAlertesEnAttente }} en attente · {{ data.mesAlertesEnCours }} en cours</div>
-        </div>
-      </section>
-
-      <!-- ── MID SECTION ── -->
-      <div class="mid-grid">
-
-        <!-- Statut des vergers -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">État de mes vergers</span>
-            <button class="panel-btn" (click)="navigate('/mes-vergers')">Voir →</button>
-          </div>
-          <div class="verger-status-list">
-            <div class="vs-row">
-              <span class="vs-dot blue"></span>
-              <span class="vs-label">Non récoltés</span>
-              <div class="vs-track">
-                <div class="vs-fill blue" [style.width.%]="percent(data.mesVergersNonRecolte, data.totalMesVergers)"></div>
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-person-badge"></i>
               </div>
-              <span class="vs-count">{{ data.mesVergersNonRecolte }}</span>
-            </div>
-            <div class="vs-row">
-              <span class="vs-dot amber"></span>
-              <span class="vs-label">En cours</span>
-              <div class="vs-track">
-                <div class="vs-fill amber" [style.width.%]="percent(data.mesVergersEnCours, data.totalMesVergers)"></div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">MON ESPACE</p>
+                <h2 class="oh-header__title">Tableau de bord <span class="highlight">Agriculteur</span></h2>
+                <p class="header-subtitle">Bienvenue, {{ user?.prenom || 'Agriculteur' }} 👋</p>
               </div>
-              <span class="vs-count">{{ data.mesVergersEnCours }}</span>
             </div>
-            <div class="vs-row">
-              <span class="vs-dot green"></span>
-              <span class="vs-label">Récoltés</span>
-              <div class="vs-track">
-                <div class="vs-fill green" [style.width.%]="percent(data.mesVergersRecolte, data.totalMesVergers)"></div>
+            <div class="oh-header__right">
+              <div class="season-chip">
+                <i class="bi bi-calendar-heart"></i>
+                <span>Saison {{ currentSeason }}</span>
               </div>
-              <span class="vs-count">{{ data.mesVergersRecolte }}</span>
+              <div class="user-chip">
+                <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
+                <span>{{ user?.prenom }} {{ user?.nom }}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Collectes -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Mes collectes</span>
-          </div>
-          <div class="collecte-summary">
-            <div class="col-box teal">
-              <span class="col-emoji">🪣</span>
-              <div class="col-num">{{ data.mesCollectesEnCours }}</div>
-              <div class="col-lbl">En cours</div>
-            </div>
-            <div class="col-box green">
-              <span class="col-emoji">✅</span>
-              <div class="col-num">{{ data.mesCollectesTerminees }}</div>
-              <div class="col-lbl">Terminées</div>
-            </div>
-            <div class="col-box gold">
-              <span class="col-emoji">🫒</span>
-              <div class="col-num">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
-              <div class="col-lbl">Total récolté</div>
-            </div>
-          </div>
-        </div>
+        <div class="oh-card__body">
 
-        <!-- Alertes -->
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Mes alertes</span>
-            <button class="panel-btn" (click)="navigate('/alertes/mes-alertes')">Voir →</button>
-          </div>
-          <div class="al-pills">
-            <div class="al-pill attente">
-              <span>🟡</span>
-              <span class="al-lbl">En attente</span>
-              <strong>{{ data.mesAlertesEnAttente }}</strong>
+          <!-- Alert Banner -->
+          <div class="alert-banner" *ngIf="data.mesAlertesEnAttente > 0" (click)="navigate('/alertes/mes-alertes')">
+            <i class="bi bi-bell-fill"></i>
+            <div class="alert-content">
+              <strong>{{ data.mesAlertesEnAttente }}</strong> alerte(s) en attente de traitement
             </div>
-            <div class="al-pill cours">
-              <span>🔵</span>
-              <span class="al-lbl">En cours</span>
-              <strong>{{ data.mesAlertesEnCours }}</strong>
+            <div class="alert-action">
+              <span>Voir</span>
+              <i class="bi bi-arrow-right"></i>
             </div>
-            <div class="al-pill traitees">
-              <span>🟢</span>
-              <span class="al-lbl">Traitées</span>
-              <strong>{{ data.mesAlertesTraitees }}</strong>
-            </div>
-          </div>
-          <div class="al-action">
-            <button class="al-create-btn" (click)="navigate('/alertes/creer')">
-              + Créer une alerte
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ── MES VERGERS TABLE ── -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">🌳 Mes vergers — détail</span>
-          <button class="panel-btn" (click)="navigate('/mes-vergers')">Voir tout →</button>
-        </div>
-
-        <div class="verger-table" *ngIf="data.mesVergers?.length">
-          <div class="vt-header">
-            <span>Type d'olive</span>
-            <span>Responsable</span>
-            <span>Phase</span>
-            <span>Statut</span>
-            <span>Maturité</span>
-            <span>Arbres</span>
-            <span>Tournées</span>
-            <span>Alertes</span>
-            <span>Production</span>
           </div>
 
-          <div class="vt-row" *ngFor="let v of data.mesVergers" (click)="navigate('/mes-vergers')">
-            <span class="vt-olive">🌿 {{ v.typeOlive }}</span>
-            <span class="vt-resp">
-              <span class="resp-name">{{ v.responsableNom }}</span>
-              <span class="resp-email">{{ v.responsableEmail }}</span>
-            </span>
-            <span class="vt-phase">
-              {{ phaseIcon(v.phaseCulturale) }} {{ v.phaseCulturale }}
-            </span>
-            <span>
-              <span class="badge" [class]="statutBadge(v.statut)">{{ statutLabel(v.statut) }}</span>
-            </span>
-            <span>
-              <div class="mat-wrap">
-                <div class="mat-track">
-                  <div class="mat-fill"
-                    [style.width.%]="v.maturiteActuelle"
-                    [style.background]="maturiteColor(v.maturiteActuelle)">
+          <!-- Hero Metrics -->
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #2D6A4F, #40916C)">
+                <i class="bi bi-tree"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesVergers }}</div>
+                <div class="metric-label">Mes vergers</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>{{ data.mesVergersEnCours }} en cours</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24)">
+                <i class="bi bi-droplet"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
+                <div class="metric-label">Ma production</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>{{ data.mesCollectesTerminees }} collectes</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA)">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.mesTourneesEnCours + data.mesTourneesPlanifiees }}</div>
+                <div class="metric-label">Tournées actives</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>{{ data.mesTourneesPlanifiees }} planifiées</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #EF4444, #F87171)">
+                <i class="bi bi-exclamation-triangle"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesAlertes }}</div>
+                <div class="metric-label">Mes alertes</div>
+                <div class="metric-trend down" *ngIf="data.mesAlertesEnAttente > 0">
+                  <i class="bi bi-arrow-down"></i>
+                  <span>{{ data.mesAlertesEnAttente }} en attente</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard Grid -->
+          <div class="dashboard-grid">
+
+            <!-- Vergers Status Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-tree"></i>
+                  <span>État de mes vergers</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/mes-vergers')">
+                  Voir <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="stats-list">
+                  <div class="stat-item">
+                    <div class="stat-header">
+                      <span class="stat-name">Non récoltés</span>
+                      <span class="stat-count">{{ data.mesVergersNonRecolte }}</span>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill blue" [style.width.%]="percent(data.mesVergersNonRecolte, data.totalMesVergers)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-header">
+                      <span class="stat-name">En cours</span>
+                      <span class="stat-count">{{ data.mesVergersEnCours }}</span>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill amber" [style.width.%]="percent(data.mesVergersEnCours, data.totalMesVergers)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-header">
+                      <span class="stat-name">Récoltés</span>
+                      <span class="stat-count">{{ data.mesVergersRecolte }}</span>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill green" [style.width.%]="percent(data.mesVergersRecolte, data.totalMesVergers)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
                   </div>
                 </div>
-                <span class="mat-pct">{{ v.maturiteActuelle }}%</span>
               </div>
-            </span>
-            <span>{{ v.nbArbre }}</span>
-            <span>{{ v.nbTournees }}</span>
-            <span class="vt-alert" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}</span>
-            <span class="vt-kg">{{ formatKg(v.quantiteRecolteKg) }}</span>
-          </div>
-        </div>
+            </div>
 
-        <div *ngIf="!data.mesVergers?.length" class="empty-state">
-          <span>🌳</span>
-          <p>Aucun verger enregistré pour l'instant.</p>
+            <!-- Collectes Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-basket-fill"></i>
+                  <span>Mes collectes</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="collectes-grid">
+                  <div class="collecte-card">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <div class="collecte-info">
+                      <div class="collecte-value">{{ data.mesCollectesEnCours }}</div>
+                      <div class="collecte-label">En cours</div>
+                    </div>
+                  </div>
+                  <div class="collecte-card">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div class="collecte-info">
+                      <div class="collecte-value">{{ data.mesCollectesTerminees }}</div>
+                      <div class="collecte-label">Terminées</div>
+                    </div>
+                  </div>
+                  <div class="collecte-card">
+                    <i class="bi bi-droplet"></i>
+                    <div class="collecte-info">
+                      <div class="collecte-value">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
+                      <div class="collecte-label">Total récolté</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alertes Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <span>Mes alertes</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/alertes/mes-alertes')">
+                  Voir <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="alerts-grid">
+                  <div class="alert-stat warning">
+                    <i class="bi bi-clock-history"></i>
+                    <div class="alert-info">
+                      <span class="alert-label">En attente</span>
+                      <span class="alert-count">{{ data.mesAlertesEnAttente }}</span>
+                    </div>
+                  </div>
+                  <div class="alert-stat info">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <div class="alert-info">
+                      <span class="alert-label">En cours</span>
+                      <span class="alert-count">{{ data.mesAlertesEnCours }}</span>
+                    </div>
+                  </div>
+                  <div class="alert-stat success">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div class="alert-info">
+                      <span class="alert-label">Traitées</span>
+                      <span class="alert-count">{{ data.mesAlertesTraitees || 0 }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="alerts-total">
+                  <button class="btn-create-alert" (click)="navigate('/alertes/creer')">
+                    <i class="bi bi-plus-circle"></i>
+                    Créer une alerte
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tournées Card -->
+            <div class="dashboard-card full-width">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-truck-front"></i>
+                  <span>Tournées sur mes vergers</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/tournees')">
+                  Voir <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="tournees-stats">
+                  <div class="tournee-item">
+                    <div class="tournee-info">
+                      <span>Planifiées</span>
+                      <strong>{{ data.mesTourneesPlanifiees }}</strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill blue" [style.width.%]="percent(data.mesTourneesPlanifiees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                  <div class="tournee-item">
+                    <div class="tournee-info">
+                      <span>En cours</span>
+                      <strong>{{ data.mesTourneesEnCours }}</strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill amber" [style.width.%]="percent(data.mesTourneesEnCours, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                  <div class="tournee-item">
+                    <div class="tournee-info">
+                      <span>Terminées</span>
+                      <strong>{{ data.mesTourneesTerminees }}</strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill green" [style.width.%]="percent(data.mesTourneesTerminees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vergers Table -->
+            <div class="dashboard-card full-width">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-tree"></i>
+                  <span>Mes vergers — détail</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/mes-vergers')">
+                  Voir tout <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive" *ngIf="data.mesVergers?.length">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Type d'olive</th>
+                        <th>Responsable</th>
+                        <th>Statut</th>
+                        <th>Maturité</th>
+                        <th>Arbres</th>
+                        <th>Tournées</th>
+                        <th>Alertes</th>
+                        <th>Production</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let v of data.mesVergers" (click)="navigate('/mes-vergers')">
+                        <td class="type-cell">
+                          <i class="bi bi-droplet"></i> {{ v.typeOlive }}
+                        </td>
+                        <td class="responsable-cell">
+                          <div class="responsable-name">{{ v.responsableNom }}</div>
+                          <div class="responsable-email">{{ v.responsableEmail }}</div>
+                        </td>
+                        <td>
+                          <span class="statut-badge" [ngClass]="statutBadge(v.statut)">
+                            {{ statutLabel(v.statut) }}
+                          </span>
+                        </td>
+                        <td>
+                          <div class="maturite-wrap">
+                            <div class="maturite-track">
+                              <div class="maturite-fill" [style.width.%]="v.maturiteActuelle" [style.background]="maturiteColor(v.maturiteActuelle)"></div>
+                            </div>
+                            <span class="maturite-pct">{{ v.maturiteActuelle }}%</span>
+                          </div>
+                        </td>
+                        <td>{{ v.nbArbre | number }}</td>
+                        <td class="tournees-cell">{{ v.nbTournees }}<\/td>
+                        <td class="alert-cell" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}<\/td>
+                        <td class="production-cell">{{ formatKg(v.quantiteRecolteKg) }}<\/td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div *ngIf="!data.mesVergers?.length" class="empty-state">
+                  <i class="bi bi-inbox"></i>
+                  <p>Aucun verger enregistré pour l'instant.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
-
-      <!-- ── TOURNÉES ── -->
-      <div class="panel mt-1">
-        <div class="panel-header">
-          <span class="panel-title">🚜 Tournées sur mes vergers</span>
-        </div>
-        <div class="tournee-bars">
-          <div class="tb-row">
-            <span class="tb-label">Planifiées</span>
-            <div class="tb-track">
-              <div class="tb-fill blue"
-                [style.width.%]="percent(data.mesTourneesPlanifiees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)">
-              </div>
-            </div>
-            <span class="tb-num">{{ data.mesTourneesPlanifiees }}</span>
-          </div>
-          <div class="tb-row">
-            <span class="tb-label">En cours</span>
-            <div class="tb-track">
-              <div class="tb-fill amber"
-                [style.width.%]="percent(data.mesTourneesEnCours, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)">
-              </div>
-            </div>
-            <span class="tb-num">{{ data.mesTourneesEnCours }}</span>
-          </div>
-          <div class="tb-row">
-            <span class="tb-label">Terminées</span>
-            <div class="tb-track">
-              <div class="tb-fill green"
-                [style.width.%]="percent(data.mesTourneesTerminees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)">
-              </div>
-            </div>
-            <span class="tb-num">{{ data.mesTourneesTerminees }}</span>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- end dashboard-wrapper -->
+    </div>
   </main>
 </div>

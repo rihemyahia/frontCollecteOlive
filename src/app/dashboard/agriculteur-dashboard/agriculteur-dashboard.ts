@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
+// src/app/dashboard/agriculteur-dashboard/agriculteur-dashboard.ts
+import { Component, OnInit, HostListener, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
@@ -11,15 +12,18 @@ import { DashboardService, AgriculteurDashboard } from '../../services/Dashboard
   templateUrl: './agriculteur-dashboard.html',
   styleUrls: ['./agriculteur-dashboard.css']
 })
-export class AgriculteurDashboardComponent implements OnInit {
+export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
   data: AgriculteurDashboard | null = null;
   loading = true;
   error = '';
+  Math = Math;
+  metricsAnimated = false;
 
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = 'AGRICULTEUR';
   user: any = {};
+  currentSeason = 'Printemps 2025';
 
   constructor(
     private dashboardService: DashboardService, 
@@ -30,31 +34,31 @@ export class AgriculteurDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadUser();
     this.checkMobile();
+    this.loadDashboardData();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.metricsAnimated = true;
+      this.cdr.detectChanges();
+    }, 100);
+  }
+
+  loadDashboardData(): void {
+    this.loading = true;
     this.dashboardService.getAgriculteurDashboard().subscribe({
-      next: d => { 
-        this.data = d; 
-        this.loading = false; 
-        this.cdr.detectChanges(); 
+      next: (res) => {
+        this.data = res;
+        this.loading = false;
+        this.cdr.detectChanges();
       },
-      error: e => { 
-        this.error = 'Erreur de chargement du tableau de bord'; 
-        this.loading = false; 
+      error: (err) => {
+        console.error('Dashboard error:', err);
+        this.error = 'Erreur de chargement du tableau de bord';
+        this.loading = false;
         this.cdr.detectChanges();
       }
     });
-  }
-
-  // --- ADD THIS METHOD TO FIX THE TS2339 ERROR ---
-  phaseIcon(phase: string): string {
-    const icons: Record<string, string> = {
-      'REPOS': '💤',
-      'FLORAISON': '🌸',
-      'FRUCTIFICATION': '🌳',
-      'MATURATION': '🎨',
-      'RECOLTE': '🧺',
-      'TAILLE': '✂️'
-    };
-    return icons[phase?.toUpperCase()] || '🌱';
   }
 
   loadUser(): void {
@@ -63,7 +67,9 @@ export class AgriculteurDashboardComponent implements OnInit {
       try { 
         this.user = JSON.parse(stored); 
         this.userRole = this.user.role?.toUpperCase() || 'AGRICULTEUR'; 
-      } catch (_) {}
+      } catch (_) { 
+        this.userRole = 'AGRICULTEUR'; 
+      }
     }
   }
 
@@ -79,40 +85,40 @@ export class AgriculteurDashboardComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  navigate(path: string): void { this.router.navigate([path]); }
+  navigate(path: string): void { 
+    this.router.navigate([path]); 
+  }
 
   percent(part: number, total: number): number {
-    const p = total > 0 ? Math.round((part / total) * 100) : 0;
-    return p;
+    return total > 0 ? Math.round((part / total) * 100) : 0;
   }
 
   formatKg(kg: number): string {
     if (!kg) return '0 kg';
-    if (kg >= 1000) return (kg / 1000).toFixed(1) + ' t';
-    return kg.toFixed(0) + ' kg';
+    return kg >= 1000 ? (kg / 1000).toFixed(1) + ' t' : kg.toFixed(0) + ' kg';
   }
 
-  statutBadge(s: string): string {
-    const m: Record<string, string> = {
-      NON_RECOLTE: 'badge-blue',
-      EN_COURS: 'badge-amber',
-      RECOLTE: 'badge-green'
-    };
-    return m[s] || '';
+  statutBadge(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'badge-info';
+      case 'EN_COURS': return 'badge-warning';
+      case 'RECOLTE': return 'badge-success';
+      default: return '';
+    }
   }
 
-  statutLabel(s: string): string {
-    const m: Record<string, string> = {
-      NON_RECOLTE: 'Non récolté',
-      EN_COURS: 'En cours',
-      RECOLTE: 'Récolté'
-    };
-    return m[s] || s;
+  statutLabel(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'Non récolté';
+      case 'EN_COURS': return 'En cours';
+      case 'RECOLTE': return 'Récolté';
+      default: return statut;
+    }
   }
 
-  maturiteColor(p: number): string {
-    if (p < 30) return '#b5892a';
-    if (p < 70) return '#d97706';
-    return '#2d6a4f';
+  maturiteColor(value: number): string {
+    if (value < 40) return '#E8A838';
+    if (value < 75) return '#A8B84B';
+    return '#4A7A2A';
   }
 }

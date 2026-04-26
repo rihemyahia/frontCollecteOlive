@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CollecteService, Collecte } from '../../services/collecte';
 import { VergerService } from '../../services/verger';
+import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 
 @Component({
@@ -16,7 +17,7 @@ import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsabl
 })
 export class CollecteListComponent implements OnInit {
   isSidebarCollapsed = false;
-  userRole = 'ADMIN';
+  userRole = '';
   collectes: Collecte[] = [];
   isLoading = true;
   errorMessage = '';
@@ -27,11 +28,13 @@ export class CollecteListComponent implements OnInit {
   constructor(
     private collecteService: CollecteService,
     private vergerService: VergerService,
+    private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    this.userRole = this.authService.getUserRole();
     this.loadCollectes();
     this.checkMobile();  // ← ADD THIS
   }

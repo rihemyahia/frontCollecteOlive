@@ -1,3 +1,4 @@
+// src/app/ressources/vergers/mes-vergers/mes-vergers.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +27,8 @@ import { VergerMapComponent } from '../../shared/verger-map/verger-map';
 export class MesVergersComponent implements OnInit {
 
   vergers: VergerResponse[] = [];
+  filteredVergers: VergerResponse[] = [];
+  paginatedVergers: VergerResponse[] = [];
   isLoading = true;
   errorMessage = '';
 
@@ -37,15 +40,14 @@ export class MesVergersComponent implements OnInit {
   // Pagination
   currentPage = 1;
   itemsPerPage = 6;
+  totalPages = 1;
 
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = '';
   agriculteurId = '';
 
-  // =========================
-  // ✅ MAP CONTROL (FIXED)
-  // =========================
+  // Map properties
   selectedVergerId: string = '';
   selectedVergerIds: string[] = [];
 
@@ -80,6 +82,7 @@ export class MesVergersComponent implements OnInit {
     this.vergerService.getByAgriculteur(this.agriculteurId).subscribe({
       next: (data) => {
         this.vergers = data.filter(v => !v.estSupprimer);
+        this.applyFilters();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -92,37 +95,77 @@ export class MesVergersComponent implements OnInit {
     });
   }
 
-  // =========================
-  // ✅ DROPDOWN MAP LOGIC FIXED
-  // =========================
-  zoomToSelected(): void {
+  // ====================== FILTER METHODS ======================
+  applyFilters(): void {
+    let result = [...this.vergers];
 
-    if (!this.selectedVergerId) {
-      // reset → show all
-      this.selectedVergerIds = [];
-      return;
+    // Search filter
+    if (this.searchQuery && this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase().trim();
+      result = result.filter(v =>
+        v.typeOlive?.toLowerCase().includes(q) ||
+        v.geolocalisation?.adresseIndicative?.toLowerCase().includes(q)
+      );
     }
 
-    const selected = this.vergers.find(v =>
-      (v as any).id === this.selectedVergerId ||
-      (v as any)._id === this.selectedVergerId
-    );
-
-    if (!selected) {
-      this.selectedVergerIds = [];
-      return;
+    // Type filter
+    if (this.selectedType) {
+      result = result.filter(v => v.typeOlive === this.selectedType);
     }
 
-    // single selection zoom
-    this.selectedVergerIds = [this.selectedVergerId];
+    // Status filter
+    if (this.selectedStatus) {
+      result = result.filter(v => v.statut === this.selectedStatus);
+    }
 
-    // optional: force UI refresh
+    this.filteredVergers = result;
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredVergers.length / this.itemsPerPage) || 1;
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedVergers = this.filteredVergers.slice(startIndex, endIndex);
     this.cdr.detectChanges();
   }
 
-  // =========================
-  // STATS
-  // =========================
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedType = '';
+    this.selectedStatus = '';
+    this.applyFilters();
+  }
+
+  // ====================== PAGINATION METHODS ======================
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // ====================== MAP METHODS ======================
+  zoomToSelected(): void {
+    if (!this.selectedVergerId) {
+      this.selectedVergerIds = [];
+      return;
+    }
+    this.selectedVergerIds = [this.selectedVergerId];
+    this.cdr.detectChanges();
+  }
+
+  // ====================== STATS METHODS ======================
   get totalArbres(): number {
     return this.vergers.reduce((s, v) => s + (v.nbArbre ?? 0), 0);
   }
@@ -135,96 +178,51 @@ export class MesVergersComponent implements OnInit {
     return this.vergers.filter(v => v.statut === StatutVerger.RECOLTE).length;
   }
 
-  // =========================
-  // FILTERS
-  // =========================
-  get filteredVergers(): VergerResponse[] {
-    let result = [...this.vergers];
-
-    if (this.searchQuery.trim()) {
-      const q = this.searchQuery.toLowerCase();
-      result = result.filter(v =>
-        v.typeOlive?.toLowerCase().includes(q)
-      );
-    }
-
-    if (this.selectedType) {
-      result = result.filter(v => v.typeOlive === this.selectedType);
-    }
-
-    if (this.selectedStatus) {
-      result = result.filter(v => v.statut === this.selectedStatus);
-    }
-
-    return result;
-  }
-
-  // =========================
-  // PAGINATION
-  // =========================
-  get totalPages(): number {
-    return Math.ceil(this.filteredVergers.length / this.itemsPerPage) || 1;
-  }
-
-  get paginatedVergers(): VergerResponse[] {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredVergers.slice(start, start + this.itemsPerPage);
-  }
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  nextPage(): void {
-    if (this.currentPage < this.totalPages) this.goToPage(this.currentPage + 1);
-  }
-
-  previousPage(): void {
-    if (this.currentPage > 1) this.goToPage(this.currentPage - 1);
-  }
-
-  resetFilters(): void {
-    this.searchQuery = '';
-    this.selectedType = '';
-    this.selectedStatus = '';
-    this.currentPage = 1;
-  }
-
-  // =========================
-  // ALERT
-  // =========================
-  openAlertModal(verger: VergerResponse): void {
-  this.router.navigate(['/alertes/creer'], {
-    queryParams: { vergerId: (verger as any).id }
-  });
-}
-
-  // =========================
-  // HELPERS
-  // =========================
   get vergerTypes(): string[] {
     const types = this.vergers
       .map(v => v.typeOlive)
       .filter((v, i, a) => a.indexOf(v) === i);
-
     return types.sort();
   }
 
+  // ====================== HELPER METHODS ======================
   getMaturiteColor(val: number): string {
     if (val < 40) return '#E8A838';
     if (val < 75) return '#A8B84B';
     return '#4A7A2A';
   }
 
-  getStatutLabel(s: string | StatutVerger): string {
-    const map: Record<string, string> = {
-      'NON_RECOLTE': 'Non récolté',
-      'EN_COURS': 'En cours',
-      'RECOLTE': 'Récolté'
-    };
-    return map[s as string] ?? (s as string);
+  getStatutClass(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'badge-warning';
+      case 'EN_COURS': return 'badge-info';
+      case 'RECOLTE': return 'badge-success';
+      default: return '';
+    }
+  }
+
+  getStatutDotClass(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'dot-warning';
+      case 'EN_COURS': return 'dot-info';
+      case 'RECOLTE': return 'dot-success';
+      default: return '';
+    }
+  }
+
+  getStatutLabel(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'Non récolté';
+      case 'EN_COURS': return 'En cours';
+      case 'RECOLTE': return 'Récolté';
+      default: return statut;
+    }
+  }
+
+  // ====================== ALERT METHOD ======================
+  openAlertModal(verger: VergerResponse): void {
+    this.router.navigate(['/alertes/creer'], {
+      queryParams: { vergerId: (verger as any).id }
+    });
   }
 }

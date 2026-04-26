@@ -26,10 +26,7 @@
           <div class="oh-header__inner">
             <div class="oh-header__left">
               <div class="oh-brand__icon">
-                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                  <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
-                </svg>
+                <i class="bi bi-tree"></i>
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">MON ESPACE</p>
@@ -43,23 +40,57 @@
         <!-- Card Body -->
         <div class="oh-card__body">
 
+          <!-- Carte des vergers - Lecture seule pour l'agriculteur -->
+          <div *ngIf="!isLoading && vergers.length > 0" class="oh-map-section">
+            <div class="oh-map-header">
+              <h3 class="oh-map-title">
+                <i class="bi bi-geo-alt-fill"></i>
+                Localisation de mes vergers
+              </h3>
+            </div>
+
+            <!-- Dropdown just before map -->
+            <div class="oh-map-dropdown">
+              <label class="oh-map-label">📍 Choisir un verger :</label>
+              <select [(ngModel)]="selectedVergerId"
+                      (change)="zoomToSelected()"
+                      class="oh-map-select">
+                <option value="">📌 Tous les vergers</option>
+                <option *ngFor="let v of vergers" [value]="v.id">
+                  {{ v.typeOlive }} ({{ v.superficie }} ha) - {{ getStatutLabel(v.statut) }}
+                </option>
+              </select>
+            </div>
+
+            <!-- MAP -->
+            <div class="oh-map-wrapper">
+              <app-verger-map 
+                [vergers]="vergers" 
+                [mode]="'multiple'" 
+                [editable]="false"
+                [selectedIds]="selectedVergerIds"
+                height="420px">
+              </app-verger-map>
+            </div>
+          </div>
+
           <!-- Stats Row -->
           <div class="oh-stats-row" *ngIf="!isLoading && vergers.length > 0">
             <div class="oh-stat-card">
-              <span class="oh-stat-value">{{ vergers.length }}</span>
-              <span class="oh-stat-label">Vergers</span>
+              <div class="oh-stat-value">{{ vergers.length }}</div>
+              <div class="oh-stat-label">Vergers</div>
             </div>
             <div class="oh-stat-card">
-              <span class="oh-stat-value">{{ totalArbres | number }}</span>
-              <span class="oh-stat-label">Arbres</span>
+              <div class="oh-stat-value">{{ totalArbres | number }}</div>
+              <div class="oh-stat-label">Arbres</div>
             </div>
             <div class="oh-stat-card">
-              <span class="oh-stat-value">{{ totalSuperficie | number:'1.1-1' }}</span>
-              <span class="oh-stat-label">Hectares</span>
+              <div class="oh-stat-value">{{ totalSuperficie | number:'1.1-1' }}</div>
+              <div class="oh-stat-label">Hectares</div>
             </div>
             <div class="oh-stat-card">
-              <span class="oh-stat-value">{{ vergersRecoltes }}</span>
-              <span class="oh-stat-label">Récoltés</span>
+              <div class="oh-stat-value">{{ vergersRecoltes }}</div>
+              <div class="oh-stat-label">Récoltés</div>
             </div>
           </div>
 
@@ -70,6 +101,7 @@
               <input type="text" 
                      placeholder="🔍 Rechercher par type ou localisation..."
                      [(ngModel)]="searchQuery"
+                     (input)="applyFilters()"
                      class="oh-search-input">
             </div>
 
@@ -78,7 +110,7 @@
               <!-- Type Filter -->
               <div class="oh-filter-group">
                 <label class="oh-filter-label">Type</label>
-                <select [(ngModel)]="selectedType" class="oh-filter-select">
+                <select [(ngModel)]="selectedType" (change)="applyFilters()" class="oh-filter-select">
                   <option value="">Tous</option>
                   <option *ngFor="let t of vergerTypes" [value]="t">{{ t }}</option>
                 </select>
@@ -87,7 +119,7 @@
               <!-- Status Filter -->
               <div class="oh-filter-group">
                 <label class="oh-filter-label">Statut</label>
-                <select [(ngModel)]="selectedStatus" class="oh-filter-select">
+                <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="oh-filter-select">
                   <option value="">Tous</option>
                   <option value="NON_RECOLTE">Non récolté</option>
                   <option value="EN_COURS">En cours</option>
@@ -104,23 +136,22 @@
           </div>
 
           <!-- Loading -->
-          <div *ngIf="isLoading" class="loading-container">
+          <div *ngIf="isLoading" class="loading-state">
             <div class="spinner"></div>
             <p>Chargement de vos vergers...</p>
           </div>
 
           <!-- Error -->
-          <div *ngIf="errorMessage && !isLoading" class="oh-alert oh-alert--error">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+          <div *ngIf="errorMessage && !isLoading" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
             {{ errorMessage }}
           </div>
 
           <!-- Empty -->
           <div *ngIf="!isLoading && !errorMessage && vergers.length === 0" class="empty-state">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🌾</div>
+            <div class="empty-icon">
+              <i class="bi bi-tree"></i>
+            </div>
             <h3>Aucun verger enregistré</h3>
             <p>Vous n'avez pas encore de vergers associés à votre compte.</p>
           </div>
@@ -131,19 +162,11 @@
 
               <div class="oh-card-item__header">
                 <div class="oh-card-item__type">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.5 2 5 7 5 10c0 4 3 7 7 8v2H9v2h6v-2h-3v-2c4-1 7-4 7-8 0-3-1.5-8-7-8z"/>
-                  </svg>
+                  <i class="bi bi-droplet"></i>
                   {{ v.typeOlive }}
                 </div>
-                <span class="oh-badge"
-                      [class.oh-badge--warning]="v.statut === 'NON_RECOLTE'"
-                      [class.oh-badge--info]="v.statut === 'EN_COURS'"
-                      [class.oh-badge--success]="v.statut === 'RECOLTE'">
-                  <span class="oh-dot"
-                        [class.oh-dot--warning]="v.statut === 'NON_RECOLTE'"
-                        [class.oh-dot--info]="v.statut === 'EN_COURS'"
-                        [class.oh-dot--success]="v.statut === 'RECOLTE'"></span>
+                <span class="statut-badge" [ngClass]="getStatutClass(v.statut)">
+                  <span class="statut-dot" [class]="getStatutDotClass(v.statut)"></span>
                   {{ getStatutLabel(v.statut) }}
                 </span>
               </div>
@@ -153,19 +176,19 @@
                 <!-- Metrics -->
                 <div class="oh-metrics">
                   <div class="oh-metric">
-                    <span class="oh-metric__value">{{ v.superficie | number:'1.1-1' }}</span>
-                    <span class="oh-metric__unit">ha</span>
-                    <span class="oh-metric__label">Superficie</span>
+                    <div class="oh-metric__value">{{ v.superficie | number:'1.1-1' }}</div>
+                    <div class="oh-metric__unit">ha</div>
+                    <div class="oh-metric__label">Superficie</div>
                   </div>
                   <div class="oh-metric">
-                    <span class="oh-metric__value">{{ v.nbArbre | number }}</span>
-                    <span class="oh-metric__unit">arb.</span>
-                    <span class="oh-metric__label">Arbres</span>
+                    <div class="oh-metric__value">{{ v.nbArbre | number }}</div>
+                    <div class="oh-metric__unit">arb.</div>
+                    <div class="oh-metric__label">Arbres</div>
                   </div>
                   <div class="oh-metric">
-                    <span class="oh-metric__value">{{ v.rendementEstime | number:'1.0-0' }}</span>
-                    <span class="oh-metric__unit">kg</span>
-                    <span class="oh-metric__label">Rendement est.</span>
+                    <div class="oh-metric__value">{{ v.rendementEstime | number:'1.0-0' }}</div>
+                    <div class="oh-metric__unit">kg</div>
+                    <div class="oh-metric__label">Rendement est.</div>
                   </div>
                 </div>
 
@@ -180,7 +203,7 @@
                   <div class="oh-progress-bar">
                     <div class="oh-progress-fill"
                          [style.width.%]="v.maturiteActuelle"
-                         [style.background]="getMaturiteColor(v.maturiteActuelle)">
+                         [style.backgroundColor]="getMaturiteColor(v.maturiteActuelle)">
                     </div>
                   </div>
                 </div>
@@ -188,12 +211,9 @@
                 <!-- Responsable Info -->
                 <div class="oh-responsable-section" *ngIf="v.responsableNom">
                   <div class="oh-responsable-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+                    <i class="bi bi-person-badge"></i>
                     <div>
-                      <span class="oh-responsable-name">{{ v.responsableNom }}</span>
+                      <div class="oh-responsable-name">{{ v.responsableNom }}</div>
                       <a *ngIf="v.responsableEmail" [href]="'mailto:' + v.responsableEmail" class="oh-responsable-email">
                         {{ v.responsableEmail }}
                       </a>
@@ -203,15 +223,12 @@
 
                 <!-- Last Harvest -->
                 <div class="oh-last-harvest" *ngIf="v.dateDerniereRecolte">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
+                  <i class="bi bi-calendar"></i>
                   Dernière récolte : {{ v.dateDerniereRecolte | date:'dd/MM/yyyy' }}
                 </div>
 
                 <!-- Quick Alert Button -->
-                <button class="oh-quick-alert-btn" (click)="openAlertModal(v)" title="Signaler un problème">
+                <button class="btn-alert" (click)="openAlertModal(v)" title="Signaler un problème">
                   <i class="bi bi-bell-fill"></i> Signaler une alerte
                 </button>
 
@@ -222,26 +239,28 @@
 
           <!-- No Results -->
           <div *ngIf="!isLoading && !errorMessage && vergers.length > 0 && filteredVergers.length === 0" class="empty-state">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <div class="empty-icon">
+              <i class="bi bi-search"></i>
+            </div>
             <h3>Aucun résultat</h3>
             <p>Aucun verger ne correspond à vos filtres. Essayez de les modifier.</p>
           </div>
 
           <!-- Pagination -->
-          <div class="oh-pagination" *ngIf="!isLoading && filteredVergers.length > 0 && totalPages > 1">
-            <button class="oh-pagination__btn" 
+          <div class="pagination-section" *ngIf="!isLoading && filteredVergers.length > 0 && totalPages > 1">
+            <button class="btn-pagination" 
                     (click)="previousPage()" 
                     [disabled]="currentPage === 1"
                     title="Page précédente">
               <i class="bi bi-chevron-left"></i> Précédent
             </button>
 
-            <div class="oh-pagination__info">
+            <div class="page-info">
               Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
-              <span class="oh-pagination__count">({{ filteredVergers.length }} vergers)</span>
+              <span class="page-count">({{ filteredVergers.length }} vergers)</span>
             </div>
 
-            <button class="oh-pagination__btn" 
+            <button class="btn-pagination" 
                     (click)="nextPage()" 
                     [disabled]="currentPage === totalPages"
                     title="Page suivante">

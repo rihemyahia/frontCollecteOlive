@@ -6,32 +6,23 @@
     [userRole]="userRole">
   </app-sidebar>
 
-  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
     <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
-      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+      <svg viewBox="0 0 24 24" fill="none">
         <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
 
     <div class="oh-scene">
-      <div class="oh-ambient" aria-hidden="true">
-        <div class="amb-orb amb-orb--1"></div>
-        <div class="amb-orb amb-orb--2"></div>
-        <div class="amb-orb amb-orb--3"></div>
-      </div>
-
       <div class="oh-card">
-        <div class="oh-card__glow" aria-hidden="true"></div>
-
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                  </svg>
-                </div>
+              <div class="oh-brand__icon">
+                <i class="bi bi-box-seam"></i>
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">GESTION DES BENNES</p>
@@ -39,20 +30,38 @@
                 <p class="header-subtitle">Gérez et consultez tous les conteneurs de récolte</p>
               </div>
             </div>
+            <div class="oh-header__right">
+              <button class="btn-add" (click)="navigateToAdd()">
+                <i class="bi bi-plus-lg"></i>
+                Ajouter benne
+              </button>
+            </div>
           </div>
         </div>
 
         <div class="oh-card__body">
-          <div class="search-actions">
-            <div class="filter-group">
-              <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control">
-                <option *ngFor="let s of statuts" [value]="s">{{ s === 'TOUS' ? 'Tous les statuts' : getStatutLabel(s) }}</option>
-              </select>
+          <div class="oh-search-filters" *ngIf="!isLoading && bennes.length > 0">
+            <div class="oh-search-bar">
+              <input type="text"
+                     placeholder="🔍 Rechercher par nom, immatriculation..."
+                     [(ngModel)]="searchQuery"
+                     (change)="onFilterChange()"
+                     class="oh-search-input">
             </div>
-            <button class="btn-add" (click)="navigateToAdd()">
-              <i class="bi bi-plus-lg"></i>
-              Ajouter benne
-            </button>
+
+            <div class="oh-filter-controls">
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="oh-filter-select">
+                  <option *ngFor="let s of statuts" [value]="s">{{ s === 'TOUS' ? 'Tous les statuts' : getStatutLabel(s) }}</option>
+                </select>
+              </div>
+
+              <button type="button" (click)="resetFilters()" class="oh-filter-reset"
+                      [class.hidden]="!searchQuery && selectedStatut === 'TOUS'">
+                🔄 Réinitialiser
+              </button>
+            </div>
           </div>
 
           <div *ngIf="successMessage" class="oh-success">
@@ -63,60 +72,99 @@
             <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
           </div>
 
-          <div *ngIf="isLoading" class="loading-container">
+          <div *ngIf="isLoading" class="loading-state">
             <div class="spinner"></div>
             <p>Chargement des bennes...</p>
           </div>
 
-          <div *ngIf="!isLoading && filteredBennes.length > 0" class="table-responsive">
-            <table>
-              <thead>
-                <tr>
-                  <th>Immatriculation</th>
-                  <th>Nom</th>
-                  <th>Capacité (kg)</th>
-                  <th>Charge Actuelle</th>
-                  <th>% Remplissage</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let b of filteredBennes">
-                  <td><strong>{{ b.immatriculation }}</strong></td>
-                  <td>{{ b.nom }}</td>
-                  <td>{{ b.capaciteKg | number }} kg</td>
-                  <td>{{ (b.quantiteChargeeActuelle || 0) | number }} kg</td>
-                  <td>
-                    <div class="progress-cell">
-                      <div class="progress-bar">
-                        <div class="progress-fill" [style.width.%]="b.tauxRemplissage || 0"></div>
-                      </div>
-                      {{ (b.tauxRemplissage || 0) | number:'1.0-0' }}%
-                    </div>
-                  </td>
-                  <td>
-                    <span class="statut-badge" [ngClass]="getStatutClass(b.statut)">
-                      {{ getStatutLabel(b.statut) }}
-                    </span>
-                  </td>
-                  <td>
-                    <button class="btn-edit" (click)="navigateToEdit(b.id!)">✎ Modifier</button>
-                    <button class="btn-delete" (click)="deleteBenne(b.id!)">🗑 Supprimer</button>
-                    <div *ngIf="deleteConfirmId === b.id" class="confirm-box">
-                      <p>Confirmer suppression?</p>
-                      <button (click)="confirmDelete()">Oui</button>
-                      <button (click)="cancelDelete()">Non</button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <div class="alerts-list" *ngIf="!isLoading">
+            <div class="empty-state" *ngIf="filteredBennes.length === 0">
+              <div class="empty-icon">
+                <i class="bi bi-box-seam"></i>
+              </div>
+              <h3>Aucune benne trouvée</h3>
+              <p>Aucune benne ne correspond à vos critères.</p>
+              <button class="btn-add-empty" (click)="navigateToAdd()">
+                <i class="bi bi-plus-lg"></i>
+                Ajouter votre première benne
+              </button>
+            </div>
 
-          <div *ngIf="!isLoading && filteredBennes.length === 0" class="oh-state">
-            <i class="bi bi-box-seam"></i>
-            <p>Aucune benne trouvée</p>
+            <div class="table-responsive" *ngIf="filteredBennes.length > 0">
+              <table class="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Immatriculation</th>
+                    <th>Nom</th>
+                    <th>Capacité (kg)</th>
+                    <th>Charge Actuelle</th>
+                    <th>% Remplissage</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let b of paginatedBennes">
+                    <td class="immatriculation-cell"><strong>{{ b.immatriculation }}</strong></td>
+                    <td class="nom-cell">{{ b.nom }}</td>
+                    <td class="capacite-cell">{{ b.capaciteKg | number }} kg</td>
+                    <td class="charge-cell">{{ (b.quantiteChargeeActuelle || 0) | number }} kg</td>
+                    <td class="remplissage-cell">
+                      <div class="progress-cell">
+                        <div class="progress-bar-mini">
+                          <div class="progress-fill-mini" [style.width.%]="b.tauxRemplissage || 0"></div>
+                        </div>
+                        {{ (b.tauxRemplissage || 0) | number:'1.0-0' }}%
+                      </div>
+                    </td>
+                    <td class="statut-cell">
+                      <span class="statut-badge" [ngClass]="getStatutClass(b.statut)">
+                        {{ getStatutLabel(b.statut) }}
+                      </span>
+                    </td>
+                    <td class="actions-cell">
+                      <div class="action-buttons">
+                        <button type="button" class="btn-icon btn-modifier"
+                                (click)="navigateToEdit(b.id!)"
+                                title="Modifier la benne">
+                          <i class="bi bi-pencil-square"></i>
+                          <span>Modifier</span>
+                        </button>
+                        <button type="button" class="btn-icon btn-supprimer"
+                                (click)="deleteBenne(b.id!)"
+                                title="Supprimer la benne">
+                          <i class="bi bi-trash3"></i>
+                          <span>Supprimer</span>
+                        </button>
+                        <div *ngIf="deleteConfirmId === b.id" class="confirm-box">
+                          <p>Confirmer suppression?</p>
+                          <button class="confirm-yes" (click)="confirmDelete()">Oui</button>
+                          <button class="confirm-no" (click)="cancelDelete()">Non</button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination-section" *ngIf="totalPages > 1">
+              <button type="button" class="btn-pagination"
+                      (click)="previousPage()"
+                      [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i> Précédent
+              </button>
+
+              <div class="page-info">
+                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+              </div>
+
+              <button type="button" class="btn-pagination"
+                      (click)="nextPage()"
+                      [disabled]="currentPage === totalPages">
+                Suivant <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>

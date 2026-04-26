@@ -1,4 +1,4 @@
-3// src/app/ressources/bennes/liste-bennes/liste-bennes.ts
+// src/app/ressources/bennes/liste-bennes/liste-bennes.ts
 import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -19,15 +19,22 @@ import { Benne } from '../../../models/Benne';
 export class ListeBennesComponent implements OnInit {
   bennes: Benne[] = [];
   filteredBennes: Benne[] = [];
+  paginatedBennes: Benne[] = [];
   isLoading = true;
   errorMessage = '';
   successMessage = '';
   selectedStatut: string = 'TOUS';
   deleteConfirmId: string | null = null;
+  searchQuery: string = '';
 
   isSidebarCollapsed = false;
   isMobile = false;
   userRole: string = '';
+
+  // Pagination
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
 
   statuts: string[] = ['TOUS', 'DISPONIBLE', 'EN_USE', 'MAINTENANCE', 'HORS_SERVICE'];
 
@@ -87,15 +94,56 @@ export class ListeBennesComponent implements OnInit {
   }
 
   applyFilters(): void {
-    if (this.selectedStatut === 'TOUS') {
-      this.filteredBennes = [...this.bennes];
-    } else {
-      this.filteredBennes = this.bennes.filter(benne => benne.statut === this.selectedStatut);
+    let filtered = [...this.bennes];
+
+    // Filter by status
+    if (this.selectedStatut !== 'TOUS') {
+      filtered = filtered.filter(benne => benne.statut === this.selectedStatut);
     }
+
+    // Filter by search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      const query = this.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(benne =>
+        benne.nom?.toLowerCase().includes(query) ||
+        benne.immatriculation?.toLowerCase().includes(query)
+      );
+    }
+
+    this.filteredBennes = filtered;
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredBennes.length / this.itemsPerPage);
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedBennes = this.filteredBennes.slice(startIndex, endIndex);
   }
 
   onFilterChange(): void {
     this.applyFilters();
+  }
+
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedStatut = 'TOUS';
+    this.applyFilters();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+    }
   }
 
   deleteBenne(id: string): void {
@@ -116,6 +164,9 @@ export class ListeBennesComponent implements OnInit {
         error: (err: HttpErrorResponse) => {
           this.errorMessage = err.message || 'Erreur lors de la suppression';
           this.deleteConfirmId = null;
+          setTimeout(() => {
+            this.errorMessage = '';
+          }, 3000);
         }
       });
     }
