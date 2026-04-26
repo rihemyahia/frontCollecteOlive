@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { TourneeService } from '../../services/tournee';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { StatutTourneePipe } from '../../pipes/statut-tournee-pipe';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-tournee-list',
@@ -18,7 +19,7 @@ import { StatutTourneePipe } from '../../pipes/statut-tournee-pipe';
 export class TourneeListComponent implements OnInit {
   // UI State
   isSidebarCollapsed = false;
-  userRole = 'ADMIN';
+  userRole = '';
   isMobile = false;
   viewMode: 'table' | 'cards' | 'grouped' = 'grouped';
 
@@ -54,12 +55,15 @@ export class TourneeListComponent implements OnInit {
   constructor(
     private tourneeService: TourneeService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.checkMobile();
     this.loadTournees();
+    this.userRole = this.authService.getUserRole();
+
   }
 
   @HostListener('window:resize')
