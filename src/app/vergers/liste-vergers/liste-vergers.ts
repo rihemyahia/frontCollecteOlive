@@ -112,7 +112,9 @@ export class ListeVergersComponent implements OnInit {
   }
 
   changerStatut(id: string, statut: StatutVerger): void {
-    this.vergerService.changerStatut(id, statut).subscribe({
+    const reason = prompt('Veuillez saisir la raison du changement manuel de statut :')?.trim();
+    if (!reason) return;
+    this.vergerService.changerStatut(id, statut, reason).subscribe({
       next: () => this.loadVergers(),
       error: () => {
         this.errorMessage = 'Erreur lors du changement de statut.';

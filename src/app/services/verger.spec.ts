@@ -42,9 +42,12 @@ export class VergerService {
   }
 
   // RESPONSABLE / AGRICULTEUR (owner)
-  changerStatut(id: string, statut: StatutVerger): Observable<VergerResponse> {
-    const params = new HttpParams().set('statut', statut);
-    return this.http.patch<VergerResponse>(`${this.API}/${id}/statut`, null, { params });
+  changerStatut(id: string, statut: StatutVerger, reason: string): Observable<VergerResponse> {
+    return this.http.patch<VergerResponse>(`${this.API}/${id}/statut`, { statut, reason });
+  }
+
+  clearStatutOverride(id: string): Observable<VergerResponse> {
+    return this.http.patch<VergerResponse>(`${this.API}/${id}/statut`, { clearOverride: true });
   }
 
   // RESPONSABLE / ADMIN only

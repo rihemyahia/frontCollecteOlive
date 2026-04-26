@@ -58,37 +58,7 @@
             <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
           </div>
 
-          <!-- Quick statut change panel -->
-          <div *ngIf="isResponsableOrAdmin()" class="statut-panel">
-            <div class="statut-panel__header" (click)="showStatutPanel = !showStatutPanel">
-              <div class="statut-panel__title">
-                <i class="bi bi-lightning-charge-fill"></i>
-                Changement rapide de statut
-              </div>
-              <i class="bi" [class.bi-chevron-down]="!showStatutPanel" [class.bi-chevron-up]="showStatutPanel"></i>
-            </div>
-            <div class="statut-panel__body" *ngIf="showStatutPanel">
-              <p class="statut-panel__hint">
-                Changez uniquement le statut de récolte sans modifier les autres données.
-              </p>
-              <div class="statut-radio-group">
-                <label *ngFor="let s of statuts"
-                       class="statut-radio"
-                       [class.selected]="selectedNewStatut === s">
-                  <input type="radio" name="quickStatut" [(ngModel)]="selectedNewStatut" [value]="s">
-                  <span class="dot"
-                        [class.dot-warning]="s === 'NON_RECOLTE'"
-                        [class.dot-info]="s === 'EN_COURS'"
-                        [class.dot-success]="s === 'RECOLTE'">
-                  </span>
-                  <span class="statut-label">{{ getStatutLabel(s) }}</span>
-                </label>
-              </div>
-              <button class="btn-primary btn-sm" (click)="onChangerStatut()" [disabled]="isLoading">
-                <i class="bi bi-check2-circle"></i> Appliquer le statut
-              </button>
-            </div>
-          </div>
+         
 
           <!-- Main form -->
           <form [formGroup]="vergerForm" (ngSubmit)="onSubmit()" novalidate>
@@ -250,22 +220,32 @@
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Statut</label>
-                  <div class="statut-radio-group">
-                    <label *ngFor="let s of statuts"
-                           class="statut-radio"
-                           [class.selected]="vergerForm.get('statut')?.value === s">
-                      <input type="radio" formControlName="statut" [value]="s">
-                      <span class="dot"
-                            [class.dot-warning]="s === 'NON_RECOLTE'"
-                            [class.dot-info]="s === 'EN_COURS'"
-                            [class.dot-success]="s === 'RECOLTE'">
-                      </span>
-                      <span class="statut-label">{{ getStatutLabel(s) }}</span>
-                    </label>
+                  <label class="form-label">Statut effectif (automatique)</label>
+                  <div class="form-control" style="display:flex; align-items:center; justify-content:space-between;">
+                    <span>{{ getStatutLabel(currentStatutFromDb) }}</span>
+                    <small>{{ vergerForm.getRawValue() ? 'Source backend: calculée ou override' : '' }}</small>
                   </div>
                 </div>
 
+              </div>
+            </div>
+
+            <div class="form-section" *ngIf="isResponsableOrAdmin()">
+              <div class="section-title">
+                <i class="bi bi-sliders"></i> Override manuel du statut
+              </div>
+              <div class="form-grid form-grid--2col">
+                <div class="form-group">
+                  <label class="form-label">Nouveau statut manuel</label>
+                  <select class="form-control" formControlName="statutOverride">
+                    <option value="">Ne pas changer le statut</option>
+                    <option *ngFor="let s of statuts" [value]="s">{{ getStatutLabel(s) }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Raison (obligatoire)</label>
+                  <input class="form-control" formControlName="statutOverrideReason" placeholder="Ex: verger partiellement productif, réalité terrain...">
+                </div>
               </div>
             </div>
 
