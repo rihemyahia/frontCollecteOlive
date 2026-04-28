@@ -1,0 +1,104 @@
+<div class="ia-prediction-container">
+  <button class="btn-back" (click)="goBack()">
+    ← Retour aux vergers
+  </button>
+
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <p>Analyse IA en cours...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error">
+    <i class="bi bi-exclamation-triangle"></i> {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && prediction" class="prediction-detail">
+    <div class="header">
+      <h1>🤖 Analyse IA - {{ prediction.typeOlive }}</h1>
+      <p class="subtitle">Prédiction intelligente du rendement basée sur l'historique et la météo</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Carte rendement -->
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-graph-up"></i>
+          <h3>Rendement prédit</h3>
+        </div>
+        <div class="rendement-value">
+          <span class="big-number">{{ prediction.rendementPredictedKg | number }}</span>
+          <span class="unit">kg</span>
+          <span class="tonnes">({{ prediction.rendementPredictedKg / 1000 | number }} tonnes)</span>
+        </div>
+        <div class="badge-confidence">
+          📊 Confiance: {{ prediction.niveauConfiance }}
+        </div>
+      </div>
+
+      <!-- Carte urgence -->
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-exclamation-triangle"></i>
+          <h3>Niveau d'urgence</h3>
+        </div>
+        <div class="urgence-badge" [class]="getUrgenceClass(prediction.urgence)">
+          {{ prediction.urgence }}
+        </div>
+        <p class="recommandation">{{ prediction.recommandation }}</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Carte caractéristiques -->
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-tree"></i>
+          <h3>Caractéristiques du verger</h3>
+        </div>
+        <div class="info-row">
+          <span class="label">🌳 Type d'olive:</span>
+          <span class="value">{{ prediction.typeOlive }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">📏 Superficie:</span>
+          <span class="value">{{ prediction.superficie }} ha</span>
+        </div>
+        <div class="info-row">
+          <span class="label">🌲 Nombre d'arbres:</span>
+          <span class="value">{{ prediction.nbArbres }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">🍐 Maturité actuelle:</span>
+          <span class="value">{{ prediction.maturiteActuelle }}%</span>
+        </div>
+        <div class="info-row">
+          <span class="label">🚜 Bennes nécessaires:</span>
+          <span class="value">{{ prediction.nbBennesNecessaires }}</span>
+        </div>
+      </div>
+
+      <!-- Carte météo -->
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-cloud-sun"></i>
+          <h3>Conditions météo</h3>
+        </div>
+        <div class="info-row">
+          <span class="label">💧 Précipitations:</span>
+          <span class="value">{{ prediction.precipitationsUtilisees }} mm</span>
+        </div>
+        <div class="info-row">
+          <span class="label">🌡️ Température:</span>
+          <span class="value">{{ prediction.temperatureUtilisee }} °C</span>
+        </div>
+        <div class="meteo-recommandation" [class.positive]="prediction.recommandationMeteo?.includes('favorables')">
+          {{ prediction.recommandationMeteo }}
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <small>🤖 Cette prédiction est générée par l'intelligence artificielle basée sur l'historique des collectes terminées et les données météo. Plus la coopérative collecte de données, plus les prédictions deviennent précises.</small>
+    </div>
+  </div>
+</div>

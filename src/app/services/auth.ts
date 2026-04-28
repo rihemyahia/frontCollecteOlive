@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -29,7 +29,13 @@ export class AuthService {
       }
     }
   }
-
+getAuthHeaders(): HttpHeaders {
+  const token = localStorage.getItem('token');
+  return new HttpHeaders({
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  });
+}
   login(email: string, motDePasse: string): Observable<Utilisateur> {
     return this.http.post<Utilisateur>(`${this.apiUrl}/login`, { email, motDePasse })
       .pipe(
@@ -57,7 +63,7 @@ export class AuthService {
     }
     this.currentUserSubject.next(null);
   }
-  
+
 
  // In auth-service.ts - Update the isLoggedIn method:
 
@@ -139,7 +145,7 @@ isLoggedIn(): boolean {
       console.log('=== localStorage Debug ===');
       console.log('currentUser:', localStorage.getItem('currentUser'));
       console.log('token:', localStorage.getItem('token'));
-      
+
       const currentUser = localStorage.getItem('currentUser');
       if (currentUser) {
         try {

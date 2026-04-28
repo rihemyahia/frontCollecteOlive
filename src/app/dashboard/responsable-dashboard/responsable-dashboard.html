@@ -1,184 +1,296 @@
+<!-- src/app/dashboard/responsable-dashboard/responsable-dashboard.html -->
 <div class="app-layout">
   <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
 
+    <!-- Loading Screen -->
     <div *ngIf="loading" class="loading-screen">
-      <div class="loader-ring"></div>
-      <p>Chargement de votre tableau de bord...</p>
+      <div class="olive-loader">
+        <div class="olive-leaf"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+      </div>
+      <p class="loading-text">Chargement de votre tableau de bord...</p>
+      <p class="loading-sub">Vos données se préparent</p>
     </div>
 
-    <div *ngIf="error && !loading" class="error-banner">⚠️ {{ error }}</div>
+    <div *ngIf="error && !loading" class="oh-error">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
 
     <div *ngIf="data && !loading" class="dashboard-wrapper">
 
-      <header class="topbar">
-        <div>
-          <div class="page-label">Tableau de bord</div>
-          <h1 class="page-title">Bonjour, <span class="highlight">{{ user?.prenom }}</span> 👋</h1>
-          <p class="page-sub">Vous gérez <strong>{{ data.totalMesVergers }}</strong> verger(s)</p>
-        </div>
-        <div class="topbar-right">
-          <div class="season-chip">🌿 Saison active</div>
-          <div class="user-chip">
-            <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
-            <span>{{ user?.prenom }} {{ user?.nom }}</span>
-          </div>
-        </div>
-      </header>
-
-      <div class="crit-strip" *ngIf="data.mesAlertesCritiques > 0" (click)="navigate('/alertes/gestion')">
-        <span>🔴</span>
-        <span><strong>{{ data.mesAlertesCritiques }}</strong> alerte(s) critique(s) sur vos vergers</span>
-        <span class="strip-cta">Traiter →</span>
-      </div>
-
-      <section class="kpi-grid">
-        <div class="kpi-card green">
-          <div class="kpi-icon">🌳</div>
-          <div class="kpi-value">{{ data.totalMesVergers }}</div>
-          <div class="kpi-label">Mes vergers</div>
-          <div class="kpi-sub">{{ data.mesVergersEnCours }} en cours · {{ data.mesVergersRecolte }} récoltés</div>
-        </div>
-        <div class="kpi-card gold">
-          <div class="kpi-icon">🚜</div>
-          <div class="kpi-value">{{ data.totalMesTournees }}</div>
-          <div class="kpi-label">Mes tournées</div>
-          <div class="kpi-sub">{{ data.mesTourneesEnCours }} actives · {{ data.mesTourneesPlanifiees }} planifiées</div>
-        </div>
-        <div class="kpi-card teal">
-          <div class="kpi-icon">🫒</div>
-          <div class="kpi-value">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
-          <div class="kpi-label">Production totale</div>
-          <div class="kpi-sub">{{ data.totalMesCollectes }} collecte(s)</div>
-        </div>
-        <div class="kpi-card red">
-          <div class="kpi-icon">⚠️</div>
-          <div class="kpi-value">{{ data.totalMesAlertes }}</div>
-          <div class="kpi-label">Alertes totales</div>
-          <div class="kpi-sub">{{ data.mesAlertesEnAttente }} en attente · {{ data.mesAlertesEnCours }} en cours</div>
-        </div>
-      </section>
-
-      <div class="mid-grid">
-
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Ressources disponibles</span>
-            <button class="panel-btn" (click)="navigate('/ressources/bennes')">Voir →</button>
-          </div>
-          <div class="res-duo">
-            <div class="res-box">
-              <span class="res-emoji">🪣</span>
-              <div class="res-num">{{ data.bennesDisponibles }}</div>
-              <div class="res-lbl">Bennes dispo.</div>
-            </div>
-            <div class="res-box">
-              <span class="res-emoji">🚜</span>
-              <div class="res-num">{{ data.tracteursDisponibles }}</div>
-              <div class="res-lbl">Tracteurs dispo.</div>
-            </div>
-          </div>
-          <div class="trav-row">
-            <span class="trav-icon">👷</span>
-            <span class="trav-label">Travailleurs enregistrés</span>
-            <strong>{{ data.totalTravailleurs }}</strong>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Mes alertes</span>
-            <button class="panel-btn" (click)="navigate('/alertes/gestion')">Gérer →</button>
-          </div>
-          <div class="al-pills">
-            <div class="al-pill critique">
-              <span>🔴</span><span>Critiques</span><strong>{{ data.mesAlertesCritiques }}</strong>
-            </div>
-            <div class="al-pill attente">
-              <span>🟡</span><span>En attente</span><strong>{{ data.mesAlertesEnAttente }}</strong>
-            </div>
-            <div class="al-pill cours">
-              <span>🔵</span><span>En cours</span><strong>{{ data.mesAlertesEnCours }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">Mes tournées</span>
-            <button class="panel-btn" (click)="navigate('/tournees')">Voir →</button>
-          </div>
-          <div class="prog-items">
-            <div class="prog-item">
-              <div class="pi-head"><span>Planifiées</span><strong>{{ data.mesTourneesPlanifiees }}</strong></div>
-              <div class="pi-track">
-                <div class="pi-fill blue" [style.width.%]="percent(data.mesTourneesPlanifiees, data.totalMesTournees)"></div>
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-clipboard-data"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">TABLEAU DE BORD</p>
+                <h2 class="oh-header__title">Vue <span class="highlight">Responsable</span></h2>
+                <p class="header-subtitle">Bienvenue, {{ user?.prenom || 'Responsable' }} 👋</p>
               </div>
             </div>
-            <div class="prog-item">
-              <div class="pi-head"><span>En cours</span><strong>{{ data.mesTourneesEnCours }}</strong></div>
-              <div class="pi-track">
-                <div class="pi-fill amber" [style.width.%]="percent(data.mesTourneesEnCours, data.totalMesTournees)"></div>
+            <div class="oh-header__right">
+              <div class="season-chip">
+                <i class="bi bi-calendar-heart"></i>
+                <span>Saison {{ currentSeason }}</span>
               </div>
-            </div>
-            <div class="prog-item">
-              <div class="pi-head"><span>Terminées</span><strong>{{ data.mesTourneesTerminees }}</strong></div>
-              <div class="pi-track">
-                <div class="pi-fill green" [style.width.%]="percent(data.mesTourneesTerminees, data.totalMesTournees)"></div>
+              <div class="user-chip">
+                <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
+                <span>{{ user?.prenom }} {{ user?.nom }}</span>
               </div>
             </div>
           </div>
         </div>
 
-      </div>
+        <div class="oh-card__body">
 
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">🌳 Mes vergers — détail</span>
-          <button class="panel-btn" (click)="navigate('/vergers')">Gérer →</button>
-        </div>
-        <div class="verger-table" *ngIf="data.mesVergers?.length">
-          <div class="vt-header">
-            <span>Olive</span>
-            <span>Agriculteur</span>
-            <span>Statut</span>
-            <span>Maturité</span>
-            <span>Arbres</span>
-            <span>Tournées</span>
-            <span>Alertes</span>
-            <span>Production</span>
+          <!-- Critical Alert Banner -->
+          <div class="alert-banner critical" *ngIf="data.mesAlertesCritiques > 0" (click)="navigate('/alertes/gestion')">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <div class="alert-content">
+              <strong>{{ data.mesAlertesCritiques }}</strong> alerte(s) critique(s) nécessitent votre attention
+            </div>
+            <div class="alert-action">
+              <span>Traiter</span>
+              <i class="bi bi-arrow-right"></i>
+            </div>
           </div>
-          <div class="vt-row" *ngFor="let v of data.mesVergers" (click)="navigate('/vergers')">
-            <span class="vt-olive">🌿 {{ v.typeOlive }}</span>
-            <span class="vt-ag">{{ v.agriculteurNom }}</span>
-            <span>
-              <span class="badge" [class]="statutBadge(v.statut)">{{ statutLabel(v.statut) }}</span>
-            </span>
-            <span>
-              <div class="mat-wrap">
-                <div class="mat-track">
-                  <div class="mat-fill" 
-                       [style.width.%]="v.maturiteActuelle" 
-                       [style.background]="maturiteColor(v.maturiteActuelle)">
+
+          <!-- Hero Metrics -->
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #2D6A4F, #40916C)">
+                <i class="bi bi-tree"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesVergers }}</div>
+                <div class="metric-label">Vergers sous gestion</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24)">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesTournees }}</div>
+                <div class="metric-label">Tournées totales</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA)">
+                <i class="bi bi-droplet"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ formatKg(data.mesQuantiteTotaleKg) }}</div>
+                <div class="metric-label">Production totale</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #EF4444, #F87171)">
+                <i class="bi bi-exclamation-triangle"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesAlertes }}</div>
+                <div class="metric-label">Alertes totales</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard Grid -->
+          <div class="dashboard-grid">
+
+            <!-- Resources Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-box-seam"></i>
+                  <span>Ressources disponibles</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/ressources/bennes')">
+                  Gérer <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="resources-grid">
+                  <div class="resource-card">
+                    <i class="bi bi-basket-fill resource-icon"></i>
+                    <div class="resource-info">
+                      <div class="resource-total">{{ data.bennesDisponibles }}</div>
+                      <div class="resource-name">Bennes à olives disponibles</div>
+                    </div>
+                  </div>
+                  <div class="resource-card">
+                    <i class="bi bi-truck resource-icon"></i>
+                    <div class="resource-info">
+                      <div class="resource-total">{{ data.tracteursDisponibles }}</div>
+                      <div class="resource-name">Tracteurs disponibles</div>
+                    </div>
                   </div>
                 </div>
-                <span class="mat-pct">{{ v.maturiteActuelle }}%</span>
+                <div class="resource-card full-width" style="margin-top: 1rem;">
+                  <i class="bi bi-people resource-icon"></i>
+                  <div class="resource-info">
+                    <div class="resource-total">{{ data.totalTravailleurs }}</div>
+                    <div class="resource-name">Travailleurs enregistrés</div>
+                  </div>
+                </div>
               </div>
-            </span>
-            <span>{{ v.nbArbre }}</span>
-            <span>{{ v.nbTournees }}</span>
-            <span class="vt-alert" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}</span>
-            <span class="vt-kg">{{ formatKg(v.quantiteRecolteKg) }}</span>
+            </div>
+
+            <!-- Alerts Card - Fixed: removed traitees -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-exclamation-triangle"></i>
+                  <span>Alertes terrain</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/alertes/gestion')">
+                  Gérer <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="alerts-grid">
+                  <div class="alert-stat critical" *ngIf="data.mesAlertesCritiques > 0">
+                    <i class="bi bi-exclamation-octagon-fill"></i>
+                    <div class="alert-info">
+                      <span class="alert-label">Critiques</span>
+                      <span class="alert-count">{{ data.mesAlertesCritiques }}</span>
+                    </div>
+                  </div>
+                  <div class="alert-stat warning">
+                    <i class="bi bi-clock-history"></i>
+                    <div class="alert-info">
+                      <span class="alert-label">En attente</span>
+                      <span class="alert-count">{{ data.mesAlertesEnAttente }}</span>
+                    </div>
+                  </div>
+                  <div class="alert-stat info">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <div class="alert-info">
+                      <span class="alert-label">En cours</span>
+                      <span class="alert-count">{{ data.mesAlertesEnCours }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="alerts-total">
+                  Total: <strong>{{ data.totalMesAlertes }}</strong> alertes
+                </div>
+              </div>
+            </div>
+
+            <!-- Tournées Card -->
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-truck-front"></i>
+                  <span>Mes tournées</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/tournees')">
+                  Voir <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="tournees-stats">
+                  <div class="tournee-item">
+                    <div class="tournee-info">
+                      <span>Planifiées</span>
+                      <strong>{{ data.mesTourneesPlanifiees }}</strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill blue" [style.width.%]="percent(data.mesTourneesPlanifiees, data.totalMesTournees)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                  <div class="tournee-item">
+                    <div class="tournee-info">
+                      <span>En cours</span>
+                      <strong>{{ data.mesTourneesEnCours }}</strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill amber" [style.width.%]="percent(data.mesTourneesEnCours, data.totalMesTournees)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                  <div class="tournee-item">
+                    <div class="tournee-info">
+                      <span>Terminées</span>
+                      <strong>{{ data.mesTourneesTerminees }}</strong>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill green" [style.width.%]="percent(data.mesTourneesTerminees, data.totalMesTournees)" [class.animate-fill]="metricsAnimated"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vergers Table -->
+            <div class="dashboard-card full-width">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-tree"></i>
+                  <span>Vergers sous ma responsabilité</span>
+                </div>
+                <button class="card-btn" (click)="navigate('/vergers')">
+                  Gérer <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive" *ngIf="data.mesVergers?.length">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Type d'olive</th>
+                        <th>Agriculteur</th>
+                        <th>Statut</th>
+                        <th>Maturité</th>
+                        <th>Arbres</th>
+                        <th>Production</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let v of data.mesVergers" (click)="navigate('/vergers')">
+                        <td class="type-cell">
+                          <i class="bi bi-droplet"></i> {{ v.typeOlive }}
+                        </td>
+                        <td>{{ v.agriculteurNom }}</td>
+                        <td>
+                          <span class="statut-badge" [ngClass]="statutBadge(v.statut)">
+                            {{ statutLabel(v.statut) }}
+                          </span>
+                        </td>
+                        <td>
+                          <div class="maturite-wrap">
+                            <div class="maturite-track">
+                              <div class="maturite-fill" [style.width.%]="v.maturiteActuelle" [style.background]="maturiteColor(v.maturiteActuelle)"></div>
+                            </div>
+                            <span class="maturite-pct">{{ v.maturiteActuelle }}%</span>
+                          </div>
+                        </td>
+                        <td>{{ v.nbArbre | number }}</td>
+                        <td class="production-cell">{{ formatKg(v.quantiteRecolteKg) }}<\/td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div *ngIf="!data.mesVergers?.length" class="empty-state">
+                  <i class="bi bi-inbox"></i>
+                  <p>Aucun verger sous votre responsabilité</p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-
-        <div *ngIf="!data.mesVergers?.length" class="empty-state">
-          <span>📭</span>
-          <p>Aucun verger n'est actuellement sous votre responsabilité.</p>
-        </div>
       </div>
-
     </div>
   </main>
 </div>

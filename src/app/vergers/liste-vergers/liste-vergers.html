@@ -1,6 +1,5 @@
-<!-- liste-vergers.html -->
+<!-- src/app/ressources/vergers/liste-vergers/liste-vergers.html -->
 <div class="app-layout">
-
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed"
     (toggleSidebar)="toggleSidebar()"
@@ -18,20 +17,12 @@
     </button>
 
     <div class="oh-scene">
-
       <div class="oh-card">
-
-        <!-- Header -->
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                </div>
+              <div class="oh-brand__icon">
+                <i class="bi bi-tree"></i>
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">GESTION DES VERGERS</p>
@@ -39,165 +30,342 @@
                 <p class="header-subtitle">Gérez et consultez tous les vergers de la coopérative</p>
               </div>
             </div>
+            <div class="oh-header__right">
+              <button class="btn-add" *ngIf="isResponsableOrAdmin()" (click)="router.navigate(['/vergers/creer'])">
+                <i class="bi bi-plus-lg"></i>
+                Nouveau verger
+              </button>
+            </div>
           </div>
-          <div class="oh-header__rule"></div>
         </div>
 
-        <!-- Body -->
         <div class="oh-card__body">
-
-          <!-- Search + Add -->
-          <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center;">
-            <div style="flex: 1; min-width: 200px; position: relative;">
-              <i class="bi bi-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #7A6845; pointer-events: none;"></i>
-              <input
-                type="text"
-                class="search-input"
-                placeholder="Rechercher par agriculteur, type d'olive, statut..."
-                [(ngModel)]="searchTerm"
-                (ngModelChange)="applyFilterDebounced()">
+          <div class="oh-search-filters" *ngIf="!isLoading && vergers.length > 0">
+            <div class="oh-search-bar">
+              <input type="text"
+                     placeholder="🔍 Rechercher par agriculteur, type d'olive, statut..."
+                     [(ngModel)]="searchTerm"
+                     (ngModelChange)="applyFilterDebounced()"
+                     class="oh-search-input">
             </div>
-            <button
-              *ngIf="isResponsableOrAdmin()"
-              class="btn-nouveau"
-              (click)="router.navigate(['/vergers/creer'])">
-              <i class="bi bi-plus-circle-fill"></i>
-              Nouveau verger
-            </button>
+
+            <div class="oh-filter-controls">
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatus" (change)="applyFilter()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="NON_RECOLTE">Non récolté</option>
+                  <option value="EN_COURS">En cours</option>
+                  <option value="RECOLTE">Récolté</option>
+                </select>
+              </div>
+
+              <button type="button" (click)="resetFilters()" class="oh-filter-reset"
+                      [class.hidden]="!searchTerm && !selectedStatus">
+                🔄 Réinitialiser
+              </button>
+            </div>
           </div>
 
-          <!-- Error -->
           <div *ngIf="errorMessage" class="oh-error">
             <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
           </div>
 
-          <!-- Loading -->
-          <div *ngIf="isLoading" class="loading-container">
+          <div *ngIf="isLoading" class="loading-state">
             <div class="spinner"></div>
             <p>Chargement des vergers...</p>
           </div>
 
-          <!-- Table -->
-          <div *ngIf="!isLoading && filteredVergers.length > 0" style="overflow-x: auto;">
-            <table class="verger-table">
-              <thead>
-                <tr>
-                  <th>Agriculteur</th>
-                  <th>Type d'olive</th>
-                  <th>Superficie</th>
-                  <th>Nb Arbres</th>
-                  <th>Localisation</th>
-                  <th>Maturité</th>
-                  <th>Rendement</th>
-                  <th>Statut</th>
-                  <th>Dernière récolte</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let v of filteredVergers; trackBy: trackById">
+          <div class="alerts-list" *ngIf="!isLoading">
+            <div class="empty-state" *ngIf="filteredVergers.length === 0">
+              <div class="empty-icon">
+                <i class="bi bi-tree"></i>
+              </div>
+              <h3>Aucun verger trouvé</h3>
+              <p>Aucun verger ne correspond à vos critères.</p>
+            </div>
 
-                  <td>
-                    <div style="display: flex; align-items: center; gap: 0.65rem;">
-                      <div class="avatar-circle">{{ (v.agriculteurNom || '').charAt(0).toUpperCase() }}</div>
-                      <div>
-                        <div style="font-weight: 600;">{{ v.agriculteurNom }}</div>
-                        <div style="font-size: 0.72rem; color: #7A6845;">{{ v.agriculteurEmail }}</div>
-                      </div>
-                    </div>
-                  </td>
+            <!-- Fixed Table Wrapper -->
+            <div class="table-wrapper" *ngIf="filteredVergers.length > 0">
+              <table class="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Agriculteur</th>
+                    <th>Type</th>
+                    <th>Superficie</th>
+                    <th>Nb Arbres</th>
+                    <th>Localisation</th>
+                    <th>Maturité</th>
+                    <th>Rendement</th>
+                                        <th>Statut</th>
+                    <th>Prediction</th>
 
-                  <td><span class="badge-olive">{{ v.typeOlive }}</span></td>
-                  <td>{{ v.superficie }} ha</td>
-                  <td>{{ v.nbArbre }}</td>
-
-                  <!-- Localisation - Version sécurisée -->
-                  <td>
-                    <ng-container *ngIf="v.geolocalisation; else noLocation">
-                      <span class="location-info">
-                        <i class="bi bi-geo-alt-fill"></i>
-                        {{ v.geolocalisation.adresseIndicative || 
-                          (v.geolocalisation.latitude.toFixed(4) + ', ' + v.geolocalisation.longitude.toFixed(4)) }}
-                      </span>
-                    </ng-container>
-                    <ng-template #noLocation>
-                      <span style="color: #999; font-style: italic;">— Non définie —</span>
-                    </ng-template>
-                  </td>
-
-                  <td>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                      <div class="progress-bar-bg">
-                        <div class="progress-bar-fill"
-                             [style.width.%]="v.maturiteActuelle"
-                             [style.background]="v.maturiteActuelle < 40 ? '#E8A838' : v.maturiteActuelle < 75 ? '#A8B84B' : '#4A7A2A'">
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let v of paginatedVergers; trackBy: trackById">
+                    <td class="agriculteur-cell">
+                      <div class="agriculteur-info">
+                        <div class="agriculteur-avatar">{{ (v.agriculteurNom || '').charAt(0).toUpperCase() }}</div>
+                        <div>
+                          <div class="agriculteur-name">{{ v.agriculteurNom }}</div>
+                          <div class="agriculteur-email">{{ v.agriculteurEmail }}</div>
                         </div>
                       </div>
-                      <span style="font-size: 0.8rem; font-weight: 600;">{{ v.maturiteActuelle }}%</span>
-                    </div>
-                  </td>
+                    </td>
+                    <td class="type-cell">
+                      <span class="badge-olive">{{ v.typeOlive }}</span>
+                    </td>
+                    <td class="superficie-cell">{{ v.superficie }} ha</td>
+                    <td class="nbArbre-cell">{{ v.nbArbre }}</td>
+                    <td class="location-cell">
+                      <ng-container *ngIf="v.geolocalisation; else noLocation">
+                        <span class="location-info">
+                          <i class="bi bi-geo-alt-fill"></i>
+                          {{ v.geolocalisation.adresseIndicative ||
+                            (v.geolocalisation.latitude?.toFixed(4) + ', ' + v.geolocalisation.longitude?.toFixed(4)) }}
+                        </span>
+                      </ng-container>
+                      <ng-template #noLocation>
+                        <span class="no-location">— Non définie —</span>
+                      </ng-template>
+                    </td>
+                    <td class="maturite-cell">
+                      <div class="progress-cell">
+                        <div class="progress-bar-mini">
+                          <div class="progress-fill-mini"
+                               [style.width.%]="v.maturiteActuelle"
+                               [style.background]="getMaturiteColor(v.maturiteActuelle)">
+                          </div>
+                        </div>
+                        <span class="maturite-value">{{ v.maturiteActuelle }}%</span>
+                      </div>
+                    </td>
+                    <td class="rendement-cell">{{ v.rendementEstime | number:'1.0-1' }} kg</td>
+                    <td class="statut-cell">
+                      <span class="statut-badge" [ngClass]="getStatutClass(v.statut)">
+                        {{ getStatutLabel(v.statut) }}
+                      </span>
+                    </td>
+ <td class="prediction-cell">
+      <div class="prediction-container" *ngIf="getPrediction(v.id) as pred">
+        <div class="prediction-value">
+          {{ pred.rendementPredictedKg | number }} kg
+        </div>
+        <div class="prediction-bennes">
+           {{ pred.nbBennesNecessaires }} bennes
+        </div>
+        <div class="prediction-urgence" [ngClass]="pred.urgence === 'ELEVEE' ? 'urgent' : pred.urgence === 'MOYENNE' ? 'warning' : 'normal'">
+          {{ pred.urgence }}
+        </div>
+        <div class="prediction-actions">
+          <button class="btn-ia-detail" (click)="voirPrediction(v.id, v.typeOlive)">
+  Détails
+</button>
+        </div>
+      </div>
+      <div class="prediction-loading" *ngIf="!getPrediction(v.id) && !isLoadingPredictions">
+        <div class="spinner-small"></div>
+        <span>IA analyse...</span>
+      </div>
+      <div class="prediction-empty" *ngIf="!getPrediction(v.id) && isLoadingPredictions">
+        <span>Chargement...</span>
+      </div>
+    </td>
 
-                  <td>{{ v.rendementEstime | number:'1.0-1' }} kg</td>
+                    <td class="actions-cell">
+                      <div class="action-buttons">
+                        <button type="button" class="btn-icon btn-modifier"
+                                (click)="router.navigate(['/vergers/modifier', v.id])"
+                                title="Modifier le verger">
+                          <i class="bi bi-pencil-square"></i>
+                          <span>Modifier</span>
+                        </button>
+                        <button type="button" *ngIf="isResponsableOrAdmin()" class="btn-icon btn-supprimer"
+                                (click)="supprimer(v.id)"
+                                title="Supprimer le verger">
+                          <i class="bi bi-trash3"></i>
+                          <span>Supprimer</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                  <td>
-                    <span [class]="'statut-badge ' + getStatutClass(v.statut)">
-                      {{ v.statut | statutVergerLabel }}
-                    </span>
-                  </td>
+            <div class="pagination-section" *ngIf="filteredVergers.length > 0 && totalPages > 1">
+              <button type="button" class="btn-pagination"
+                      (click)="previousPage()"
+                      [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i> Précédent
+              </button>
 
-                  <td style="color: #7A6845;">
-                    {{ v.dateDerniereRecolte ? (v.dateDerniereRecolte | date:'dd/MM/yyyy') : '—' }}
-                  </td>
+              <div class="page-info">
+                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+                <span class="page-count">({{ filteredVergers.length }} vergers)</span>
+              </div>
 
-                  <td>
-                    <div style="display: flex; gap: 0.5rem;">
-                      <button class="btn-edit" (click)="router.navigate(['/vergers/modifier', v.id])">
-                        <i class="bi bi-pencil"></i> Modifier
-                      </button>
-                      <button *ngIf="isResponsableOrAdmin()" class="btn-delete" (click)="supprimer(v.id)">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </td>
+              <button type="button" class="btn-pagination"
+                      (click)="nextPage()"
+                      [disabled]="currentPage === totalPages">
+                Suivant <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
 
-                </tr>
-              </tbody>
-            </table>
+            <!-- Stats Footer -->
+            <div class="stats-footer" *ngIf="filteredVergers.length > 0">
+              <div class="stats-item">
+                <i class="bi bi-bar-chart-fill"></i>
+                <span>Total : <strong>{{ filteredVergers.length }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-hourglass-split"></i>
+                <span>Non récoltés : <strong>{{ getStatutCount('NON_RECOLTE') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>En cours : <strong>{{ getStatutCount('EN_COURS') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Récoltés : <strong>{{ getStatutCount('RECOLTE') }}</strong></span>
+              </div>
+            </div>
           </div>
-
-          <!-- Empty state -->
-          <div *ngIf="!isLoading && filteredVergers.length === 0" class="empty-state">
-            <i class="bi bi-tree" style="font-size: 3.5rem; color: #A8B84B; opacity: 0.6;"></i>
-            <p style="font-size: 1.1rem; font-weight: 600; color: #5A5A48; margin-top: 1rem;">
-              Aucun verger trouvé
-            </p>
-            <p style="font-size: 0.9rem; color: #7A6845;">
-              Essayez de modifier votre recherche ou ajoutez un nouveau verger
-            </p>
-          </div>
-
-          <!-- Stats footer -->
-          <div *ngIf="!isLoading && filteredVergers.length > 0" class="stats-footer">
-            <div class="stats-item">
-              <i class="bi bi-bar-chart-fill" style="color: #A8B84B;"></i>
-              <span>Total : <strong>{{ filteredVergers.length }}</strong></span>
-            </div>
-            <div class="stats-item">
-              <i class="bi bi-hourglass-split" style="color: #8A6A0A;"></i>
-              <span>Non récoltés : <strong>{{ getStatutCount(StatutVerger.NON_RECOLTE) }}</strong></span>
-            </div>
-            <div class="stats-item">
-              <i class="bi bi-arrow-repeat" style="color: #0A4A8A;"></i>
-              <span>En cours : <strong>{{ getStatutCount(StatutVerger.EN_COURS) }}</strong></span>
-            </div>
-            <div class="stats-item">
-              <i class="bi bi-check-circle-fill" style="color: #4A7A2A;"></i>
-              <span>Récoltés : <strong>{{ getStatutCount(StatutVerger.RECOLTE) }}</strong></span>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
+    <!-- Modal Prédiction IA -->
+<!-- Modal Prédiction IA -->
+<div class="modal-overlay" *ngIf="showPredictionModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🤖 Prédiction  - {{ selectedVergerNom }}</h3>
+      <button class="modal-close" (click)="closeModal()">×</button>
+    </div>
+
+    <!-- État chargement -->
+    <div class="modal-body" *ngIf="isLoadingPrediction && !selectedPrediction">
+      <div class="loading-prediction">
+        <div class="spinner"></div>
+        <p>Analyse  en cours...</p>
+      </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="modal-body" *ngIf="!isLoadingPrediction && selectedPrediction">
+
+      <!-- ===== PARTIE PRÉDICTION ===== -->
+      <div class="prediction-detail-card">
+        <div class="detail-rendement">
+          <span class="label"> Rendement prédit pour cette saison</span>
+          <span class="value">{{ selectedPrediction.rendementPredictedKg | number }} kg</span>
+          <span class="sub">({{ selectedPrediction.rendementPredictedKg / 1000 | number }} tonnes)</span>
+        </div>
+
+        <div class="detail-stats">
+          <div class="stat">
+            <i class="bi bi-tree"></i>
+            <span>{{ selectedPrediction.nbArbres }} arbres</span>
+          </div>
+          <div class="stat">
+            <i class="bi bi-truck"></i>
+            <span>{{ selectedPrediction.nbBennesNecessaires }} bennes</span>
+          </div>
+          <div class="stat">
+            <i class="bi bi-droplet"></i>
+            <span>{{ selectedPrediction.precipitationsUtilisees | number:'1.0-0' }} mm</span>
+          </div>
+          <div class="stat">
+            <i class="bi bi-thermometer-half"></i>
+            <span>{{ selectedPrediction.temperatureUtilisee | number:'1.0-1' }} °C</span>
+          </div>
+        </div>
+
+        <div class="detail-urgence" [ngClass]="selectedPrediction.urgence === 'ELEVEE' ? 'urgent' : selectedPrediction.urgence === 'MOYENNE' ? 'warning' : 'normal'">
+          <span><strong>⚠️ Urgence:</strong> {{ selectedPrediction.urgence }}</span>
+          <span>{{ selectedPrediction.recommandation }}</span>
+        </div>
+
+        <div class="detail-meteo">
+          <i class="bi bi-cloud-sun"></i>
+          <span>{{ selectedPrediction.recommandationMeteo }}</span>
+        </div>
+
+        <div class="detail-info">
+          <small> Confiance: {{ selectedPrediction.niveauConfiance }}</small>
+        </div>
+      </div>
+
+      <!-- ===== HISTORIQUE DES ANNÉES PRÉCÉDENTES ===== -->
+      <div class="historique-section">
+        <h4> Historique des collectes</h4>
+
+        <div class="historique-loading" *ngIf="isLoadingHistorique">
+          <div class="spinner-small"></div>
+          <span>Chargement de l'historique...</span>
+        </div>
+
+        <div class="historique-list" *ngIf="!isLoadingHistorique">
+          <div class="historique-item" *ngFor="let collecte of (historiqueCollectes.get(selectedVergerId) || [])">
+            <div class="historique-annee">
+              <strong> {{ collecte.annee }}</strong>
+              <span class="historique-statut" [ngClass]="collecte.statut === 'TERMINEE' ? 'status-completed' : 'status-pending'">
+                {{ collecte.statut }}
+              </span>
+            </div>
+            <div class="historique-details">
+              <span class="historique-quantite">{{ collecte.quantiteTotaleKg | number }} kg</span>
+              <span class="historique-rendement">{{ collecte.rendementMoyenParArbre | number:'1.0-1' }} kg/arbre</span>
+              <span class="historique-tournees"> {{ collecte.nbreTournees }} tournées</span>
+            </div>
+            <div *ngIf="collecte.precipitations" class="historique-meteo">
+              <i class="bi bi-droplet"></i> {{ collecte.precipitations }} mm |
+              <i class="bi bi-thermometer-half"></i> {{ collecte.temperature }} °C
+            </div>
+          </div>
+
+          <div class="historique-empty" *ngIf="(historiqueCollectes.get(selectedVergerId) || []).length === 0">
+            <i class="bi bi-calendar-x"></i>
+            <span>Aucune collecte historique trouvée pour ce verger</span>
+            <small>Ajoutez des collectes pour voir l'évolution</small>
+          </div>
+        </div>
+
+        <!-- Résumé statistique -->
+        <div class="historique-summary" *ngIf="!isLoadingHistorique && (historiqueCollectes.get(selectedVergerId) || []).length > 0">
+          <div class="summary-item">
+            <span class="summary-label"> Moyenne</span>
+            <span class="summary-value">{{ getMoyenneHistorique(selectedVergerId) | number }} kg</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label"> Meilleure année</span>
+            <span class="summary-value">{{ getMeilleureAnnee(selectedVergerId) | number }} kg</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Tendance</span>
+            <span class="summary-value" [ngClass]="getTendanceClass(selectedVergerId)">
+              {{ getTendanceTexte(selectedVergerId) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer du modal -->
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">
+        <i class="bi bi-x-circle"></i> Fermer
+      </button>
+      <button class="btn-primary" (click)="refreshPrediction()" [disabled]="isLoadingPrediction">
+        <i class="bi bi-arrow-repeat" [ngClass]="{'spin': isLoadingPrediction}"></i>
+        {{ isLoadingPrediction ? 'Actualisation...' : 'Rafraîchir' }}
+      </button>
+    </div>
+  </div>
+</div>
   </main>
 </div>

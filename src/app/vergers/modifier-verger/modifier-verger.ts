@@ -1,3 +1,4 @@
+// src/app/ressources/vergers/modifier-verger/modifier-verger.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -178,10 +179,14 @@ export class ModifierVergerComponent implements OnInit {
   onAgriculteurSearch(query: string): void {
     this.agriculteurSearch = query;
     const q = query.toLowerCase();
-    this.filteredAgriculteurs = q.length < 2 ? [] :
-      this.agriculteurs.filter(a =>
-        a.nom.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
-      );
+    if (q.length < 2) {
+      this.filteredAgriculteurs = [];
+      this.showDropdown = false;
+      return;
+    }
+    this.filteredAgriculteurs = this.agriculteurs.filter(a =>
+      a.nom.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
+    );
     this.showDropdown = this.filteredAgriculteurs.length > 0;
   }
 
@@ -201,6 +206,7 @@ export class ModifierVergerComponent implements OnInit {
     setTimeout(() => { this.showDropdown = false; }, 200);
   }
 
+  // ====================== VALIDATION ======================
   isInvalid(field: string): boolean {
     const ctrl = this.vergerForm.get(field);
     return !!(ctrl?.invalid && ctrl?.touched);
@@ -216,12 +222,26 @@ export class ModifierVergerComponent implements OnInit {
     return '#4A7A2A';
   }
 
-  getStatutLabel(s: string): string {
-    if (s === 'NON_RECOLTE') return 'Non récolté';
-    if (s === 'EN_COURS') return 'En cours';
-    return 'Récolté';
+  // ====================== STATUT METHODS ======================
+  getStatutClass(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'badge-warning';
+      case 'EN_COURS': return 'badge-info';
+      case 'RECOLTE': return 'badge-success';
+      default: return '';
+    }
   }
 
+  getStatutLabel(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'Non récolté';
+      case 'EN_COURS': return 'En cours';
+      case 'RECOLTE': return 'Récolté';
+      default: return statut;
+    }
+  }
+
+  // ====================== SOUMISSION ======================
   onSubmit(): void {
     if (this.vergerForm.invalid) {
       this.vergerForm.markAllAsTouched();
@@ -245,8 +265,10 @@ export class ModifierVergerComponent implements OnInit {
       longitude: this.selectedLng,
       adresseIndicative: this.selectedAddress
     };
+    
     const overrideStatut = this.vergerForm.get('statutOverride')?.value as string;
     const overrideReason = (this.vergerForm.get('statutOverrideReason')?.value || '').trim();
+    
     if (overrideStatut) {
       if (!overrideReason) {
         this.errorMessage = 'La raison est obligatoire pour modifier le statut.';

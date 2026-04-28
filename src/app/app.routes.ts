@@ -32,6 +32,8 @@ import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-det
 import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
 import { GestionAlertesComponent } from './alertes/gestion-alertes/gestion-alertes';
 import { ModifierAlerteComponent } from './alertes/modifier-alerte/modifier-alerte';
+import { IaPredictionDetailComponent } from './ia-prediction-detail/ia-prediction-detail/ia-prediction-detail';
+import { MaladieDetectionComponent } from './maladie-detection/maladie-detection';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -149,6 +151,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
+
+  // Routes Ressources (Tracteurs)
+  {
+    path: 'ia/prediction/:id',
+    component: IaPredictionDetailComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
+  },
   {
     path: 'ressources/tracteurs/ajouter',
     component: AjouterTracteurComponent,
@@ -229,6 +239,13 @@ export const routes: Routes = [
   {
     path: 'cree-alerte',
     component: CreeAlerte
+  },
+  // ── Vergers ───────────────────────────────────────────────────────────────
+  {
+    path: 'diagnostic',
+    component: MaladieDetectionComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['AGRICULTEUR'] }
   },
 
   // ── Catch-all ─────────────────────────────────────────────────────────────

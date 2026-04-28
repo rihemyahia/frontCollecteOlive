@@ -94,6 +94,13 @@ export class SideBarResponsable implements OnInit {
       route: '/mes-vergers',
       roles: ['AGRICULTEUR']
     },
+    {
+      id: 'diagnostic',
+      label: 'Diagnostic',
+      icon: 'stethoscope',
+      route: '/diagnostic',
+      roles: ['AGRICULTEUR']
+    },
     // Tournées
     {
       id: 'tournees',
@@ -209,7 +216,7 @@ export class SideBarResponsable implements OnInit {
           nom: user.nom || '',
           role: user.role?.toUpperCase() || this.userRole,
           email: user.email || '',
-          photo: user.photoProfile || null, 
+          photo: user.photoProfile || null,
           avatar: user.prenom ? user.prenom.charAt(0).toUpperCase() : 'U'
         };
 
@@ -238,7 +245,7 @@ export class SideBarResponsable implements OnInit {
       email: '',
       avatar: 'U'
     };
-    
+
   }
 
   filterMenuByRole(): void {

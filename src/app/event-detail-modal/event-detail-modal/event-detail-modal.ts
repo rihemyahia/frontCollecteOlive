@@ -368,9 +368,9 @@ export class EventDetailModalComponent {
 
   getVergerStatusLabel(statut: string): string {
     const labels: { [key: string]: string } = {
-      'NON_RECOLTE': '🌱 Non récolté',
-      'EN_COURS': '🔄 En cours de récolte',
-      'RECOLTE': '✅ Récolté'
+      'NON_RECOLTE': 'Non récolté',
+      'EN_COURS': ' En cours de récolte',
+      'RECOLTE': ' Récolté'
     };
     return labels[statut] || statut;
   }

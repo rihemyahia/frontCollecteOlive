@@ -1,0 +1,123 @@
+.ia-prediction-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #7A6845;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.card-header i {
+  font-size: 1.5rem;
+  color: #A8B84B;
+}
+
+.rendement-value {
+  text-align: center;
+  padding: 1rem;
+}
+
+.big-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #2A5A2A;
+}
+
+.urgence-badge {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.urgence-badge.urgent {
+  background: #dc3545;
+  color: white;
+}
+
+.urgence-badge.warning {
+  background: #ffc107;
+  color: #333;
+}
+
+.urgence-badge.normal {
+  background: #28a745;
+  color: white;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row .label {
+  color: #7A6845;
+}
+
+.info-row .value {
+  font-weight: 600;
+  color: #333;
+}
+
+.footer-note {
+  background: #f5f5f0;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #A8B84B;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

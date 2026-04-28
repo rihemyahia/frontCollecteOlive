@@ -1,0 +1,52 @@
+<div class="detection-container">
+  <div class="detection-card">
+    <div class="card-header">
+      <i class="bi bi-leaf"></i>
+      <h3>🔬 Diagnostic IA - Maladies de l'olivier</h3>
+    </div>
+
+    <!-- 🔥 État de chargement du modèle -->
+    <div *ngIf="isLoadingModel" class="loading-model">
+      <div class="spinner"></div>
+      <p>Chargement du modèle IA...</p>
+      <small>Premier chargement peut prendre quelques secondes</small>
+    </div>
+
+    <!-- 🔥 Zone d'upload (visible uniquement quand modèle est chargé) -->
+    <div *ngIf="!isLoadingModel && !errorMessage" class="upload-area" (click)="fileInput.click()">
+      <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept="image/*">
+      <i class="bi bi-cloud-upload"></i>
+      <p>Cliquez pour télécharger une photo de feuille</p>
+      <small>Format JPG, PNG</small>
+    </div>
+
+    <!-- Aperçu -->
+    <div *ngIf="imagePreview" class="image-preview">
+      <img [src]="imagePreview" alt="Feuille d'olivier">
+    </div>
+
+    <!-- Analyse en cours -->
+    <div *ngIf="isLoading" class="loading">
+      <div class="spinner-small"></div>
+      <span>🔬 Analyse IA en cours...</span>
+    </div>
+
+    <!-- Résultat -->
+    <div *ngIf="resultat" class="resultat" [ngClass]="resultat.type">
+      <div class="resultat-header">
+        <i class="bi" [class.bi-bug]="resultat.type === 'maladie'" [class.bi-check-circle]="resultat.type === 'sain'"></i>
+        <span class="label">Diagnostic IA</span>
+      </div>
+      <div class="resultat-label">{{ resultat.label }}</div>
+      <div class="confidence">Confiance: {{ resultat.confidence }}%</div>
+      <div class="recommandation">
+        <strong>💊 Recommandation :</strong> {{ resultat.recommandation }}
+      </div>
+    </div>
+
+    <!-- Erreur -->
+    <div *ngIf="errorMessage" class="error">
+      <i class="bi bi-exclamation-triangle"></i> {{ errorMessage }}
+    </div>
+  </div>
+</div>
