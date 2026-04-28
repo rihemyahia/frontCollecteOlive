@@ -904,3 +904,439 @@
 .stats-item strong {
   color: #3A4A12;
 }
+/* Modal Styles - À AJOUTER dans ton fichier CSS */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+  background: #f8f9fa;
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2A5A2A;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ===== PRÉDICTION DANS LE TABLEAU ===== */
+
+/* Cellule de prédiction */
+.prediction-cell {
+  min-width: 100px;
+  text-align: center;
+  background: #FAF9F5;
+}
+
+.prediction-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.prediction-value {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #5A6E1A;
+}
+
+.prediction-bennes {
+  font-size: 0.65rem;
+  background: #F0E8D8;
+  color: #7A6845;
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.prediction-urgence {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.prediction-urgence.urgent {
+  background: #F5E0D8;
+  color: #8A2A1A;
+}
+
+.prediction-urgence.warning {
+  background: #FFF4E0;
+  color: #8A6A0A;
+}
+
+.prediction-urgence.normal {
+  background: #E8F5E0;
+  color: #4A7A2A;
+}
+
+/* Bouton Détails */
+.btn-ia-detail {
+  background: #F0E8D8;
+  color: #7A6845;
+  border: 1px solid #E0D8C8;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-family: inherit;
+}
+
+.btn-ia-detail:hover {
+  background: #A8B84B;
+  color: white;
+  border-color: #A8B84B;
+  transform: translateY(-2px);
+}
+
+.prediction-loading, .prediction-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.65rem;
+  color: #B0A890;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #E0D8C8;
+  border-top-color: #A8B84B;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 4px;
+}
+
+/* ===== MODAL PRÉDICTION ===== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(44, 42, 26, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #FFFFF8;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(44, 42, 26, 0.25);
+  border: 1px solid rgba(168, 184, 75, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #EDE8D2;
+  background: linear-gradient(135deg, #FAF9F5 0%, #F5F0E0 100%);
+  border-radius: 24px 24px 0 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #5A6E1A;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #B0A890;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #8A2A1A;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #EDE8D2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #FAF9F5;
+  border-radius: 0 0 24px 24px;
+}
+
+/* ===== PRÉDICTION DÉTAIL DANS MODAL ===== */
+
+.prediction-detail-card {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+/* Rendement prédit */
+.detail-rendement {
+  margin-bottom: 1.2rem;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #F9FCF5 0%, #F0F5E8 100%);
+  border-radius: 16px;
+  border: 1px solid #E0E8D0;
+}
+
+.detail-rendement .label {
+  display: block;
+  font-size: 0.65rem;
+  color: #A0A880;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.3rem;
+}
+
+.detail-rendement .value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #5A6E1A;
+  line-height: 1;
+}
+
+.detail-rendement .sub {
+  display: block;
+  font-size: 0.65rem;
+  color: #B0A890;
+  margin-top: 0.2rem;
+}
+
+/* Cartes statistiques */
+.detail-stats {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0.8rem;
+  background: #F5F2EA;
+  border-radius: 16px;
+  border: 1px solid #E8E0D0;
+}
+
+.detail-stats .stat {
+  text-align: center;
+  min-width: 60px;
+  padding: 0.3rem;
+}
+
+.detail-stats .stat i {
+  font-size: 1.2rem;
+  color: #A8B84B;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.detail-stats .stat span {
+  font-size: 0.65rem;
+  color: #7A6845;
+  font-weight: 500;
+}
+
+/* Urgence */
+.detail-urgence {
+  padding: 0.7rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.detail-urgence.urgent {
+  background: #F5E8E4;
+  border-left: 4px solid #8A2A1A;
+}
+
+.detail-urgence.warning {
+  background: #FFF4E8;
+  border-left: 4px solid #C8A030;
+}
+
+.detail-urgence.normal {
+  background: #E8F0E4;
+  border-left: 4px solid #4A7A2A;
+}
+
+.detail-urgence span:first-child {
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  display: block;
+  color: #5A5A48;
+}
+
+.detail-urgence span:last-child {
+  font-size: 0.75rem;
+  color: #7A6845;
+}
+
+/* Météo */
+.detail-meteo {
+  padding: 0.6rem;
+  background: #E8ECD8;
+  border-radius: 10px;
+  margin: 1rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #7A6845;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.detail-meteo i {
+  font-size: 0.9rem;
+  color: #A8B84B;
+}
+
+/* Info confiance */
+.detail-info {
+  text-align: center;
+  font-size: 0.6rem;
+  color: #C0B8A0;
+  margin-top: 0.8rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #E8E0D0;
+}
+
+/* ===== BOUTONS MODAL ===== */
+.btn-primary {
+  background: #A8B84B;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #8A9A3A;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #E8E0D0;
+  color: #7A6845;
+  border: 1px solid #D8D0C0;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #D8D0C0;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animation spin */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

@@ -14,7 +14,10 @@ export class VergerService {
   creer(req: VergerRequest): Observable<VergerResponse> {
     return this.http.post<VergerResponse>(this.API, req);
   }
-
+// Ajoute cette méthode dans la classe VergerService
+getCollectesByVerger(vergerId: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.API}/${vergerId}/collectes`);
+}
   // All roles (agriculteur sees own check done in controller)
   getById(id: string): Observable<VergerResponse> {
     return this.http.get<VergerResponse>(`${this.API}/${id}`);

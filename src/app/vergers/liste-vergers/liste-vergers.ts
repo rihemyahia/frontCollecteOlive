@@ -10,7 +10,7 @@ import { VergerResponse } from '../../models/verger';
 import { StatutVerger } from '../../models/enums/statut-verger';
 import { StatutVergerLabelPipe } from '../../shared/pipes/statut-verger-label-pipe';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
-
+import { HttpClient } from '@angular/common/http';
 @Component({
   selector: 'app-liste-vergers',
   standalone: true,
@@ -37,12 +37,16 @@ export class ListeVergersComponent implements OnInit {
   predictions: Map<string, any> = new Map();
   isLoadingPredictions = false;
 
-  // 🔥 NOUVEAU : Variables pour le modal de prédiction détaillée
+  // Variables pour le modal de prédiction détaillée
   selectedPrediction: any = null;
   selectedVergerId: string = '';
   selectedVergerNom: string = '';
   showPredictionModal: boolean = false;
   isLoadingPrediction: boolean = false;
+
+  // 🔥 NOUVEAU : Historique des collectes
+  historiqueCollectes: Map<string, any[]> = new Map();
+  isLoadingHistorique: boolean = false;
 
   isSidebarCollapsed = false;
   isMobile = false;
@@ -53,7 +57,8 @@ export class ListeVergersComponent implements OnInit {
     private aiPredictionService: AIPredictionService,
     public router: Router,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private http: HttpClient
   ) {}
 
   @HostListener('window:resize')
@@ -91,6 +96,7 @@ export class ListeVergersComponent implements OnInit {
         this.applyFilter();
         this.isLoading = false;
         this.cdr.detectChanges();
+        this.loadPredictions();
       },
       error: () => {
         this.errorMessage = 'Erreur lors du chargement.';
@@ -98,6 +104,150 @@ export class ListeVergersComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  loadPredictions(): void {
+    this.isLoadingPredictions = true;
+    this.aiPredictionService.getToutesPredictions().subscribe({
+      next: (data) => {
+        this.predictions.clear();
+        data.forEach(pred => {
+          this.predictions.set(pred.vergerId, pred);
+        });
+        this.isLoadingPredictions = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement prédictions:', err);
+        this.isLoadingPredictions = false;
+      }
+    });
+  }
+
+  getPrediction(vergerId: string): any {
+    return this.predictions.get(vergerId);
+  }
+
+  // 🔥 Modifie cette méthode
+loadHistoriqueCollectes(vergerId: string): void {
+  this.isLoadingHistorique = true;
+
+  // Utilise l'API collecte au lieu de verger/collectes
+  // Assure-toi que l'URL correspond à ton backend
+  const url = `http://localhost:8080/api/collectes/verger/${vergerId}`;
+
+  this.http.get<any[]>(url, {
+    headers: this.authService.getAuthHeaders()
+  }).subscribe({
+    next: (data) => {
+      this.historiqueCollectes.set(vergerId, data);
+      this.isLoadingHistorique = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Erreur chargement historique:', err);
+      this.isLoadingHistorique = false;
+    }
+  });
+}
+
+  // 🔥 Ouvrir le modal de prédiction détaillée avec historique
+  voirPrediction(vergerId: string, vergerNom: string): void {
+    this.selectedVergerId = vergerId;
+    this.selectedVergerNom = vergerNom;
+    this.showPredictionModal = true;
+    this.isLoadingPrediction = true;
+
+    // Charger la prédiction IA
+    this.aiPredictionService.getPredictionByVerger(vergerId).subscribe({
+      next: (data) => {
+        this.selectedPrediction = data;
+        this.isLoadingPrediction = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement prédiction:', err);
+        this.isLoadingPrediction = false;
+      }
+    });
+
+    // 🔥 Charger l'historique des collectes
+    this.loadHistoriqueCollectes(vergerId);
+  }
+
+  // 🔥 Fermer le modal
+  closeModal(): void {
+    this.showPredictionModal = false;
+    this.selectedPrediction = null;
+  }
+
+  // 🔥 Rafraîchir la prédiction
+  refreshPrediction(): void {
+    this.isLoadingPrediction = true;
+    this.aiPredictionService.getPredictionByVerger(this.selectedVergerId).subscribe({
+      next: (data) => {
+        this.selectedPrediction = data;
+        this.predictions.set(this.selectedVergerId, data);
+        this.isLoadingPrediction = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur actualisation:', err);
+        this.isLoadingPrediction = false;
+      }
+    });
+  }
+
+  // 🔥 Calculer la moyenne historique
+  getMoyenneHistorique(vergerId: string): number {
+    const collectes = this.historiqueCollectes.get(vergerId) || [];
+    if (collectes.length === 0) return 0;
+    const total = collectes.reduce((sum, c) => sum + (c.quantiteTotaleKg || 0), 0);
+    return total / collectes.length;
+  }
+
+  // 🔥 Trouver la meilleure année
+  getMeilleureAnnee(vergerId: string): number {
+    const collectes = this.historiqueCollectes.get(vergerId) || [];
+    if (collectes.length === 0) return 0;
+    return Math.max(...collectes.map(c => c.quantiteTotaleKg || 0));
+  }
+
+  // 🔥 Calculer la tendance
+  getTendance(vergerId: string): string {
+    const collectes = this.historiqueCollectes.get(vergerId) || [];
+    if (collectes.length < 2) return 'stable';
+
+    const sorted = [...collectes].sort((a, b) => {
+      const anneeA = parseInt(a.annee);
+      const anneeB = parseInt(b.annee);
+      return anneeA - anneeB;
+    });
+
+    const dernier = sorted[sorted.length - 1]?.quantiteTotaleKg || 0;
+    const avantDernier = sorted[sorted.length - 2]?.quantiteTotaleKg || 0;
+
+    if (dernier > avantDernier * 1.1) return 'up';
+    if (dernier < avantDernier * 0.9) return 'down';
+    return 'stable';
+  }
+
+  getTendanceTexte(vergerId: string): string {
+    const tendance = this.getTendance(vergerId);
+    switch(tendance) {
+      case 'up': return '📈 En hausse';
+      case 'down': return '📉 En baisse';
+      default: return '➡️ Stable';
+    }
+  }
+
+  getTendanceClass(vergerId: string): string {
+    const tendance = this.getTendance(vergerId);
+    switch(tendance) {
+      case 'up': return 'tendance-up';
+      case 'down': return 'tendance-down';
+      default: return 'tendance-stable';
+    }
   }
 
   applyFilter(): void {

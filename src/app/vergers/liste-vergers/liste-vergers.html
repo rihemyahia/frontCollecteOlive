@@ -97,7 +97,9 @@
                     <th>Localisation</th>
                     <th>Maturité</th>
                     <th>Rendement</th>
-                    <th>Statut</th>
+                                        <th>Statut</th>
+                    <th>Prediction</th>
+
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -146,6 +148,32 @@
                         {{ getStatutLabel(v.statut) }}
                       </span>
                     </td>
+ <td class="prediction-cell">
+      <div class="prediction-container" *ngIf="getPrediction(v.id) as pred">
+        <div class="prediction-value">
+          {{ pred.rendementPredictedKg | number }} kg
+        </div>
+        <div class="prediction-bennes">
+           {{ pred.nbBennesNecessaires }} bennes
+        </div>
+        <div class="prediction-urgence" [ngClass]="pred.urgence === 'ELEVEE' ? 'urgent' : pred.urgence === 'MOYENNE' ? 'warning' : 'normal'">
+          {{ pred.urgence }}
+        </div>
+        <div class="prediction-actions">
+          <button class="btn-ia-detail" (click)="voirPrediction(v.id, v.typeOlive)">
+  Détails
+</button>
+        </div>
+      </div>
+      <div class="prediction-loading" *ngIf="!getPrediction(v.id) && !isLoadingPredictions">
+        <div class="spinner-small"></div>
+        <span>IA analyse...</span>
+      </div>
+      <div class="prediction-empty" *ngIf="!getPrediction(v.id) && isLoadingPredictions">
+        <span>Chargement...</span>
+      </div>
+    </td>
+
                     <td class="actions-cell">
                       <div class="action-buttons">
                         <button type="button" class="btn-icon btn-modifier"
@@ -209,5 +237,135 @@
         </div>
       </div>
     </div>
+    <!-- Modal Prédiction IA -->
+<!-- Modal Prédiction IA -->
+<div class="modal-overlay" *ngIf="showPredictionModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🤖 Prédiction  - {{ selectedVergerNom }}</h3>
+      <button class="modal-close" (click)="closeModal()">×</button>
+    </div>
+
+    <!-- État chargement -->
+    <div class="modal-body" *ngIf="isLoadingPrediction && !selectedPrediction">
+      <div class="loading-prediction">
+        <div class="spinner"></div>
+        <p>Analyse  en cours...</p>
+      </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="modal-body" *ngIf="!isLoadingPrediction && selectedPrediction">
+
+      <!-- ===== PARTIE PRÉDICTION ===== -->
+      <div class="prediction-detail-card">
+        <div class="detail-rendement">
+          <span class="label"> Rendement prédit pour cette saison</span>
+          <span class="value">{{ selectedPrediction.rendementPredictedKg | number }} kg</span>
+          <span class="sub">({{ selectedPrediction.rendementPredictedKg / 1000 | number }} tonnes)</span>
+        </div>
+
+        <div class="detail-stats">
+          <div class="stat">
+            <i class="bi bi-tree"></i>
+            <span>{{ selectedPrediction.nbArbres }} arbres</span>
+          </div>
+          <div class="stat">
+            <i class="bi bi-truck"></i>
+            <span>{{ selectedPrediction.nbBennesNecessaires }} bennes</span>
+          </div>
+          <div class="stat">
+            <i class="bi bi-droplet"></i>
+            <span>{{ selectedPrediction.precipitationsUtilisees | number:'1.0-0' }} mm</span>
+          </div>
+          <div class="stat">
+            <i class="bi bi-thermometer-half"></i>
+            <span>{{ selectedPrediction.temperatureUtilisee | number:'1.0-1' }} °C</span>
+          </div>
+        </div>
+
+        <div class="detail-urgence" [ngClass]="selectedPrediction.urgence === 'ELEVEE' ? 'urgent' : selectedPrediction.urgence === 'MOYENNE' ? 'warning' : 'normal'">
+          <span><strong>⚠️ Urgence:</strong> {{ selectedPrediction.urgence }}</span>
+          <span>{{ selectedPrediction.recommandation }}</span>
+        </div>
+
+        <div class="detail-meteo">
+          <i class="bi bi-cloud-sun"></i>
+          <span>{{ selectedPrediction.recommandationMeteo }}</span>
+        </div>
+
+        <div class="detail-info">
+          <small> Confiance: {{ selectedPrediction.niveauConfiance }}</small>
+        </div>
+      </div>
+
+      <!-- ===== HISTORIQUE DES ANNÉES PRÉCÉDENTES ===== -->
+      <div class="historique-section">
+        <h4> Historique des collectes</h4>
+
+        <div class="historique-loading" *ngIf="isLoadingHistorique">
+          <div class="spinner-small"></div>
+          <span>Chargement de l'historique...</span>
+        </div>
+
+        <div class="historique-list" *ngIf="!isLoadingHistorique">
+          <div class="historique-item" *ngFor="let collecte of (historiqueCollectes.get(selectedVergerId) || [])">
+            <div class="historique-annee">
+              <strong> {{ collecte.annee }}</strong>
+              <span class="historique-statut" [ngClass]="collecte.statut === 'TERMINEE' ? 'status-completed' : 'status-pending'">
+                {{ collecte.statut }}
+              </span>
+            </div>
+            <div class="historique-details">
+              <span class="historique-quantite">{{ collecte.quantiteTotaleKg | number }} kg</span>
+              <span class="historique-rendement">{{ collecte.rendementMoyenParArbre | number:'1.0-1' }} kg/arbre</span>
+              <span class="historique-tournees"> {{ collecte.nbreTournees }} tournées</span>
+            </div>
+            <div *ngIf="collecte.precipitations" class="historique-meteo">
+              <i class="bi bi-droplet"></i> {{ collecte.precipitations }} mm |
+              <i class="bi bi-thermometer-half"></i> {{ collecte.temperature }} °C
+            </div>
+          </div>
+
+          <div class="historique-empty" *ngIf="(historiqueCollectes.get(selectedVergerId) || []).length === 0">
+            <i class="bi bi-calendar-x"></i>
+            <span>Aucune collecte historique trouvée pour ce verger</span>
+            <small>Ajoutez des collectes pour voir l'évolution</small>
+          </div>
+        </div>
+
+        <!-- Résumé statistique -->
+        <div class="historique-summary" *ngIf="!isLoadingHistorique && (historiqueCollectes.get(selectedVergerId) || []).length > 0">
+          <div class="summary-item">
+            <span class="summary-label"> Moyenne</span>
+            <span class="summary-value">{{ getMoyenneHistorique(selectedVergerId) | number }} kg</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label"> Meilleure année</span>
+            <span class="summary-value">{{ getMeilleureAnnee(selectedVergerId) | number }} kg</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Tendance</span>
+            <span class="summary-value" [ngClass]="getTendanceClass(selectedVergerId)">
+              {{ getTendanceTexte(selectedVergerId) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer du modal -->
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">
+        <i class="bi bi-x-circle"></i> Fermer
+      </button>
+      <button class="btn-primary" (click)="refreshPrediction()" [disabled]="isLoadingPrediction">
+        <i class="bi bi-arrow-repeat" [ngClass]="{'spin': isLoadingPrediction}"></i>
+        {{ isLoadingPrediction ? 'Actualisation...' : 'Rafraîchir' }}
+      </button>
+    </div>
+  </div>
+</div>
   </main>
 </div>
