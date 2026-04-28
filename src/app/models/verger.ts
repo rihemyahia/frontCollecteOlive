@@ -9,6 +9,7 @@ export interface VergerRequest {
   rendementEstime: number;
   maturiteActuelle: number;
   statut?: StatutVerger;
+  statutOverrideReason?: string;
   latitude?: number;
   longitude?: number;
   adresseIndicative?: string;
@@ -29,6 +30,11 @@ export interface VergerResponse {
   rendementEstime: number;
   maturiteActuelle: number;
   statut: StatutVerger;
+  statutSource?: 'COMPUTED' | 'OVERRIDE' | string;
+  statutOverride?: StatutVerger;
+  statutOverrideReason?: string;
+  statutOverrideByUserId?: string;
+  statutOverrideAt?: Date;
   dateDerniereRecolte?: Date;
   estSupprimer: boolean;
   dateCreation: Date;

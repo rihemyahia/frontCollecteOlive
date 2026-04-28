@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
+import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashboard';
+import { ResponsableDashboardComponent } from './dashboard/responsable-dashboard/responsable-dashboard';
+import { AgriculteurDashboardComponent } from './dashboard/agriculteur-dashboard/agriculteur-dashboard';
 import { ListeUtilisateurs } from './utilisateurs/liste-utilisateurs/liste-utilisateurs';
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
@@ -35,26 +38,38 @@ export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
 
-  // Dashboard
+  // ── Dashboard router (redirects by role) ──────────────────────────────────
   { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard] },
 
-  // Calendrier
+  // ── Role-specific dashboards ──────────────────────────────────────────────
+  {
+    path: 'admin/dashboard',
+    component: AdminDashboardComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN'] }
+  },
+  {
+    path: 'responsable/dashboard',
+    component: ResponsableDashboardComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE'] }
+  },
+  {
+    path: 'agriculteur/dashboard',
+    component: AgriculteurDashboardComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['AGRICULTEUR'] }
+  },
+
+  // ── Calendrier ────────────────────────────────────────────────────────────
   {
     path: 'calendrier',
     component: CalendrierComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] }
   },
-   {
-    path: 'utilisateurs/modifier/:id',
-    component: ModifierUtilisateur,
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['ADMIN'] }
-  },
 
-  // Routes Agriculteurs
-
-  // Routes Utilisateurs
+  // ── Utilisateurs ──────────────────────────────────────────────────────────
   {
     path: 'utilisateurs',
     component: ListeUtilisateurs,
@@ -67,8 +82,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['ADMIN'] }
   },
+  {
+    path: 'utilisateurs/modifier/:id',
+    component: ModifierUtilisateur,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN'] }
+  },
 
-  // Routes Tournées
+  // ── Tournées ──────────────────────────────────────────────────────────────
   {
     path: 'tournees',
     component: TourneeListComponent,
@@ -88,7 +109,7 @@ export const routes: Routes = [
     data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
 
-  // COLLECTES ROUTES
+  // ── Collectes ─────────────────────────────────────────────────────────────
   {
     path: 'collectes',
     component: CollecteListComponent,
@@ -102,7 +123,7 @@ export const routes: Routes = [
     data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
 
-  // Routes Ressources (Bennes)
+  // ── Ressources — Bennes ───────────────────────────────────────────────────
   {
     path: 'ressources/bennes',
     component: ListeBennesComponent,
@@ -122,7 +143,7 @@ export const routes: Routes = [
     data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
 
-  // Routes Ressources (Tracteurs)
+  // ── Ressources — Tracteurs ────────────────────────────────────────────────
   {
     path: 'ressources/tracteurs',
     component: ListeTracteursComponent,
@@ -150,7 +171,7 @@ export const routes: Routes = [
     data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
 
-  // Profile Routes
+  // ── Profile ───────────────────────────────────────────────────────────────
   {
     path: 'profile',
     component: ProfilComponent,
@@ -162,19 +183,29 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
+  // ── Vergers ───────────────────────────────────────────────────────────────
   {
     path: 'mes-vergers',
     component: MesVergersComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['AGRICULTEUR'] }
   },
+  {
+    path: 'vergers',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] },
+    children: [
+      { path: '', component: ListeVergersComponent },
+      { path: 'creer', component: CreerVergerComponent },
+      { path: 'modifier/:id', component: ModifierVergerComponent }
+    ]
+  },
 
-  // Alertes
+  // ── Alertes ───────────────────────────────────────────────────────────────
   {
     path: 'alertes',
     canActivate: [AuthGuard],
     children: [
-      // Farmer alerts
       {
         path: 'mes-alertes',
         component: MesAlertesComponent,
@@ -185,7 +216,6 @@ export const routes: Routes = [
         component: CreeAlerte,
         data: { role: ['AGRICULTEUR'] }
       },
-      // Admin/Responsable alert management
       {
         path: 'gestion',
         component: GestionAlertesComponent,
@@ -209,16 +239,7 @@ export const routes: Routes = [
     path: 'cree-alerte',
     component: CreeAlerte
   },
-  {
-    path: 'vergers',
-    canActivate: [AuthGuard, roleGuard],
-    data: { role: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR'] },
-    children: [
-      { path: '', component: ListeVergersComponent },
-      { path: 'creer', component: CreerVergerComponent },
-      { path: 'modifier/:id', component: ModifierVergerComponent }
-    ]
-  },
-  // Default redirect - MUST BE LAST
+
+  // ── Catch-all ─────────────────────────────────────────────────────────────
   { path: '**', redirectTo: '/login' }
 ];

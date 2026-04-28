@@ -94,13 +94,13 @@ export class UtilisateurService {
     });
   }
 
-  // Admin: update responsable + managed vergers
-  adminUpdateResponsable(id: string, body: { managedVergerIds?: string[]; replaceManagedVergers?: boolean } & Partial<Utilisateur>): Observable<Utilisateur> {
+  // Admin: update responsable fields
+  adminUpdateResponsable(id: string, body: Partial<Utilisateur>): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/responsables/${id}`, body, { headers: this.getHeaders() });
   }
 
-  // Admin: update agriculteur + owned vergers
-  adminUpdateAgriculteur(id: string, body: { ownedVergerIds?: string[]; replaceOwnedVergers?: boolean } & Partial<Utilisateur>): Observable<Utilisateur> {
+  // Admin: update agriculteur fields
+  adminUpdateAgriculteur(id: string, body: Partial<Utilisateur>): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.apiUrl}/admin/agriculteurs/${id}`, body, { headers: this.getHeaders() });
   }
 
@@ -157,12 +157,20 @@ export class UtilisateurService {
 
   // ========== PHOTO DE PROFIL ==========
 
-  updateMyPhoto(photoBase64: string): Observable<any> {
-    return this.http.put('http://localhost:8080/api/profile/photo',
-      { photoProfile: photoBase64 },
-      { headers: this.getHeaders() }
-    );
-  }
+  updateMyPhoto(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return this.http.put(
+    'http://localhost:8080/api/profile/photo',
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    }
+  );
+}
 
   updateUserPhoto(id: string, photoBase64: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/admin/utilisateurs/${id}/photo`,

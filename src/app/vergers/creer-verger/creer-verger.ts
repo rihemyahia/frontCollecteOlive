@@ -29,7 +29,6 @@ export class CreerVergerComponent implements OnInit {
   userRole = '';
   isAdmin = false;
 
-  statuts = Object.values(StatutVerger);
   typesOlive = ['Chemlali', 'Chétoui', 'Picholine', 'Arbequina', 'Koroneiki', 'Sigoise', 'Lucques'];
 
   agriculteurs: Agriculteur[] = [];
@@ -88,7 +87,6 @@ export class CreerVergerComponent implements OnInit {
       nbArbre:          [null, [Validators.required, Validators.min(1)]],
       rendementEstime:  [null, [Validators.required, Validators.min(0)]],
       maturiteActuelle: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
-      statut:           [StatutVerger.NON_RECOLTE],
       latitude:         [null],
       longitude:        [null],
       adresseIndicative: ['']
@@ -128,12 +126,6 @@ export class CreerVergerComponent implements OnInit {
     if (val < 40) return '#E8A838';
     if (val < 75) return '#A8B84B';
     return '#4A7A2A';
-  }
-
-  getStatutLabel(s: string): string {
-    if (s === 'NON_RECOLTE') return 'Non récolté';
-    if (s === 'EN_COURS') return 'En cours';
-    return 'Récolté';
   }
 
   // ====================== SOUMISSION ======================
@@ -216,7 +208,7 @@ export class CreerVergerComponent implements OnInit {
   }
 
   onReset(): void {
-    this.vergerForm.reset({ statut: StatutVerger.NON_RECOLTE });
+    this.vergerForm.reset();
     this.selectedLat = null;
     this.selectedLng = null;
     this.selectedAddress = '';

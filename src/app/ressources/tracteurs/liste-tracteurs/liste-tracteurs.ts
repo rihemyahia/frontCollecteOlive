@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TracteurService } from '../../../services/tracteur';
-
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { SideBarResponsable } from '../../../sidebar-responsable/sidebar-responsable';
@@ -20,15 +19,22 @@ import { Tracteur } from '../../../models/Tracteur';
 export class ListeTracteursComponent implements OnInit {
   tracteurs: Tracteur[] = [];
   filteredTracteurs: Tracteur[] = [];
+  paginatedTracteurs: Tracteur[] = [];
   isLoading = true;
   errorMessage = '';
   successMessage = '';
   selectedStatut: string = 'TOUS';
   deleteConfirmId: string | null = null;
+  searchQuery: string = '';
 
   isSidebarCollapsed = false;
   isMobile = false;
   userRole: string = '';
+
+  // Pagination
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
+  totalPages: number = 1;
 
   statuts: string[] = ['TOUS', 'DISPONIBLE', 'EN_USE', 'MAINTENANCE', 'HORS_SERVICE'];
 
@@ -88,31 +94,55 @@ export class ListeTracteursComponent implements OnInit {
   }
 
   applyFilters(): void {
-    if (this.selectedStatut === 'TOUS') {
-      this.filteredTracteurs = [...this.tracteurs];
-    } else {
-      this.filteredTracteurs = this.tracteurs.filter(tracteur => tracteur.statut === this.selectedStatut);
+    let filtered = [...this.tracteurs];
+
+    // Filter by status
+    if (this.selectedStatut !== 'TOUS') {
+      filtered = filtered.filter(tracteur => tracteur.statut === this.selectedStatut);
     }
+
+    // Filter by search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      const query = this.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(tracteur =>
+        tracteur.nom?.toLowerCase().includes(query) ||
+        tracteur.immatriculation?.toLowerCase().includes(query)
+      );
+    }
+
+    this.filteredTracteurs = filtered;
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredTracteurs.length / this.itemsPerPage);
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedTracteurs = this.filteredTracteurs.slice(startIndex, endIndex);
   }
 
   onFilterChange(): void {
     this.applyFilters();
   }
 
-  updateKilometrage(id: string): void {
-    const kilometrage = prompt('Entrez le nouveau kilométrage:');
-    if (kilometrage && !isNaN(Number(kilometrage))) {
-      this.tracteurService.updateKilometrage(id, Number(kilometrage)).subscribe({
-        next: () => {
-          this.loadTracteurs();
-          this.successMessage = 'Kilométrage mis à jour';
-          setTimeout(() => { this.successMessage = ''; }, 3000);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorMessage = err.message || 'Erreur lors de la mise à jour du kilométrage';
-          setTimeout(() => { this.errorMessage = ''; }, 3000);
-        }
-      });
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.selectedStatut = 'TOUS';
+    this.applyFilters();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
     }
   }
 
@@ -127,12 +157,16 @@ export class ListeTracteursComponent implements OnInit {
           this.successMessage = 'Tracteur supprimé avec succès';
           this.deleteConfirmId = null;
           this.loadTracteurs();
-          setTimeout(() => { this.successMessage = ''; }, 3000);
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = err.message || 'Erreur lors de la suppression';
           this.deleteConfirmId = null;
-          setTimeout(() => { this.errorMessage = ''; }, 3000);
+          setTimeout(() => {
+            this.errorMessage = '';
+          }, 3000);
         }
       });
     }
@@ -150,45 +184,14 @@ export class ListeTracteursComponent implements OnInit {
     this.router.navigate([`/ressources/tracteurs/modifier/${id}`]);
   }
 
-  startMaintenance(id: string): void {
-    if (confirm('Mettre ce tracteur en maintenance ?')) {
-      this.tracteurService.startMaintenance(id).subscribe({
-        next: () => {
-          this.loadTracteurs();
-          this.successMessage = 'Tracteur en maintenance';
-          setTimeout(() => { this.successMessage = ''; }, 3000);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorMessage = err.message || 'Erreur lors de la mise en maintenance';
-          setTimeout(() => { this.errorMessage = ''; }, 3000);
-        }
-      });
-    }
-  }
-
-  endMaintenance(id: string): void {
-    if (confirm('Sortir ce tracteur de maintenance ?')) {
-      this.tracteurService.endMaintenance(id).subscribe({
-        next: () => {
-          this.loadTracteurs();
-          this.successMessage = 'Tracteur disponible';
-          setTimeout(() => { this.successMessage = ''; }, 3000);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorMessage = err.message || 'Erreur lors de la sortie de maintenance';
-          setTimeout(() => { this.errorMessage = ''; }, 3000);
-        }
-      });
-    }
-  }
-
+  // Same as bennes list - using bg-success, bg-warning, bg-danger, bg-secondary classes
   getStatutClass(statut: string): string {
     switch(statut) {
-      case 'DISPONIBLE': return 'statut-disponible';
-      case 'EN_USE': return 'statut-en-usage';
-      case 'MAINTENANCE': return 'statut-maintenance';
-      case 'HORS_SERVICE': return 'statut-hors-service';
-      default: return '';
+      case 'DISPONIBLE': return 'bg-success';
+      case 'EN_USE': return 'bg-warning text-dark';
+      case 'MAINTENANCE': return 'bg-danger';
+      case 'HORS_SERVICE': return 'bg-secondary';
+      default: return 'bg-secondary';
     }
   }
 

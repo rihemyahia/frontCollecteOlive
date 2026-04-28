@@ -26,7 +26,7 @@ interface UserProfile {
   styleUrls: ['./profile.css']
 })
 export class ProfilComponent implements OnInit {
-
+selectedFile: File | null = null;
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = '';
@@ -125,40 +125,47 @@ export class ProfilComponent implements OnInit {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.photoPreview = reader.result as string; // data:image/...;base64,...
-      this.errorMessage = '';
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+    this.photoPreview = URL.createObjectURL(file);
+this.selectedFile = file;
+this.errorMessage = '';
+this.cdr.detectChanges();
   }
 
   /** Sends the pending photo preview to the backend and persists it. */
   savePhoto(): void {
-    if (!this.photoPreview) return;
+  if (!this.selectedFile) return;
 
-    this.isUploadingPhoto = true;
-    this.errorMessage = '';
+  this.isUploadingPhoto = true;
+  this.errorMessage = '';
 
-    this.utilisateurService.updateMyPhoto(this.photoPreview).subscribe({
-      next: (res: any) => {
-        this.profile.photoProfile = this.photoPreview!;
-        this.photoPreview = null; // Clear pending preview
-        this.isUploadingPhoto = false;
-        this.successMessage = 'Photo de profil mise à jour ✅';
-        this.updateLocalStorage(); // Persist in localStorage too
-        setTimeout(() => this.successMessage = '', 3000);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('❌ Photo upload error:', err);
-        this.errorMessage = 'Erreur lors de l\'enregistrement de la photo';
-        this.isUploadingPhoto = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
+  this.utilisateurService.updateMyPhoto(this.selectedFile).subscribe({
+    next: (res: any) => {
+      // backend returns Cloudinary URL
+      this.profile.photoProfile = res.photoProfile;
+
+      this.photoPreview = null;
+      this.selectedFile = null;
+
+      this.isUploadingPhoto = false;
+      this.successMessage = 'Photo de profil mise à jour ✅';
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      user.photoProfile = res.photoProfile;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+
+      // Notify components in the same tab (storage event won't fire there)
+      window.dispatchEvent(new Event('profile-updated'));
+
+      setTimeout(() => this.successMessage = '', 3000);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('❌ Photo upload error:', err);
+      this.errorMessage = 'Erreur lors de l\'upload Cloudinary';
+      this.isUploadingPhoto = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   /** Cancels pending photo preview without saving. */
   cancelPhotoPreview(): void {
@@ -213,6 +220,7 @@ export class ProfilComponent implements OnInit {
           photoProfile: this.profile.photoProfile
         });
         localStorage.setItem('currentUser', JSON.stringify(user));
+        window.dispatchEvent(new Event('profile-updated'));
       } catch (e) {}
     }
   }

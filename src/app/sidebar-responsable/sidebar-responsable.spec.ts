@@ -36,7 +36,8 @@ export class SideBarResponsable implements OnInit {
     nom: '',
     role: '',
     email: '',
-    avatar: ''
+    avatar: '',
+    photo : null
   };
 
   menuItems: MenuItem[] = [
@@ -169,6 +170,8 @@ export class SideBarResponsable implements OnInit {
           nom: user.nom || '',
           role: user.role?.toUpperCase() || this.userRole,
           email: user.email || '',
+          photo: user.photoProfile || null, // image from backend
+
           avatar: user.prenom ? user.prenom.charAt(0).toUpperCase() : 'U'
         };
 

@@ -1,7 +1,7 @@
+// src/app/ressources/vergers/modifier-verger/modifier-verger.ts
 import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { VergerService } from '../../services/verger';
 import { StatutVerger } from '../../models/enums/statut-verger';
@@ -14,7 +14,7 @@ import { Utilisateur, UtilisateurService } from '../../services/utilisateur';
 @Component({
   selector: 'app-modifier-verger',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, SideBarResponsable, VergerMapComponent],
+  imports: [CommonModule, ReactiveFormsModule, SideBarResponsable, VergerMapComponent],
   templateUrl: './modifier-verger.html',
   styleUrl: './modifier-verger.css'
 })
@@ -43,8 +43,7 @@ export class ModifierVergerComponent implements OnInit {
   statuts = Object.values(StatutVerger);
   typesOlive = ['Chemlali', 'Chétoui', 'Picholine', 'Arbequina', 'Koroneiki', 'Sigoise', 'Lucques'];
 
-  showStatutPanel = false;
-  selectedNewStatut: StatutVerger = StatutVerger.NON_RECOLTE;
+  currentStatutFromDb: StatutVerger = StatutVerger.NON_RECOLTE;
 
   // Variables pour la carte
   selectedLat: number | null = null;
@@ -86,7 +85,8 @@ export class ModifierVergerComponent implements OnInit {
       nbArbre:          [null, [Validators.required, Validators.min(1)]],
       rendementEstime:  [null, [Validators.required, Validators.min(0)]],
       maturiteActuelle: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
-      statut:           [StatutVerger.NON_RECOLTE],
+      statutOverride:   [''],
+      statutOverrideReason: [''],
       latitude:         [null],
       longitude:        [null],
       adresseIndicative: ['']
@@ -121,13 +121,14 @@ export class ModifierVergerComponent implements OnInit {
           nbArbre:          v.nbArbre,
           rendementEstime:  v.rendementEstime,
           maturiteActuelle: v.maturiteActuelle,
-          statut:           v.statut,
+          statutOverride:   '',
+          statutOverrideReason: '',
           latitude:         v.geolocalisation?.latitude || null,
           longitude:        v.geolocalisation?.longitude || null,
           adresseIndicative: v.geolocalisation?.adresseIndicative || ''
         });
 
-        this.selectedNewStatut = v.statut;
+        this.currentStatutFromDb = v.statut;
 
         // Charger la position sur la carte si elle existe
         if (v.geolocalisation?.latitude && v.geolocalisation?.longitude) {
@@ -178,10 +179,14 @@ export class ModifierVergerComponent implements OnInit {
   onAgriculteurSearch(query: string): void {
     this.agriculteurSearch = query;
     const q = query.toLowerCase();
-    this.filteredAgriculteurs = q.length < 2 ? [] :
-      this.agriculteurs.filter(a =>
-        a.nom.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
-      );
+    if (q.length < 2) {
+      this.filteredAgriculteurs = [];
+      this.showDropdown = false;
+      return;
+    }
+    this.filteredAgriculteurs = this.agriculteurs.filter(a =>
+      a.nom.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
+    );
     this.showDropdown = this.filteredAgriculteurs.length > 0;
   }
 
@@ -201,6 +206,7 @@ export class ModifierVergerComponent implements OnInit {
     setTimeout(() => { this.showDropdown = false; }, 200);
   }
 
+  // ====================== VALIDATION ======================
   isInvalid(field: string): boolean {
     const ctrl = this.vergerForm.get(field);
     return !!(ctrl?.invalid && ctrl?.touched);
@@ -216,12 +222,26 @@ export class ModifierVergerComponent implements OnInit {
     return '#4A7A2A';
   }
 
-  getStatutLabel(s: string): string {
-    if (s === 'NON_RECOLTE') return 'Non récolté';
-    if (s === 'EN_COURS') return 'En cours';
-    return 'Récolté';
+  // ====================== STATUT METHODS ======================
+  getStatutClass(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'badge-warning';
+      case 'EN_COURS': return 'badge-info';
+      case 'RECOLTE': return 'badge-success';
+      default: return '';
+    }
   }
 
+  getStatutLabel(statut: string): string {
+    switch(statut) {
+      case 'NON_RECOLTE': return 'Non récolté';
+      case 'EN_COURS': return 'En cours';
+      case 'RECOLTE': return 'Récolté';
+      default: return statut;
+    }
+  }
+
+  // ====================== SOUMISSION ======================
   onSubmit(): void {
     if (this.vergerForm.invalid) {
       this.vergerForm.markAllAsTouched();
@@ -245,6 +265,21 @@ export class ModifierVergerComponent implements OnInit {
       longitude: this.selectedLng,
       adresseIndicative: this.selectedAddress
     };
+    
+    const overrideStatut = this.vergerForm.get('statutOverride')?.value as string;
+    const overrideReason = (this.vergerForm.get('statutOverrideReason')?.value || '').trim();
+    
+    if (overrideStatut) {
+      if (!overrideReason) {
+        this.errorMessage = 'La raison est obligatoire pour modifier le statut.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return;
+      }
+      (payload as any).statut = overrideStatut;
+      (payload as any).statutOverrideReason = overrideReason;
+    }
+    delete (payload as any).statutOverride;
 
     const endpoint$ = this.isAdmin
       ? this.vergerService.mettreAJourAdmin(this.vergerId, payload)
@@ -259,26 +294,6 @@ export class ModifierVergerComponent implements OnInit {
       },
       error: err => {
         this.errorMessage = err?.error?.message ?? 'Erreur lors de la mise à jour.';
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  onChangerStatut(): void {
-    if (!this.selectedNewStatut) return;
-    this.isLoading = true;
-
-    this.vergerService.changerStatut(this.vergerId, this.selectedNewStatut).subscribe({
-      next: () => {
-        this.successMessage = 'Statut mis à jour avec succès !';
-        this.isLoading = false;
-        this.showStatutPanel = false;
-        this.vergerForm.patchValue({ statut: this.selectedNewStatut });
-        this.cdr.detectChanges();
-      },
-      error: err => {
-        this.errorMessage = err?.error?.message ?? 'Erreur lors du changement de statut.';
         this.isLoading = false;
         this.cdr.detectChanges();
       }
