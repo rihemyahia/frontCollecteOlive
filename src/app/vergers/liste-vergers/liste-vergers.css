@@ -1,7 +1,82 @@
 /* ================================================
    LISTE VERGERS — Clean Performance Fix
    ================================================ */
+/* Styles pour la colonne Prédiction IA */
+.prediction-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 120px;
+}
 
+.prediction-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2A5A2A;
+}
+
+.prediction-details {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.badge-bennes {
+  background-color: #E8A838;
+  color: white;
+  padding: 0.15rem 0.4rem;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.badge-urgence {
+  padding: 0.15rem 0.4rem;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.badge-urgence.badge-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-urgence.badge-warning {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.badge-urgence.badge-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.prediction-meteo {
+  font-size: 0.65rem;
+  color: #7A6845;
+  font-style: italic;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #A8B84B;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.text-muted {
+  color: #999;
+  font-style: italic;
+  font-size: 0.8rem;
+}
 :root {
   --oh-earth-deep: #2C2A1A;
   --oh-earth-mid: #4A4228;

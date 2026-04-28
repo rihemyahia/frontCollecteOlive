@@ -29,6 +29,7 @@ import { CollecteDetailComponent } from './collecte/collecte-detail/collecte-det
 import { CreeAlerte } from './alertes/cree-alerte/cree-alerte';
 import { GestionAlertesComponent } from './alertes/gestion-alertes/gestion-alertes';
 import { ModifierAlerteComponent } from './alertes/modifier-alerte/modifier-alerte';
+import { IaPredictionDetailComponent } from './ia-prediction-detail/ia-prediction-detail/ia-prediction-detail';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -128,6 +129,14 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['RESPONSABLE', 'ADMIN'] }
   },
+
+  // Routes Ressources (Tracteurs)
+  {
+    path: 'ia/prediction/:id',
+    component: IaPredictionDetailComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE', 'ADMIN'] }
+  },
   {
     path: 'ressources/tracteurs/ajouter',
     component: AjouterTracteurComponent,
@@ -210,7 +219,6 @@ export const routes: Routes = [
       { path: 'modifier/:id', component: ModifierVergerComponent }
     ]
   },
-
   // Default redirect - MUST BE LAST
   { path: '**', redirectTo: '/login' }
 ];

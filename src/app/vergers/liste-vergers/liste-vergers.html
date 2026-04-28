@@ -116,7 +116,7 @@
                     <ng-container *ngIf="v.geolocalisation; else noLocation">
                       <span class="location-info">
                         <i class="bi bi-geo-alt-fill"></i>
-                        {{ v.geolocalisation.adresseIndicative || 
+                        {{ v.geolocalisation.adresseIndicative ||
                           (v.geolocalisation.latitude.toFixed(4) + ', ' + v.geolocalisation.longitude.toFixed(4)) }}
                       </span>
                     </ng-container>
@@ -153,6 +153,10 @@
                     <div style="display: flex; gap: 0.5rem;">
                       <button class="btn-edit" (click)="router.navigate(['/vergers/modifier', v.id])">
                         <i class="bi bi-pencil"></i> Modifier
+                      </button>
+                      <!-- 🔥 SEULEMENT CE BOUTON AJOUTÉ - Redirige vers la page de prédiction IA -->
+                      <button class="btn-ia" (click)="router.navigate(['/ia/prediction', v.id])">
+                        <i class="bi bi-robot"></i> 🤖 Détails IA
                       </button>
                       <button *ngIf="isResponsableOrAdmin()" class="btn-delete" (click)="supprimer(v.id)">
                         <i class="bi bi-trash"></i>

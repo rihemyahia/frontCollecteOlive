@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { VergerService } from '../../services/verger';
+import { AIPredictionService } from '../../services/ai-prediction';
 import { VergerResponse } from '../../models/verger';
 import { StatutVerger } from '../../models/enums/statut-verger';
 import { StatutVergerLabelPipe } from '../../shared/pipes/statut-verger-label-pipe';
@@ -25,15 +26,27 @@ export class ListeVergersComponent implements OnInit {
   errorMessage = '';
   StatutVerger = StatutVerger;
 
+  // Stocker les prédictions IA
+  predictions: Map<string, any> = new Map();
+  isLoadingPredictions = false;
+
+  // 🔥 NOUVEAU : Variables pour le modal de prédiction détaillée
+  selectedPrediction: any = null;
+  selectedVergerId: string = '';
+  selectedVergerNom: string = '';
+  showPredictionModal: boolean = false;
+  isLoadingPrediction: boolean = false;
+
   isSidebarCollapsed = false;
   isMobile = false;
   userRole: string = '';
 
   constructor(
     private vergerService: VergerService,
+    private aiPredictionService: AIPredictionService,
     public router: Router,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef   // ← ADD THIS
+    private cdr: ChangeDetectorRef
   ) {}
 
   @HostListener('window:resize')
@@ -67,15 +80,94 @@ export class ListeVergersComponent implements OnInit {
 
     obs.subscribe({
       next: data => {
-        this.vergers = [...data];          // spread forces new reference
-        this.filteredVergers = [...data];  // spread forces new reference
+        this.vergers = [...data];
+        this.filteredVergers = [...data];
         this.isLoading = false;
-        this.cdr.detectChanges();          // ← FORCE re-render
+        this.cdr.detectChanges();
+        this.loadPredictions();
       },
       error: () => {
         this.errorMessage = 'Erreur lors du chargement.';
         this.isLoading = false;
-        this.cdr.detectChanges();          // ← also here
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Charger les prédictions pour tous les vergers
+  loadPredictions(): void {
+    this.isLoadingPredictions = true;
+    this.aiPredictionService.getToutesPredictions().subscribe({
+      next: (data) => {
+        data.forEach(pred => {
+          this.predictions.set(pred.vergerId, pred);
+        });
+        this.isLoadingPredictions = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement prédictions:', err);
+        this.isLoadingPredictions = false;
+      }
+    });
+  }
+
+  // Récupérer la prédiction d'un verger
+  getPrediction(vergerId: string): any {
+    return this.predictions.get(vergerId);
+  }
+
+  // Style pour le niveau d'urgence
+  getUrgenceClass(urgence: string): string {
+    switch(urgence) {
+      case 'ELEVEE': return 'badge-danger';
+      case 'MOYENNE': return 'badge-warning';
+      default: return 'badge-info';
+    }
+  }
+
+  // 🔥 NOUVEAU : Ouvre le modal avec la prédiction détaillée
+  voirPrediction(vergerId: string, vergerNom: string): void {
+    this.selectedVergerId = vergerId;
+    this.selectedVergerNom = vergerNom;
+    this.showPredictionModal = true;
+    this.isLoadingPrediction = true;
+
+    this.aiPredictionService.getPredictionByVerger(vergerId).subscribe({
+      next: (data) => {
+        this.selectedPrediction = data;
+        this.isLoadingPrediction = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur chargement prédiction:', err);
+        this.isLoadingPrediction = false;
+      }
+    });
+  }
+
+  // 🔥 NOUVEAU : Ferme le modal
+  closeModal(): void {
+    this.showPredictionModal = false;
+    this.selectedPrediction = null;
+    this.selectedVergerId = '';
+    this.selectedVergerNom = '';
+  }
+
+  // 🔥 NOUVEAU : Rafraîchit la prédiction
+  refreshPrediction(vergerId: string): void {
+    this.isLoadingPrediction = true;
+    this.aiPredictionService.getPredictionByVerger(vergerId).subscribe({
+      next: (data) => {
+        this.selectedPrediction = data;
+        this.isLoadingPrediction = false;
+        // Mettre à jour aussi dans la Map
+        this.predictions.set(vergerId, data);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur actualisation:', err);
+        this.isLoadingPrediction = false;
       }
     });
   }
@@ -87,7 +179,7 @@ export class ListeVergersComponent implements OnInit {
       v.typeOlive.toLowerCase().includes(term) ||
       (v.statut || '').toString().toLowerCase().includes(term)
     );
-    this.cdr.detectChanges();              // ← and after filter
+    this.cdr.detectChanges();
   }
 
   private searchTimeout: any;
