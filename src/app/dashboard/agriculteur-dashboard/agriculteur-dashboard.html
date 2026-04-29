@@ -341,9 +341,9 @@
                           </div>
                         </td>
                         <td>{{ v.nbArbre | number }}</td>
-                        <td class="tournees-cell">{{ v.nbTournees }}<\/td>
-                        <td class="alert-cell" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}<\/td>
-                        <td class="production-cell">{{ formatKg(v.quantiteRecolteKg) }}<\/td>
+                        <td class="tournees-cell">{{ v.nbTournees }}</td>
+                        <td class="alert-cell" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}</td>
+                        <td class="production-cell">{{ formatKg(v.quantiteRecolteKg) }}</td>
                       </tr>
                     </tbody>
                   </table>
