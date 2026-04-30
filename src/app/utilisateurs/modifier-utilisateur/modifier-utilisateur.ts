@@ -271,8 +271,10 @@ changePassword(): void {
 
     // Load both lists in parallel (two independent calls)
     this.utilisateurService.getAvailableTourneesForTransporteurAdmin().subscribe({
-      next: (available: any[]) => {
-        const list = Array.isArray(available) ? available : [];
+      next: (response: any) => {
+        const list = Array.isArray(response)
+          ? response
+          : (response?.content || response?.tournees || []);
         // Backend already returns only PLANIFIEE + transporteur null, oldest first.
         this.availableTournees = list;
         this.availablePage = 1;
@@ -311,6 +313,28 @@ changePassword(): void {
     } else {
       this.selectedAvailableTourneeIds.add(tourneeId);
     }
+  }
+
+  toggleSelectAllAvailableOnPage(checked: boolean): void {
+    this.availablePaged.forEach((t: any) => {
+      const id = t?.id || t?._id;
+      if (!id) return;
+      if (checked) {
+        this.selectedAvailableTourneeIds.add(id);
+      } else {
+        this.selectedAvailableTourneeIds.delete(id);
+      }
+    });
+  }
+
+  clearSelection(): void {
+    this.selectedAvailableTourneeIds.clear();
+  }
+
+  areAllAvailableOnPageSelected(): boolean {
+    const ids = this.availablePaged.map((t: any) => t?.id || t?._id).filter(Boolean);
+    if (ids.length === 0) return false;
+    return ids.every((id: string) => this.selectedAvailableTourneeIds.has(id));
   }
 
   isAvailableSelected(tourneeId: string): boolean {
@@ -459,5 +483,13 @@ changePassword(): void {
   }
   prevAssignedPage(): void {
     if (this.assignedPage > 1) this.assignedPage--;
+  }
+
+  onAvailableSearchChange(): void {
+    this.availablePage = 1;
+  }
+
+  onAssignedSearchChange(): void {
+    this.assignedPage = 1;
   }
 }

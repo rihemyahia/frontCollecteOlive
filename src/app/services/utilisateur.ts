@@ -41,6 +41,13 @@ export interface ActivationDTO {
   nouveauMotDePasse: string;
 }
 
+export interface PagedTourneesResponse {
+  content: any[];
+  totalPages?: number;
+  totalElements?: number;
+  currentPage?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UtilisateurService {
   private apiUrl = 'http://localhost:8080/api/auth';
@@ -309,8 +316,8 @@ getTravailleursPourResponsable(): Observable<Utilisateur[]> {
 
   // ========== ADMIN: ASSIGN TOURNEES TO TRANSPORTEUR ==========
 
-  getAvailableTourneesForTransporteurAdmin(): Observable<any[]> {
-    return this.http.get<any[]>(
+  getAvailableTourneesForTransporteurAdmin(): Observable<PagedTourneesResponse> {
+    return this.http.get<PagedTourneesResponse>(
       `${this.adminTransporteurApiUrl}/tournees-disponibles`,
       { headers: this.getHeaders() }
     );

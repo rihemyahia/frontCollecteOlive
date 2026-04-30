@@ -156,6 +156,21 @@
               <p class="helper-line">Assignez des tournées planifiées ou retirez des tournées déjà assignées.</p>
             </div>
 
+            <div class="assignment-kpis" *ngIf="!isLoadingTournees">
+              <div class="kpi-card">
+                <span class="kpi-label">Disponibles</span>
+                <strong class="kpi-value">{{ availableFiltered.length }}</strong>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Assignées</span>
+                <strong class="kpi-value">{{ assignedFiltered.length }}</strong>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Sélection</span>
+                <strong class="kpi-value">{{ selectedAvailableTourneeIds.size }}</strong>
+              </div>
+            </div>
+
             <div *ngIf="isLoadingTournees" class="loading-container">
               <div class="spinner"></div>
               <p>Chargement des tournées...</p>
@@ -169,7 +184,10 @@
                     <h4>2) Tournées assignées</h4>
                     <span class="panel-sub">{{ assignedFiltered.length }} tournée(s)</span>
                   </div>
-                  <input class="form-control" [(ngModel)]="assignedSearch" placeholder="Rechercher (verger/agriculteur)..." />
+                  <input class="form-control"
+                         [(ngModel)]="assignedSearch"
+                         (input)="onAssignedSearchChange()"
+                         placeholder="Rechercher (verger/agriculteur)..." />
                 </div>
 
                 <div class="panel-body">
@@ -209,10 +227,26 @@
                     <h4>1) Tournées disponibles à assigner</h4>
                     <span class="panel-sub">{{ availableFiltered.length }} tournée(s)</span>
                   </div>
-                  <input class="form-control" [(ngModel)]="availableSearch" placeholder="Rechercher (verger/agriculteur)..." />
+                  <input class="form-control"
+                         [(ngModel)]="availableSearch"
+                         (input)="onAvailableSearchChange()"
+                         placeholder="Rechercher (verger/agriculteur)..." />
                 </div>
 
                 <div class="panel-actions">
+                  <label class="toggle-all">
+                    <input type="checkbox"
+                           [checked]="areAllAvailableOnPageSelected()"
+                           (change)="toggleSelectAllAvailableOnPage($any($event.target).checked)"
+                           [disabled]="isSavingTournees || availablePaged.length === 0" />
+                    <span>Tout sélectionner (page)</span>
+                  </label>
+                  <button class="btn-mini"
+                          type="button"
+                          (click)="clearSelection()"
+                          [disabled]="isSavingTournees || selectedAvailableTourneeIds.size === 0">
+                    Vider la sélection
+                  </button>
                   <button class="btn-mini btn-mini--primary"
                           (click)="assignSelectedTournees()"
                           [disabled]="isSavingTournees || selectedAvailableTourneeIds.size === 0">

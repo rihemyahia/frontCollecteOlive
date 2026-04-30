@@ -73,6 +73,20 @@ export class TourneeListComponent implements OnInit {
     private authService: AuthService
   ) {}
 
+  get isTransporteur(): boolean {
+    return this.userRole === 'TRANSPORTEUR';
+  }
+
+  get pageTitle(): string {
+    return this.isTransporteur ? 'Mes tournées' : 'Liste des tournées';
+  }
+
+  get pageSubtitle(): string {
+    return this.isTransporteur
+      ? 'Suivez vos missions du jour, démarrez et terminez rapidement chaque tournée'
+      : 'Planifiez, suivez et gérez les tournées de récolte';
+  }
+
   ngOnInit() {
     this.checkMobile();
     this.userRole = this.authService.getUserRole();
@@ -95,17 +109,17 @@ export class TourneeListComponent implements OnInit {
   loadTournees(): void {
     this.isLoading = true;
     
-    // For TRANSPORTEUR: load only assigned tournees
+    // For TRANSPORTEUR: load only current user's tournees
     // For ADMIN/RESPONSABLE: load all tournees
     const loadObservable = this.userRole === 'TRANSPORTEUR'
-      ? this.utilisateurService.getTourneesAssignedToTransporteur(this.getUserIdFromStorage())
+      ? this.utilisateurService.getMesTourneesTransporteur()
       : this.tourneeService.getAll();
 
     loadObservable.subscribe({
       next: (data: any) => {
         console.log('Tournées reçues:', data);
         // Handle both direct array and API response object
-        const tourneeArray = Array.isArray(data) ? data : (data.tournees || []);
+        const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
         this.tournees = tourneeArray.map((t: any) => ({
           ...t,
           displayVergerTypeOlive: t.vergerTypeOlive || t.verger?.typeOlive || 'N/A',
@@ -131,11 +145,6 @@ export class TourneeListComponent implements OnInit {
         console.error(err);
       }
     });
-  }
-
-  private getUserIdFromStorage(): string {
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    return user.id || '';
   }
 
   private extractAgriculteurName(agriculteur: any): string {
@@ -561,10 +570,12 @@ groupByAgriculteurAndVerger() {
 
   // ==================== NAVIGATION ====================
   navigateToCreate() {
+    if (this.isTransporteur) return;
     this.router.navigate(['/tournees/create']);
   }
 
   navigateToEdit(id: string) {
+    if (this.isTransporteur) return;
     this.router.navigate(['/tournees/edit', id]);
   }
 
@@ -627,6 +638,7 @@ groupByAgriculteurAndVerger() {
   }
 
   cancelTournee(id: string) {
+    if (this.isTransporteur) return;
     if (confirm('Annuler cette tournée ?')) {
       this.tourneeService.annuler(id).subscribe({
         next: () => {

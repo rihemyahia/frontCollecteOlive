@@ -102,7 +102,7 @@ export const routes: Routes = [
     path: 'tournees',
     component: TourneeListComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: ['ADMIN', 'RESPONSABLE'] }
+    data: { role: ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR'] }
   },
   {
     path: 'tournees/create',
@@ -114,7 +114,7 @@ export const routes: Routes = [
     path: 'tournees/:id',
     component: TourneeDetailComponent,
     canActivate: [AuthGuard, roleGuard],
-    data: { role: ['ADMIN', 'RESPONSABLE'] }
+    data: { role: ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR'] }
   },
 
   // ── Collectes ─────────────────────────────────────────────────────────────

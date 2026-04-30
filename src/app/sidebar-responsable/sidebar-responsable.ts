@@ -113,7 +113,7 @@ export class SideBarResponsable implements OnInit {
       id: 'mes-tournees-transporteur',
       label: 'Mes tournées',
       icon: 'map-pin',
-      route: '/transporteur/dashboard',
+      route: '/tournees',
       roles: ['TRANSPORTEUR']
     },
     // Collectes

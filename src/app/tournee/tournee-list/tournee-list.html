@@ -35,12 +35,12 @@
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
-                <h2 class="oh-header__title">Liste des tournées</h2>
-                <p class="header-subtitle">Planifiez, suivez et gérez les tournées de récolte</p>
+                <h2 class="oh-header__title">{{ pageTitle }}</h2>
+                <p class="header-subtitle">{{ pageSubtitle }}</p>
               </div>
             </div>
             <div class="oh-header__right">
-              <button class="btn-add" (click)="navigateToCreate()">
+              <button *ngIf="!isTransporteur" class="btn-add" (click)="navigateToCreate()">
                 <i class="bi bi-plus-lg"></i>
                 Nouvelle tournée
               </button>
@@ -49,6 +49,30 @@
         </div>
 
         <div class="oh-card__body">
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-icon">🗓️</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ totalTournees }}</span>
+                <span class="stat-label">{{ isTransporteur ? 'Mes tournées' : 'Tournées' }}</span>
+              </div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon">🌿</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ totalVergers }}</span>
+                <span class="stat-label">Vergers concernés</span>
+              </div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ livraisonSummary.livree }}</span>
+                <span class="stat-label">Tournées livrées</span>
+              </div>
+            </article>
+          </div>
+
           <!-- Filters -->
           <div class="search-actions">
             <div class="filter-group">
@@ -145,11 +169,11 @@
                               (click)="openCompleteModal(t)" title="Terminer">
                         <i class="bi bi-check-lg"></i>
                       </button>
-                      <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-edit"
+                      <button *ngIf="!isTransporteur && t.statut === 'PLANIFIEE'" class="btn-edit"
                               (click)="navigateToEdit(t.id || t._id)" title="Modifier">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button *ngIf="t.statut !== 'LIVREE'" class="btn-cancel"
+                      <button *ngIf="!isTransporteur && t.statut !== 'LIVREE'" class="btn-cancel"
                               (click)="cancelTournee(t.id || t._id)" title="Annuler">
                         <i class="bi bi-x-lg"></i>
                       </button>

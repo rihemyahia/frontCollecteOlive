@@ -268,6 +268,34 @@
   font-style: italic;
 }
 
+.assignment-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.kpi-card {
+  background: #F9FAF5;
+  border: 1px solid #E8ECDC;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.kpi-label {
+  color: #7A6845;
+  font-size: 0.8rem;
+}
+
+.kpi-value {
+  color: #2C3A10;
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
 .tournees-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -325,7 +353,18 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #E8ECDC;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.toggle-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #5A5A48;
 }
 
 .panel-body {
@@ -512,5 +551,9 @@
 
   .panel-head .form-control {
     min-width: 100%;
+  }
+
+  .assignment-kpis {
+    grid-template-columns: 1fr;
   }
 }
