@@ -29,6 +29,8 @@ export class Dashboard implements OnInit {
         this.router.navigate(['/responsable/dashboard']);
       } else if (role === 'AGRICULTEUR') {
         this.router.navigate(['/agriculteur/dashboard']);
+      } else if (role === 'TRANSPORTEUR') {
+        this.router.navigate(['/transporteur/dashboard']);
       } else {
         // Unknown role — send back to login
         this.router.navigate(['/login']);

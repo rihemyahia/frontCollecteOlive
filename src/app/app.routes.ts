@@ -4,6 +4,7 @@ import { Dashboard } from './dashboard/dashboard';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard/admin-dashboard';
 import { ResponsableDashboardComponent } from './dashboard/responsable-dashboard/responsable-dashboard';
 import { AgriculteurDashboardComponent } from './dashboard/agriculteur-dashboard/agriculteur-dashboard';
+import { TransporteurDashboardComponent } from './dashboard/transporteur-dashboard/transporteur-dashboard';
 import { ListeUtilisateurs } from './utilisateurs/liste-utilisateurs/liste-utilisateurs';
 import { AuthGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
@@ -60,6 +61,12 @@ export const routes: Routes = [
     component: AgriculteurDashboardComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['AGRICULTEUR'] }
+  },
+  {
+    path: 'transporteur/dashboard',
+    component: TransporteurDashboardComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['TRANSPORTEUR'] }
   },
 
   // ── Calendrier ────────────────────────────────────────────────────────────
