@@ -148,6 +148,108 @@
               </button>
             </div>
           </form>
+
+          <!-- ==================== TRANSPORTEUR: GESTION DES TOURNÉES ==================== -->
+          <div *ngIf="showTourneesPanel" class="transporteur-tournees">
+            <div class="transporteur-tournees__header">
+              <h3 class="section-title"><i class="bi bi-truck"></i> Tournées du transporteur</h3>
+              <p class="helper-line">Assignez des tournées planifiées ou retirez des tournées déjà assignées.</p>
+            </div>
+
+            <div *ngIf="isLoadingTournees" class="loading-container">
+              <div class="spinner"></div>
+              <p>Chargement des tournées...</p>
+            </div>
+
+            <div class="tournees-grid" *ngIf="!isLoadingTournees">
+              <!-- ASSIGNED -->
+              <div class="tournees-panel tournees-panel--assigned">
+                <div class="panel-head">
+                  <div>
+                    <h4>2) Tournées assignées</h4>
+                    <span class="panel-sub">{{ assignedFiltered.length }} tournée(s)</span>
+                  </div>
+                  <input class="form-control" [(ngModel)]="assignedSearch" placeholder="Rechercher (verger/agriculteur)..." />
+                </div>
+
+                <div class="panel-body">
+                  <div *ngIf="assignedPaged.length === 0" class="empty-note">Aucune tournée assignée.</div>
+
+                  <div *ngFor="let t of assignedPaged" class="tournee-row">
+                    <div class="tournee-main">
+                      <div class="tournee-title">
+                        <span class="tournee-name">{{ getTourneeVergerName(t) }}</span>
+                        <span [class]="getStatusBadgeClass(t?.statut)">{{ t?.statut }}</span>
+                      </div>
+                      <div class="tournee-meta">
+                        <span><strong>Agriculteur:</strong> {{ getTourneeAgriculteurName(t) }}</span>
+                        <span><strong>Date:</strong> {{ formatTourneeDate(t?.dateDebut) }}</span>
+                        <span><strong>Arbres:</strong> {{ t?.nbreArbre || '—' }}</span>
+                      </div>
+                    </div>
+                    <button class="btn-mini btn-mini--danger"
+                            (click)="removeAssignedTournee(t)"
+                            [disabled]="isSavingTournees">
+                      Retirer
+                    </button>
+                  </div>
+                </div>
+
+                <div class="panel-foot" *ngIf="assignedTotalPages > 1">
+                  <button class="btn-mini" (click)="prevAssignedPage()" [disabled]="assignedPage === 1">Précédent</button>
+                  <span class="page-indicator">{{ assignedPage }} / {{ assignedTotalPages }}</span>
+                  <button class="btn-mini" (click)="nextAssignedPage()" [disabled]="assignedPage === assignedTotalPages">Suivant</button>
+                </div>
+              </div>
+
+              <!-- AVAILABLE -->
+              <div class="tournees-panel tournees-panel--available">
+                <div class="panel-head">
+                  <div>
+                    <h4>1) Tournées disponibles à assigner</h4>
+                    <span class="panel-sub">{{ availableFiltered.length }} tournée(s)</span>
+                  </div>
+                  <input class="form-control" [(ngModel)]="availableSearch" placeholder="Rechercher (verger/agriculteur)..." />
+                </div>
+
+                <div class="panel-actions">
+                  <button class="btn-mini btn-mini--primary"
+                          (click)="assignSelectedTournees()"
+                          [disabled]="isSavingTournees || selectedAvailableTourneeIds.size === 0">
+                    {{ isSavingTournees ? 'Enregistrement...' : ('Assigner (' + selectedAvailableTourneeIds.size + ')') }}
+                  </button>
+                </div>
+
+                <div class="panel-body">
+                  <div *ngIf="availablePaged.length === 0" class="empty-note">Aucune tournée disponible.</div>
+
+                  <label *ngFor="let t of availablePaged" class="tournee-row tournee-row--selectable">
+                    <input type="checkbox"
+                           [checked]="isAvailableSelected(t?.id || t?._id)"
+                           (change)="toggleAvailableSelection(t?.id || t?._id)"
+                           [disabled]="isSavingTournees" />
+                    <div class="tournee-main">
+                      <div class="tournee-title">
+                        <span class="tournee-name">{{ getTourneeVergerName(t) }}</span>
+                        <span [class]="getStatusBadgeClass(t?.statut)">{{ t?.statut }}</span>
+                      </div>
+                      <div class="tournee-meta">
+                        <span><strong>Agriculteur:</strong> {{ getTourneeAgriculteurName(t) }}</span>
+                        <span><strong>Date:</strong> {{ formatTourneeDate(t?.dateDebut) }}</span>
+                        <span><strong>Arbres:</strong> {{ t?.nbreArbre || '—' }}</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="panel-foot" *ngIf="availableTotalPages > 1">
+                  <button class="btn-mini" (click)="prevAvailablePage()" [disabled]="availablePage === 1">Précédent</button>
+                  <span class="page-indicator">{{ availablePage }} / {{ availableTotalPages }}</span>
+                  <button class="btn-mini" (click)="nextAvailablePage()" [disabled]="availablePage === availableTotalPages">Suivant</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

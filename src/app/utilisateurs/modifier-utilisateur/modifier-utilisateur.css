@@ -34,7 +34,7 @@
 }
 
 .oh-card {
-  max-width: 700px;
+  max-width: 1180px;
   margin: 0 auto;
   background: #FFFFF8;
   border-radius: 28px;
@@ -256,6 +256,186 @@
   color: #721C24;
 }
 
+.transporteur-tournees {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(168, 184, 75, 0.15);
+}
+
+.helper-line {
+  margin: 0.25rem 0 0;
+  color: #7A6845;
+  font-style: italic;
+}
+
+.tournees-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.tournees-panel--available { order: 1; }
+.tournees-panel--assigned { order: 2; }
+
+.tournees-panel {
+  background: #FFFFF8;
+  border: 1px solid #E8E0CE;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(44, 42, 26, 0.06);
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.tournees-panel--assigned { border-left: 6px solid #C73A1A33; }
+.tournees-panel--available { border-left: 6px solid #5A6E1A33; }
+
+.panel-head {
+  padding: 1rem;
+  background: #F9FAF5;
+  border-bottom: 1px solid #E8ECDC;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.panel-head h4 {
+  margin: 0;
+  color: #2C3A10;
+  font-weight: 700;
+}
+
+.panel-head .form-control {
+  min-width: 260px;
+  flex: 1;
+}
+
+.panel-sub {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #7A6845;
+}
+
+.panel-actions {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #E8ECDC;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.panel-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: auto;
+}
+
+.empty-note {
+  padding: 1rem;
+  text-align: center;
+  color: #7A6845;
+}
+
+.tournee-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #E8E0CE;
+  border-radius: 12px;
+  background: #FFFFFF;
+}
+
+.tournee-row--selectable { cursor: pointer; }
+.tournee-row--selectable input[type="checkbox"] { margin-top: 0.35rem; }
+
+.tournee-main { flex: 1; }
+
+.tournee-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.tournee-name {
+  font-weight: 700;
+  color: #2C3A10;
+}
+
+.tournee-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 0.35rem;
+  color: #5A5A48;
+  font-size: 0.9rem;
+}
+
+.panel-foot {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #E8ECDC;
+  background: #F9FAF5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.page-indicator {
+  color: #7A6845;
+  font-weight: 600;
+}
+
+.btn-mini {
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #E8E0CE;
+  background: #FFFFF8;
+  color: #2C3A10;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-mini:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-mini--primary {
+  background: linear-gradient(135deg, #5A6E1A, #A8B84B);
+  color: #fff;
+  border: none;
+}
+
+.btn-mini--danger {
+  background: #F8D7DA;
+  color: #721C24;
+  border: 1px solid #F1B0B7;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+}
+
+.badge--blue { background: #E8F0FF; color: #1D4ED8; border-color: #BFDBFE; }
+.badge--yellow { background: #FFF7E6; color: #B45309; border-color: #FDE68A; }
+.badge--green { background: #E8F7EE; color: #166534; border-color: #BBF7D0; }
+.badge--cyan { background: #E6FFFB; color: #0F766E; border-color: #99F6E4; }
+.badge--red { background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; }
+
 .loading-container {
   text-align: center;
   padding: 3rem;
@@ -324,5 +504,13 @@
   .btn-primary, .btn-secondary {
     width: 100%;
     justify-content: center;
+  }
+
+  .tournees-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-head .form-control {
+    min-width: 100%;
   }
 }

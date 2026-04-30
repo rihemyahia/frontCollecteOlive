@@ -44,6 +44,8 @@ export interface ActivationDTO {
 @Injectable({ providedIn: 'root' })
 export class UtilisateurService {
   private apiUrl = 'http://localhost:8080/api/auth';
+  private transporteurApiUrl = 'http://localhost:8080/api/transporteur';
+  private adminTransporteurApiUrl = 'http://localhost:8080/api/admin/transporteurs';
 
   constructor(private http: HttpClient) {}
 
@@ -274,6 +276,57 @@ getTravailleursPourResponsable(): Observable<Utilisateur[]> {
   activerTravailleur(id: string, nouveauMotDePasse: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/admin/activer-travailleur/${id}`,
       { nouveauMotDePasse } as ActivationDTO,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // ========== TRANSPORTEUR ==========
+
+  getMesTourneesTransporteur(): Observable<any> {
+    return this.http.get(`${this.transporteurApiUrl}/mes-tournees`, { headers: this.getHeaders() });
+  }
+
+  startLivraison(tourneeId: string): Observable<any> {
+    return this.http.patch(
+      `${this.transporteurApiUrl}/tournees/${tourneeId}/start-livraison`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  completeLivraison(tourneeId: string, evidenceName: string, evidenceBase64: string): Observable<any> {
+    return this.http.patch(
+      `${this.transporteurApiUrl}/tournees/${tourneeId}/complete-livraison`,
+      { evidenceName, evidenceBase64 },
+      { headers: this.getHeaders() }
+    );
+  }
+  getTourneesAssignedToTransporteur(transporteurId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/transporteurs/${transporteurId}/tournees`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // ========== ADMIN: ASSIGN TOURNEES TO TRANSPORTEUR ==========
+
+  getAvailableTourneesForTransporteurAdmin(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.adminTransporteurApiUrl}/tournees-disponibles`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getAssignedTourneesForTransporteurAdmin(transporteurId: string): Observable<any> {
+    return this.http.get(
+      `${this.adminTransporteurApiUrl}/${transporteurId}/tournees`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  assignTourneesToTransporteurAdmin(transporteurId: string, tourneesIds: string[]): Observable<any> {
+    return this.http.patch(
+      `${this.adminTransporteurApiUrl}/${transporteurId}/tournees`,
+      { tourneesIds },
       { headers: this.getHeaders() }
     );
   }

@@ -44,6 +44,19 @@ export class ModifierUtilisateur implements OnInit {
   };
   isChangingPassword = false;
 
+  // ========== TRANSPORTEUR: TOURNEES ASSIGNMENT ==========
+  showTourneesPanel = false;
+  isLoadingTournees = false;
+  isSavingTournees = false;
+  availableTournees: any[] = [];
+  assignedTournees: any[] = [];
+  selectedAvailableTourneeIds: Set<string> = new Set();
+  availableSearch = '';
+  assignedSearch = '';
+  availablePage = 1;
+  assignedPage = 1;
+  readonly tourneesPageSize = 10;
+
   roles = ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR', 'TRANSPORTEUR'];
 
   constructor(
@@ -99,6 +112,12 @@ export class ModifierUtilisateur implements OnInit {
       next: (data) => {
         console.log('✅ User loaded successfully:', data);
         this.utilisateur = { ...this.utilisateur, ...data };
+        if ((this.utilisateur.role || '').toUpperCase() === 'TRANSPORTEUR') {
+          this.showTourneesPanel = true;
+          this.refreshTourneesPanels();
+        } else {
+          this.showTourneesPanel = false;
+        }
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -232,5 +251,213 @@ changePassword(): void {
 
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  // ==================== TRANSPORTEUR TOURNEES UI ====================
+
+  private refreshTourneesPanels(): void {
+    if (!this.id) return;
+    this.isLoadingTournees = true;
+    this.errorMessage = '';
+    this.selectedAvailableTourneeIds.clear();
+    // Failsafe: never keep spinner forever if one request hangs.
+    const loadingGuard = setTimeout(() => {
+      if (this.isLoadingTournees) {
+        this.isLoadingTournees = false;
+        this.errorMessage = this.errorMessage || 'Chargement des tournées trop long. Vérifiez que le backend répond.';
+        this.cdr.detectChanges();
+      }
+    }, 12000);
+
+    // Load both lists in parallel (two independent calls)
+    this.utilisateurService.getAvailableTourneesForTransporteurAdmin().subscribe({
+      next: (available: any[]) => {
+        const list = Array.isArray(available) ? available : [];
+        // Backend already returns only PLANIFIEE + transporteur null, oldest first.
+        this.availableTournees = list;
+        this.availablePage = 1;
+        this.isLoadingTournees = false;
+        clearTimeout(loadingGuard);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoadingTournees = false;
+        clearTimeout(loadingGuard);
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement tournées disponibles';
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.utilisateurService.getAssignedTourneesForTransporteurAdmin(this.id).subscribe({
+      next: (response: any) => {
+        // backend might return { tournees: [...] } or direct array
+        const list = (response?.tournees || response?.tourneesAssigned || response) ?? [];
+        this.assignedTournees = Array.isArray(list) ? list : [];
+        this.assignedPage = 1;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.assignedTournees = [];
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement tournées assignées';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleAvailableSelection(tourneeId: string): void {
+    if (!tourneeId) return;
+    if (this.selectedAvailableTourneeIds.has(tourneeId)) {
+      this.selectedAvailableTourneeIds.delete(tourneeId);
+    } else {
+      this.selectedAvailableTourneeIds.add(tourneeId);
+    }
+  }
+
+  isAvailableSelected(tourneeId: string): boolean {
+    return this.selectedAvailableTourneeIds.has(tourneeId);
+  }
+
+  assignSelectedTournees(): void {
+    if (!this.id) return;
+    const ids = Array.from(this.selectedAvailableTourneeIds);
+    if (ids.length === 0) {
+      this.errorMessage = 'Veuillez sélectionner au moins une tournée à assigner';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isSavingTournees = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    // Merge: keep already assigned + newly selected
+    const existingIds = new Set(this.assignedTournees.map(t => t?.id || t?._id).filter(Boolean));
+    ids.forEach(x => existingIds.add(x));
+    const payload = Array.from(existingIds);
+
+    this.utilisateurService.assignTourneesToTransporteurAdmin(this.id, payload).subscribe({
+      next: () => {
+        this.successMessage = 'Tournées assignées avec succès';
+        this.isSavingTournees = false;
+        this.refreshTourneesPanels();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSavingTournees = false;
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors de l’assignation';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  removeAssignedTournee(t: any): void {
+    if (!this.id) return;
+    const removeId = t?.id || t?._id;
+    if (!removeId) return;
+
+    this.isSavingTournees = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    const remainingIds = this.assignedTournees
+      .map(x => x?.id || x?._id)
+      .filter((x: any) => !!x && x !== removeId);
+
+    this.utilisateurService.assignTourneesToTransporteurAdmin(this.id, remainingIds).subscribe({
+      next: () => {
+        this.successMessage = 'Tournée retirée avec succès';
+        this.isSavingTournees = false;
+        this.refreshTourneesPanels();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSavingTournees = false;
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors du retrait';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  formatTourneeDate(d: any): string {
+    if (!d) return 'N/A';
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  getTourneeVergerName(t: any): string {
+    return t?.vergerTypeOlive || t?.verger?.typeOlive || 'Verger';
+  }
+
+  getTourneeAgriculteurName(t: any): string {
+    const flat = t?.vergerAgriculteurNom;
+    if (flat) return flat;
+    const prenom = t?.verger?.agriculteur?.prenom || '';
+    const nom = t?.verger?.agriculteur?.nom || '';
+    const full = `${prenom} ${nom}`.trim();
+    return full || '—';
+  }
+
+  getStatusBadgeClass(statut: string): string {
+    const s = (statut || '').toUpperCase();
+    if (s === 'PLANIFIEE') return 'badge badge--blue';
+    if (s === 'EN_COURS') return 'badge badge--yellow';
+    if (s === 'TERMINEE') return 'badge badge--green';
+    if (s === 'EN_LIVRAISON') return 'badge badge--cyan';
+    if (s === 'LIVREE') return 'badge badge--green';
+    if (s === 'ANNULEE') return 'badge badge--red';
+    return 'badge';
+  }
+
+  get availableFiltered(): any[] {
+    const term = this.availableSearch.trim().toLowerCase();
+    const base = this.availableTournees;
+    if (!term) return base;
+    return base.filter(t =>
+      this.getTourneeVergerName(t).toLowerCase().includes(term) ||
+      this.getTourneeAgriculteurName(t).toLowerCase().includes(term)
+    );
+  }
+
+  get assignedFiltered(): any[] {
+    const term = this.assignedSearch.trim().toLowerCase();
+    const base = this.assignedTournees;
+    if (!term) return base;
+    return base.filter(t =>
+      this.getTourneeVergerName(t).toLowerCase().includes(term) ||
+      this.getTourneeAgriculteurName(t).toLowerCase().includes(term)
+    );
+  }
+
+  get availablePaged(): any[] {
+    const start = (this.availablePage - 1) * this.tourneesPageSize;
+    return this.availableFiltered.slice(start, start + this.tourneesPageSize);
+  }
+
+  get assignedPaged(): any[] {
+    const start = (this.assignedPage - 1) * this.tourneesPageSize;
+    return this.assignedFiltered.slice(start, start + this.tourneesPageSize);
+  }
+
+  get availableTotalPages(): number {
+    return Math.max(1, Math.ceil(this.availableFiltered.length / this.tourneesPageSize));
+  }
+
+  get assignedTotalPages(): number {
+    return Math.max(1, Math.ceil(this.assignedFiltered.length / this.tourneesPageSize));
+  }
+
+  nextAvailablePage(): void {
+    if (this.availablePage < this.availableTotalPages) this.availablePage++;
+  }
+  prevAvailablePage(): void {
+    if (this.availablePage > 1) this.availablePage--;
+  }
+
+  nextAssignedPage(): void {
+    if (this.assignedPage < this.assignedTotalPages) this.assignedPage++;
+  }
+  prevAssignedPage(): void {
+    if (this.assignedPage > 1) this.assignedPage--;
   }
 }

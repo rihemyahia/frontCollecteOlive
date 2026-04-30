@@ -120,7 +120,7 @@
             </div>
           </div>
 
-          <div class="detail-section" *ngIf="tournee.statut === 'TERMINEE'">
+          <div class="detail-section" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
             <h3>Résultats</h3>
             <div class="detail-grid">
               <div class="detail-item">
@@ -150,7 +150,7 @@
             <button *ngIf="tournee.statut === 'EN_COURS'" class="btn-complete" (click)="completeTournee()">
               <i class="bi bi-check-lg"></i> Terminer
             </button>
-            <button *ngIf="tournee.statut !== 'TERMINEE'" class="btn-cancel" (click)="cancelTournee()">
+            <button *ngIf="tournee.statut !== 'LIVREE'" class="btn-cancel" (click)="cancelTournee()">
               <i class="bi bi-x-lg"></i> Annuler
             </button>
           </div>

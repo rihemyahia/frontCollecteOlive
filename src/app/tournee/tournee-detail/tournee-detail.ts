@@ -98,6 +98,8 @@ formatDuration(seconds: number): string {
       'PLANIFIEE': 'statut-planifiee',
       'EN_COURS': 'statut-en-cours',
       'TERMINEE': 'statut-terminee',
+      'EN_LIVRAISON': 'statut-en-cours',
+      'LIVREE': 'statut-terminee',
       'ANNULEE': 'statut-annulee'
     };
     return classes[statut] || '';
@@ -108,6 +110,8 @@ formatDuration(seconds: number): string {
       'PLANIFIEE': 'bi-calendar-check',
       'EN_COURS': 'bi-play-circle',
       'TERMINEE': 'bi-check-circle',
+      'EN_LIVRAISON': 'bi-truck',
+      'LIVREE': 'bi-check2-circle',
       'ANNULEE': 'bi-x-circle'
     };
     return icons[statut] || 'bi-question-circle';

@@ -57,6 +57,8 @@
                 <option value="PLANIFIEE">Planifiée</option>
                 <option value="EN_COURS">En cours</option>
                 <option value="TERMINEE">Terminée</option>
+                <option value="EN_LIVRAISON">En livraison</option>
+                <option value="LIVREE">Livrée</option>
                 <option value="ANNULEE">Annulée</option>
               </select>
             </div>
@@ -147,7 +149,7 @@
                               (click)="navigateToEdit(t.id || t._id)" title="Modifier">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button *ngIf="t.statut !== 'TERMINEE'" class="btn-cancel"
+                      <button *ngIf="t.statut !== 'LIVREE'" class="btn-cancel"
                               (click)="cancelTournee(t.id || t._id)" title="Annuler">
                         <i class="bi bi-x-lg"></i>
                       </button>
