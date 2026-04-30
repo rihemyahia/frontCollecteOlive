@@ -161,13 +161,21 @@
                       <button class="btn-view" (click)="viewDetails(t.id || t._id)" title="Voir détails">
                         <i class="bi bi-eye"></i>
                       </button>
-                      <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-start"
+                      <button *ngIf="!isTransporteur && t.statut === 'PLANIFIEE'" class="btn-start"
                               (click)="startTournee(t.id || t._id)" title="Démarrer">
                         <i class="bi bi-play-fill"></i>
                       </button>
-                      <button *ngIf="t.statut === 'EN_COURS'" class="btn-complete"
+                      <button *ngIf="!isTransporteur && t.statut === 'EN_COURS'" class="btn-complete"
                               (click)="openCompleteModal(t)" title="Terminer">
                         <i class="bi bi-check-lg"></i>
+                      </button>
+                      <button *ngIf="isTransporteur && t.statut === 'TERMINEE'" class="btn-start"
+                              (click)="startLivraison(t)" title="Démarrer livraison">
+                        <i class="bi bi-truck"></i>
+                      </button>
+                      <button *ngIf="isTransporteur && t.statut === 'EN_LIVRAISON'" class="btn-complete"
+                              (click)="openLivraisonModal(t)" title="Marquer livrée">
+                        <i class="bi bi-check2-circle"></i>
                       </button>
                       <button *ngIf="!isTransporteur && t.statut === 'PLANIFIEE'" class="btn-edit"
                               (click)="navigateToEdit(t.id || t._id)" title="Modifier">
@@ -193,6 +201,47 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- ==================== TRANSPORTEUR LIVRAISON PROOF MODAL ==================== -->
+<div class="modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
+  <div class="modal-container complete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🚚 Finaliser la livraison</h3>
+      <button class="modal-close" (click)="closeLivraisonModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="tournee-info">
+        <strong>Tournée :</strong> {{ selectedLivraisonTournee?.code }}
+        <br>
+        <strong>Verger :</strong> {{ selectedLivraisonTournee?.vergerTypeOlive || 'N/A' }}
+      </div>
+
+      <div class="quantity-section">
+        <label class="big-label">Preuve de livraison</label>
+        <input type="file"
+               class="form-control"
+               accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
+               (change)="onLivraisonProofSelected($event)">
+        <small class="helper-text">Formats acceptes: JPG, PNG, WEBP, PDF, TXT (max 10 Mo)</small>
+        <small class="helper-text" *ngIf="livraisonProofFile">Fichier: {{ livraisonProofFile.name }}</small>
+      </div>
+
+      <div *ngIf="livraisonProofError" class="oh-error">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ livraisonProofError }}
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeLivraisonModal()">Annuler</button>
+      <button class="btn-confirm"
+              (click)="confirmCompleteLivraison()"
+              [disabled]="!livraisonProofFile || isCompletingLivraison">
+        {{ isCompletingLivraison ? 'Upload...' : 'Valider la livraison' }}
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ==================== IMPROVED COMPLETE MODAL ==================== -->

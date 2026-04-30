@@ -301,11 +301,18 @@ getTravailleursPourResponsable(): Observable<Utilisateur[]> {
     );
   }
 
-  completeLivraison(tourneeId: string, evidenceName: string, evidenceBase64: string): Observable<any> {
+  completeLivraison(tourneeId: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    const token = localStorage.getItem('token');
     return this.http.patch(
       `${this.transporteurApiUrl}/tournees/${tourneeId}/complete-livraison`,
-      { evidenceName, evidenceBase64 },
-      { headers: this.getHeaders() }
+      formData,
+      {
+        headers: new HttpHeaders({
+          'Authorization': `Bearer ${token}`
+        })
+      }
     );
   }
   getTourneesAssignedToTransporteur(transporteurId: string): Observable<any> {

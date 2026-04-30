@@ -52,6 +52,11 @@ export class TourneeListComponent implements OnInit {
     distanceTotale: null,
     observations: ''
   };
+  showLivraisonModal = false;
+  selectedLivraisonTournee: any = null;
+  livraisonProofFile: File | null = null;
+  livraisonProofError = '';
+  isCompletingLivraison = false;
 
   // Statistics
   totalQuantite = 0;
@@ -584,7 +589,12 @@ groupByAgriculteurAndVerger() {
   }
 
   // ==================== TOURNEE ACTIONS ====================
+  private getTourneeId(tournee: any): string {
+    return tournee?.id || tournee?._id || '';
+  }
+
   startTournee(id: string) {
+    if (this.isTransporteur) return;
     if (confirm('Démarrer cette tournée ?')) {
       this.tourneeService.demarrer(id).subscribe({
         next: () => {
@@ -602,6 +612,7 @@ groupByAgriculteurAndVerger() {
   }
 
   openCompleteModal(tournee: any) {
+    if (this.isTransporteur) return;
     this.selectedTournee = tournee;
     this.completeData = {
       quantiteCollecteeKg: 0,
@@ -619,6 +630,7 @@ groupByAgriculteurAndVerger() {
   }
 
   confirmComplete() {
+    if (this.isTransporteur) return;
     if (this.selectedTournee && this.completeData.quantiteCollecteeKg > 0) {
       this.tourneeService.terminer(this.selectedTournee.id || this.selectedTournee._id, this.completeData)
         .subscribe({
@@ -635,6 +647,106 @@ groupByAgriculteurAndVerger() {
           }
         });
     }
+  }
+
+  startLivraison(tournee: any): void {
+    if (!this.isTransporteur) return;
+    const id = this.getTourneeId(tournee);
+    if (!id) return;
+
+    if (confirm('Démarrer la livraison pour cette tournée ?')) {
+      this.utilisateurService.startLivraison(id).subscribe({
+        next: () => {
+          this.successMessage = 'Livraison démarrée avec succès';
+          this.loadTournees();
+          setTimeout(() => (this.successMessage = ''), 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors du démarrage de la livraison';
+          setTimeout(() => (this.errorMessage = ''), 4000);
+          this.cdr.markForCheck();
+        }
+      });
+    }
+  }
+
+  openLivraisonModal(tournee: any): void {
+    if (!this.isTransporteur) return;
+    this.selectedLivraisonTournee = tournee;
+    this.livraisonProofFile = null;
+    this.livraisonProofError = '';
+    this.showLivraisonModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeLivraisonModal(): void {
+    this.showLivraisonModal = false;
+    this.selectedLivraisonTournee = null;
+    this.livraisonProofFile = null;
+    this.livraisonProofError = '';
+    this.isCompletingLivraison = false;
+    this.cdr.markForCheck();
+  }
+
+  onLivraisonProofSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      this.livraisonProofFile = null;
+      return;
+    }
+    const file = input.files[0];
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'application/pdf',
+      'text/plain'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.livraisonProofError = 'Types autorisés: JPG, PNG, WEBP, PDF ou TXT';
+      this.livraisonProofFile = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.livraisonProofError = 'Le fichier ne doit pas dépasser 10 Mo';
+      this.livraisonProofFile = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.livraisonProofFile = file;
+    this.livraisonProofError = '';
+    this.cdr.markForCheck();
+  }
+
+  confirmCompleteLivraison(): void {
+    if (!this.isTransporteur || !this.selectedLivraisonTournee) return;
+    const id = this.getTourneeId(this.selectedLivraisonTournee);
+    if (!id) return;
+    if (!this.livraisonProofFile) {
+      this.livraisonProofError = 'Veuillez sélectionner un fichier de preuve';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.isCompletingLivraison = true;
+    this.utilisateurService.completeLivraison(id, this.livraisonProofFile).subscribe({
+      next: () => {
+        this.successMessage = 'Livraison terminée avec succès';
+        this.closeLivraisonModal();
+        this.loadTournees();
+        setTimeout(() => (this.successMessage = ''), 3000);
+      },
+      error: (err) => {
+        this.isCompletingLivraison = false;
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors de la finalisation de la livraison';
+        setTimeout(() => (this.errorMessage = ''), 4000);
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   cancelTournee(id: string) {

@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TourneeService } from '../../services/tournee';
+import { UtilisateurService } from '../../services/utilisateur';
+import { AuthService } from '../../services/auth';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { StatutTourneePipe } from '../../pipes/statut-tournee-pipe';
 
@@ -18,15 +20,23 @@ export class TourneeDetailComponent implements OnInit {
   tournee: any = null;
   isLoading = true;
   errorMessage = '';
+  successMessage = '';
+  showLivraisonModal = false;
+  livraisonProofFile: File | null = null;
+  livraisonProofError = '';
+  isCompletingLivraison = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private tourneeService: TourneeService,
+    private utilisateurService: UtilisateurService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    this.userRole = this.authService.getUserRole() || 'ADMIN';
     const id = this.route.snapshot.paramMap.get('id');
     console.log('🆔 Tournee ID:', id);
     if (id) {
@@ -115,6 +125,101 @@ formatDuration(seconds: number): string {
       'ANNULEE': 'bi-x-circle'
     };
     return icons[statut] || 'bi-question-circle';
+  }
+
+  get isTransporteur(): boolean {
+    return this.userRole === 'TRANSPORTEUR';
+  }
+
+  get canStartLivraison(): boolean {
+    return this.isTransporteur && this.tournee?.statut === 'TERMINEE';
+  }
+
+  get canCompleteLivraison(): boolean {
+    return this.isTransporteur && this.tournee?.statut === 'EN_LIVRAISON';
+  }
+
+  get canUseAdminActions(): boolean {
+    return !this.isTransporteur;
+  }
+
+  startLivraison(): void {
+    if (!this.canStartLivraison) return;
+    if (!confirm('Démarrer la livraison pour cette tournée ?')) return;
+    this.utilisateurService.startLivraison(this.tournee.id).subscribe({
+      next: () => {
+        this.successMessage = 'Livraison démarrée avec succès';
+        this.loadTournee(this.tournee.id);
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => {
+        this.errorMessage = this.extractErrorMessage(err);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  openLivraisonModal(): void {
+    if (!this.canCompleteLivraison) return;
+    this.showLivraisonModal = true;
+    this.livraisonProofFile = null;
+    this.livraisonProofError = '';
+    this.cdr.markForCheck();
+  }
+
+  closeLivraisonModal(): void {
+    this.showLivraisonModal = false;
+    this.livraisonProofFile = null;
+    this.livraisonProofError = '';
+    this.isCompletingLivraison = false;
+    this.cdr.markForCheck();
+  }
+
+  onLivraisonProofSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      this.livraisonProofFile = null;
+      return;
+    }
+    const file = input.files[0];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+      this.livraisonProofError = 'Types autorisés: JPG, PNG, WEBP, PDF, TXT';
+      this.livraisonProofFile = null;
+      this.cdr.markForCheck();
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.livraisonProofError = 'Le fichier ne doit pas dépasser 10 Mo';
+      this.livraisonProofFile = null;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.livraisonProofFile = file;
+    this.livraisonProofError = '';
+    this.cdr.markForCheck();
+  }
+
+  completeLivraison(): void {
+    if (!this.canCompleteLivraison || !this.livraisonProofFile) {
+      this.livraisonProofError = 'Veuillez sélectionner un fichier de preuve';
+      this.cdr.markForCheck();
+      return;
+    }
+    this.isCompletingLivraison = true;
+    this.utilisateurService.completeLivraison(this.tournee.id, this.livraisonProofFile).subscribe({
+      next: () => {
+        this.successMessage = 'Livraison terminée avec succès';
+        this.closeLivraisonModal();
+        this.loadTournee(this.tournee.id);
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => {
+        this.isCompletingLivraison = false;
+        this.errorMessage = this.extractErrorMessage(err);
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   startTournee() {

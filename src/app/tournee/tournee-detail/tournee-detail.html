@@ -42,6 +42,13 @@
         </div>
 
         <div class="oh-card__body">
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
           <div class="detail-section">
             <h3>Informations générales</h3>
             <div class="detail-grid">
@@ -143,19 +150,72 @@
             <p class="observations">{{ tournee.observations }}</p>
           </div>
 
+          <div class="detail-section" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
+            <h3>Suivi livraison</h3>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Démarrage livraison:</label>
+                <span>{{ tournee.livraisonStartedAt ? formatDate(tournee.livraisonStartedAt) : 'Non démarrée' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Fin livraison:</label>
+                <span>{{ tournee.livraisonCompletedAt ? formatDate(tournee.livraisonCompletedAt) : 'Non terminée' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Preuve:</label>
+                <span *ngIf="tournee.livraisonEvidenceUrl; else noProof">
+                  <a [href]="tournee.livraisonEvidenceUrl" target="_blank" rel="noopener noreferrer">Voir la preuve</a>
+                </span>
+                <ng-template #noProof>—</ng-template>
+              </div>
+            </div>
+          </div>
+
           <div class="action-buttons">
-            <button *ngIf="tournee.statut === 'PLANIFIEE'" class="btn-start" (click)="startTournee()">
+            <button *ngIf="canUseAdminActions && tournee.statut === 'PLANIFIEE'" class="btn-start" (click)="startTournee()">
               <i class="bi bi-play-fill"></i> Démarrer
             </button>
-            <button *ngIf="tournee.statut === 'EN_COURS'" class="btn-complete" (click)="completeTournee()">
+            <button *ngIf="canUseAdminActions && tournee.statut === 'EN_COURS'" class="btn-complete" (click)="completeTournee()">
               <i class="bi bi-check-lg"></i> Terminer
             </button>
-            <button *ngIf="tournee.statut !== 'LIVREE'" class="btn-cancel" (click)="cancelTournee()">
+            <button *ngIf="canUseAdminActions && tournee.statut !== 'LIVREE'" class="btn-cancel" (click)="cancelTournee()">
               <i class="bi bi-x-lg"></i> Annuler
+            </button>
+            <button *ngIf="canStartLivraison" class="btn-start" (click)="startLivraison()">
+              <i class="bi bi-truck"></i> Démarrer livraison
+            </button>
+            <button *ngIf="canCompleteLivraison" class="btn-complete" (click)="openLivraisonModal()">
+              <i class="bi bi-check2-circle"></i> Finaliser livraison
             </button>
           </div>
         </div>
       </div>
     </div>
   </main>
+</div>
+
+<div class="modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Preuve de livraison</h3>
+      <button class="modal-close" (click)="closeLivraisonModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="file"
+             class="form-control"
+             accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
+             (change)="onLivraisonProofSelected($event)">
+      <p class="helper-line">Formats: JPG, PNG, WEBP, PDF, TXT (max 10 Mo)</p>
+      <p *ngIf="livraisonProofFile" class="helper-line">Fichier: {{ livraisonProofFile.name }}</p>
+      <div *ngIf="livraisonProofError" class="oh-error">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ livraisonProofError }}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeLivraisonModal()">Annuler</button>
+      <button class="btn-complete" (click)="completeLivraison()" [disabled]="!livraisonProofFile || isCompletingLivraison">
+        {{ isCompletingLivraison ? 'Upload...' : 'Valider livraison' }}
+      </button>
+    </div>
+  </div>
 </div>
