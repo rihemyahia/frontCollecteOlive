@@ -1,0 +1,249 @@
+<!-- src/app/tournees/transporteur-tournees/transporteur-tournees.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-card">
+
+        <!-- ===== HEADER ===== -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                </svg>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">ESPACE TRANSPORTEUR</p>
+                <h2 class="oh-header__title">Mes missions</h2>
+                <p class="header-subtitle">Consultez et gérez vos livraisons du jour</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <button class="btn-refresh" (click)="loadTournees()" [disabled]="isLoading">
+                <i class="bi bi-arrow-repeat"></i> Actualiser
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== BODY ===== -->
+        <div class="oh-card__body">
+
+          <!-- Stats cards -->
+          <div class="stats-grid" *ngIf="!isLoading">
+            <div class="stat-card">
+              <div class="stat-icon">📦</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ countEnAttente }}</span>
+                <span class="stat-label">À livrer</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🚚</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ countEnLivraison }}</span>
+                <span class="stat-label">En livraison</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ countLivrees }}</span>
+                <span class="stat-label">Livrées</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Search & Filters ── -->
+          <div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
+            <div class="oh-search-bar">
+              <input type="text"
+                     placeholder="🔍 Rechercher par code, verger ou agriculteur..."
+                     [(ngModel)]="searchTerm"
+                     (ngModelChange)="applyFilters()"
+                     class="oh-search-input">
+            </div>
+
+            <div class="oh-filter-controls">
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatut" (change)="applyFilters()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="RECOLTEE">À livrer</option>
+                  <option value="TERMINEE">À livrer (terminée)</option>
+                  <option value="EN_LIVRAISON">En livraison</option>
+                  <option value="LIVREE">Livrée</option>
+                </select>
+              </div>
+              <button class="oh-filter-reset" *ngIf="searchTerm || selectedStatut" (click)="resetFilters()">
+                Réinitialiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Feedback messages -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement de vos missions...</p>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" *ngIf="!isLoading && filteredTournees.length === 0">
+            <div class="empty-icon">
+              <i class="bi bi-truck"></i>
+            </div>
+            <h3>Aucune mission</h3>
+            <p>Vous n'avez pas de missions assignées pour le moment.</p>
+          </div>
+
+          <!-- ── TABLE ── -->
+          <div class="table-wrapper" *ngIf="!isLoading && filteredTournees.length > 0">
+            <table class="alerts-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Statut</th>
+                  <th>Verger</th>
+                  <th>Agriculteur</th>
+                  <th>Destination</th>
+                  <th>Date récolte</th>
+                  <th>Quantité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of filteredTournees; trackBy: trackById">
+                  <td><strong>{{ t.code }}</strong></td>
+                  <td>
+                    <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+                      {{ getStatutLabel(t.statut) }}
+                    </span>
+                  </td>
+                  <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
+                  <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
+                  <td>
+                    <div class="destination-cell">
+                      <span>{{ t.destination }}</span>
+                      <span class="destination-address">{{ t.adresse }}</span>
+                      <a [href]="t.mapsUrl" target="_blank" rel="noopener" class="map-link">
+                        <i class="bi bi-geo-alt"></i> Carte
+                      </a>
+                    </div>
+                  </td>
+                  <td>{{ t.formattedDateFin || 'N/A' }}</td>
+                  <td>
+                    <span class="quantity-badge" *ngIf="t.quantiteCollecteeKg">
+                      {{ t.quantiteCollecteeKg | number:'1.0-0' }} kg
+                    </span>
+                    <span *ngIf="!t.quantiteCollecteeKg">—</span>
+                  </td>
+                  <td class="actions-cell">
+                    <div class="action-buttons">
+                      <button class="btn-icon btn-view-t" (click)="viewDetails(t.id || t._id)" title="Voir détails">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button *ngIf="canStartLivraison(t)" class="btn-icon btn-start-t"
+                              (click)="startLivraison(t)" title="Démarrer livraison">
+                        <i class="bi bi-truck"></i>
+                      </button>
+                      <button *ngIf="canCompleteLivraison(t)" class="btn-icon btn-complete-t"
+                              (click)="openLivraisonModal(t)" title="Confirmer livraison">
+                        <i class="bi bi-check2-circle"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer count -->
+          <div class="stats-footer" *ngIf="!isLoading && filteredTournees.length > 0">
+            <div class="stats-item">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Total : <strong>{{ filteredTournees.length }} / {{ tournees.length }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-clock-history"></i>
+              <span>En attente : <strong>{{ countEnAttente }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-truck"></i>
+              <span>En livraison : <strong>{{ countEnLivraison }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-check2-circle"></i>
+              <span>Livrées : <strong>{{ countLivrees }}</strong></span>
+            </div>
+          </div>
+
+        </div><!-- /oh-card__body -->
+      </div><!-- /oh-card -->
+    </div><!-- /oh-scene -->
+  </main>
+</div>
+
+<!-- ==================== LIVRAISON PROOF MODAL ==================== -->
+<div class="modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
+  <div class="modal-content complete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🚚 Finaliser la livraison</h3>
+      <button class="modal-close" (click)="closeLivraisonModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="tournee-info">
+        <strong>Tournée :</strong> {{ selectedLivraisonTournee?.code }}<br>
+        <strong>Verger :</strong> {{ selectedLivraisonTournee?.vergerTypeOlive || 'N/A' }}
+      </div>
+
+      <div class="quantity-section">
+        <label class="big-label">Preuve de livraison</label>
+        <input type="file"
+               class="form-control"
+               accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
+               (change)="onProofFileSelected($event)">
+        <small class="helper-text">Formats acceptés: JPG, PNG, WEBP, PDF, TXT (max 10 Mo)</small>
+        <small class="helper-text" *ngIf="livraisonProofFile">Fichier: {{ livraisonProofFile.name }}</small>
+      </div>
+
+      <div class="image-preview" *ngIf="livraisonProofPreview">
+        <img [src]="livraisonProofPreview" alt="Aperçu preuve">
+      </div>
+
+      <div *ngIf="livraisonProofError" class="oh-error">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ livraisonProofError }}
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeLivraisonModal()">Annuler</button>
+      <button class="btn-confirm"
+              (click)="confirmCompleteLivraison()"
+              [disabled]="!livraisonProofFile || isCompletingLivraison">
+        {{ isCompletingLivraison ? 'Upload...' : 'Valider la livraison' }}
+      </button>
+    </div>
+  </div>
+</div>
