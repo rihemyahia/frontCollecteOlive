@@ -105,6 +105,10 @@ export const routes: Routes = [
     data: { role: ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR'] }
   },
   {
+  path: 'tournees/edit/:id',
+  loadComponent: () => import('./tournee/tournee-edit/tournee-edit').then(m => m.TourneeEditComponent)
+},
+  {
     path: 'tournees/create',
     component: TourneeCreateComponent,
     canActivate: [AuthGuard, roleGuard],
@@ -244,6 +248,7 @@ export const routes: Routes = [
     ]
   },
   {
+
     path: 'cree-alerte',
     component: CreeAlerte
   },

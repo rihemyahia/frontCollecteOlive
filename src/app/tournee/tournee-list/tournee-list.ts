@@ -118,7 +118,7 @@ export class TourneeListComponent implements OnInit {
   // ==================== DATA LOADING ====================
   loadTournees(): void {
     this.isLoading = true;
-    
+
     // For TRANSPORTEUR: load only current user's tournees
     // For ADMIN/RESPONSABLE: load all tournees
     const loadObservable = this.userRole === 'TRANSPORTEUR'

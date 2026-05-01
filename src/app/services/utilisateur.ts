@@ -4,6 +4,24 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
+// src/app/services/utilisateur.ts
+export interface Pressoir {
+  id?: string;
+  nom: string;
+  adresse: string;
+  telephone?: string;
+  email?: string;
+  capaciteJournaliere?: string;
+  horaires?: string;
+  geolocalisation?: {
+    latitude: number;
+    longitude: number;
+    adresseIndicative?: string;
+  };
+  actif?: boolean;
+  dateCreation?: Date;
+}
+
 export interface Utilisateur {
   id?: string;
   email: string;
@@ -35,6 +53,11 @@ export interface Utilisateur {
   disponibleTransport?: boolean;
   ressources?: any[];
   tourneesAssignees?: any[];
+
+  // Pour responsable pressoir
+  pressoir?: Pressoir;
+  disponible?: boolean;
+  dateAffectation?: Date;
 }
 
 export interface ActivationDTO {

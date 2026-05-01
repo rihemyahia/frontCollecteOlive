@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UtilisateurService, Utilisateur } from '../../services/utilisateur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+import { VergerMapComponent } from '../../shared/verger-map/verger-map';  // ← ADD THIS
 
 @Component({
   selector: 'app-creer-utilisateur',
   standalone: true,
-  imports: [CommonModule, FormsModule, SideBarResponsable],
+  imports: [CommonModule, FormsModule, SideBarResponsable, VergerMapComponent],  // ← ADD VergerMapComponent
   templateUrl: './creer-utilisateur.html',
   styleUrls: ['./creer-utilisateur.css']
 })
@@ -46,6 +47,17 @@ export class CreerUtilisateur {
   statutEmploye: string = 'SAISONNIER';
   selectedSpecialites: string[] = [];
 
+  // Champs responsable pressoir
+  pressoirNom: string = '';
+  pressoirAdresse: string = '';
+  pressoirTelephone: string = '';
+  pressoirEmail: string = '';
+  pressoirCapaciteJournaliere: string = '';
+  pressoirHoraires: string = '';
+  pressoirLatitude: number | null = null;
+  pressoirLongitude: number | null = null;
+  pressoirAdresseIndicative: string = '';
+
   specialites: string[] = ['cueillette', 'tamisage', 'secouage', 'ramassage', 'tri'];
   statuts: string[] = ['SAISONNIER', 'PERMANENT'];
 
@@ -59,7 +71,8 @@ export class CreerUtilisateur {
     { value: 'RESPONSABLE', label: 'Responsable' },
     { value: 'TRANSPORTEUR', label: 'Transporteur' },
     { value: 'AGRICULTEUR', label: 'Agriculteur' },
-    { value: 'TRAVAILLEUR', label: 'Travailleur' }
+    { value: 'TRAVAILLEUR', label: 'Travailleur' },
+    { value: 'RESPONSABLE_PRESSOIR', label: 'Responsable de pressoir' }
   ];
 
   constructor(
@@ -73,6 +86,18 @@ export class CreerUtilisateur {
     // Date d'embauche par défaut = aujourd'hui
     const today = new Date().toISOString().split('T')[0];
     this.dateEmbauche = today;
+  }
+
+  // ====================== GESTION DE LA CARTE POUR PRESSOIR ======================
+  onPressoirLocationSelected(event: { lat: number; lng: number; address?: string }) {
+    this.pressoirLatitude = event.lat;
+    this.pressoirLongitude = event.lng;
+    this.pressoirAdresseIndicative = event.address || '';
+
+    // Auto-fill the pressoir address if not already filled
+    if (!this.pressoirAdresse && event.address) {
+      this.pressoirAdresse = event.address;
+    }
   }
 
   loadUserRole(): void {
@@ -152,8 +177,6 @@ export class CreerUtilisateur {
         this.utilisateur.anneesExperience = this.anneesExperience || undefined;
         this.utilisateur.disponibleTransport = this.disponibleTransport;
         break;
-
-        break;
       case 'TRAVAILLEUR':
         this.utilisateur.cin = this.cin;
         this.utilisateur.specialites = this.selectedSpecialites;
@@ -162,6 +185,23 @@ export class CreerUtilisateur {
         this.utilisateur.statutEmploye = this.statutEmploye;
         this.utilisateur.collectesAssignees = [];
         break;
+
+    case 'RESPONSABLE_PRESSOIR':
+  this.utilisateur.pressoir = {
+    nom: this.pressoirNom,
+    adresse: this.pressoirAdresse,
+    telephone: this.pressoirTelephone || undefined,
+    email: this.pressoirEmail || undefined,
+    capaciteJournaliere: this.pressoirCapaciteJournaliere || undefined,
+    horaires: this.pressoirHoraires || undefined,
+    actif: true,
+    geolocalisation: (this.pressoirLatitude && this.pressoirLongitude) ? {
+      latitude: this.pressoirLatitude,
+      longitude: this.pressoirLongitude,
+      adresseIndicative: this.pressoirAdresseIndicative || undefined
+    } : undefined
+  };
+  break;
       default:
         break;
     }
@@ -184,8 +224,6 @@ export class CreerUtilisateur {
       return;
     }
 
-
-
     // Validation TRANSPORTEUR
     if (this.utilisateur.role === 'TRANSPORTEUR') {
       if (!this.permis) {
@@ -198,8 +236,17 @@ export class CreerUtilisateur {
       }
     }
 
-    // Validation AGRICULTEUR
-
+    // Validation RESPONSABLE_PRESSOIR
+    if (this.utilisateur.role === 'RESPONSABLE_PRESSOIR') {
+      if (!this.pressoirNom) {
+        this.errorMessage = 'Le nom du pressoir est requis';
+        return;
+      }
+      if (!this.pressoirAdresse) {
+        this.errorMessage = 'L\'adresse du pressoir est requise';
+        return;
+      }
+    }
 
     // Validation TRAVAILLEUR
     if (this.utilisateur.role === 'TRAVAILLEUR') {
@@ -249,7 +296,6 @@ export class CreerUtilisateur {
         this.isLoading = false;
         console.error('❌ Erreur:', err);
 
-        // Gestion spécifique des erreurs pour les travailleurs
         const errorBody = err.error?.message || err.error?.error || '';
         if (errorBody.includes('duplicate key') && errorBody.includes('email')) {
           this.errorMessage = '❌ Cet email existe déjà. Veuillez utiliser une adresse email différente.';
