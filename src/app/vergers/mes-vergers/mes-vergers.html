@@ -39,41 +39,8 @@
 
         <!-- Card Body -->
         <div class="oh-card__body">
-      <!-- Carte des vergers - Lecture seule pour l'agriculteur -->
-         <div *ngIf="!isLoading && vergers.length > 0" style="margin-bottom: 2.5rem;">
-  
-  <h3 style="margin-bottom: 1rem; color: #3A4A12; font-size: 1.4rem;">
-    📍 Localisation de mes vergers
-  </h3>
 
-  <!-- ✅ HERE: dropdown just before map -->
-  <div style="margin-bottom: 1rem;">
-    <label>Choisir un verger :</label>
-
-    <select [(ngModel)]="selectedVergerId"
-            (change)="zoomToSelected()"
-            class="oh-filter-select">
-
-      <option value="">Tous les vergers</option>
-
-      <option *ngFor="let v of vergers" [value]="v.id">
-  {{ v.typeOlive }} ({{ v.superficie }} ha)
-</option>
-
-    </select>
-  </div>
-
-  <!-- MAP -->
-  <app-verger-map 
-    [vergers]="vergers" 
-    [mode]="'multiple'" 
-    [editable]="false"
-    [selectedIds]="selectedVergerIds"
-    height="520px">
-  </app-verger-map>
-
-</div>
-          <!-- Carte des vergers - Lecture seule pour l'agriculteur -->
+          <!-- Map Section - Only one map -->
           <div *ngIf="!isLoading && vergers.length > 0" class="oh-map-section">
             <div class="oh-map-header">
               <h3 class="oh-map-title">
@@ -84,7 +51,10 @@
 
             <!-- Dropdown just before map -->
             <div class="oh-map-dropdown">
-              <label class="oh-map-label">📍 Choisir un verger :</label>
+              <label class="oh-map-label">
+                <i class="bi bi-pin-map-fill"></i>
+                Choisir un verger :
+              </label>
               <select [(ngModel)]="selectedVergerId"
                       (change)="zoomToSelected()"
                       class="oh-map-select">
@@ -142,7 +112,7 @@
             <div class="oh-filter-controls">
               <!-- Type Filter -->
               <div class="oh-filter-group">
-                <label class="oh-filter-label">Type</label>
+                <label class="oh-filter-label">Type d'olive</label>
                 <select [(ngModel)]="selectedType" (change)="applyFilters()" class="oh-filter-select">
                   <option value="">Tous</option>
                   <option *ngFor="let t of vergerTypes" [value]="t">{{ t }}</option>
@@ -163,7 +133,8 @@
               <!-- Reset Button -->
               <button (click)="resetFilters()" class="oh-filter-reset" 
                       [class.hidden]="!searchQuery && !selectedType && !selectedStatus">
-                🔄 Réinitialiser
+                <i class="bi bi-arrow-counterclockwise"></i>
+                Réinitialiser
               </button>
             </div>
           </div>
@@ -187,6 +158,15 @@
             </div>
             <h3>Aucun verger enregistré</h3>
             <p>Vous n'avez pas encore de vergers associés à votre compte.</p>
+          </div>
+
+          <!-- No Results -->
+          <div *ngIf="!isLoading && !errorMessage && vergers.length > 0 && filteredVergers.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <i class="bi bi-search"></i>
+            </div>
+            <h3>Aucun résultat</h3>
+            <p>Aucun verger ne correspond à vos filtres.</p>
           </div>
 
           <!-- Cards grid -->
@@ -262,21 +242,13 @@
 
                 <!-- Quick Alert Button -->
                 <button class="btn-alert" (click)="openAlertModal(v)" title="Signaler un problème">
-                  <i class="bi bi-bell-fill"></i> Signaler une alerte
+                  <i class="bi bi-bell-fill"></i>
+                  Signaler une alerte
                 </button>
 
               </div>
 
             </div>
-          </div>
-
-          <!-- No Results -->
-          <div *ngIf="!isLoading && !errorMessage && vergers.length > 0 && filteredVergers.length === 0" class="empty-state">
-            <div class="empty-icon">
-              <i class="bi bi-search"></i>
-            </div>
-            <h3>Aucun résultat</h3>
-            <p>Aucun verger ne correspond à vos filtres. Essayez de les modifier.</p>
           </div>
 
           <!-- Pagination -->

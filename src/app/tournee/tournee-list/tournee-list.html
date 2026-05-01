@@ -14,24 +14,16 @@
     </button>
 
     <div class="oh-scene">
-      <div class="oh-ambient" aria-hidden="true">
-        <div class="amb-orb amb-orb--1"></div>
-        <div class="amb-orb amb-orb--2"></div>
-        <div class="amb-orb amb-orb--3"></div>
-      </div>
-
       <div class="oh-card">
-        <div class="oh-card__glow" aria-hidden="true"></div>
 
+        <!-- ===== HEADER ===== -->
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                  </svg>
-                </div>
+              <div class="oh-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                </svg>
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
@@ -48,66 +40,44 @@
           </div>
         </div>
 
+        <!-- ===== BODY ===== -->
         <div class="oh-card__body">
-          <div class="stats-grid">
-            <article class="stat-card">
-              <div class="stat-icon">🗓️</div>
-              <div class="stat-info">
-                <span class="stat-value">{{ totalTournees }}</span>
-                <span class="stat-label">{{ isTransporteur ? 'Mes tournées' : 'Tournées' }}</span>
-              </div>
-            </article>
-            <article class="stat-card">
-              <div class="stat-icon">🌿</div>
-              <div class="stat-info">
-                <span class="stat-value">{{ totalVergers }}</span>
-                <span class="stat-label">Vergers concernés</span>
-              </div>
-            </article>
-            <article class="stat-card">
-              <div class="stat-icon">✅</div>
-              <div class="stat-info">
-                <span class="stat-value">{{ livraisonSummary.livree }}</span>
-                <span class="stat-label">Tournées livrées</span>
-              </div>
-            </article>
-          </div>
 
-          <!-- Filters -->
-          <div class="search-actions">
-            <div class="filter-group">
-              <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control">
-                <option value="">Tous les statuts</option>
-                <option value="PLANIFIEE">Planifiée</option>
-                <option value="EN_COURS">En cours</option>
-                <option value="TERMINEE">Terminée</option>
-                <option value="EN_LIVRAISON">En livraison</option>
-                <option value="LIVREE">Livrée</option>
-                <option value="ANNULEE">Annulée</option>
-              </select>
-            </div>
-            <div class="filter-group">
+          <!-- ── Search & Filters (identical structure to vergers) ── -->
+          <div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
+            <div class="oh-search-bar">
               <input type="text"
+                     placeholder="🔍 Rechercher par code, verger ou agriculteur..."
                      [(ngModel)]="searchTerm"
-                     (input)="onSearchChange()"
-                     placeholder="Rechercher par code ou verger..."
-                     class="form-control search-input">
+                     (ngModelChange)="onSearchChange()"
+                     class="oh-search-input">
             </div>
-            <button class="btn-add" (click)="refreshList()">
-              <i class="bi bi-arrow-repeat"></i>
-              Actualiser
-            </button>
+
+            <div class="oh-filter-controls">
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="PLANIFIEE">Planifiée</option>
+                  <option value="EN_COURS">En cours</option>
+                  <option value="TERMINEE">Terminée</option>
+                  <option value="ANNULEE">Annulée</option>
+                </select>
+              </div>
+
+            </div>
           </div>
 
+          <!-- Feedback messages -->
           <div *ngIf="successMessage" class="oh-success">
             <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
           </div>
-
           <div *ngIf="errorMessage" class="oh-error">
             <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
           </div>
 
-          <div *ngIf="isLoading" class="loading-container">
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-state">
             <div class="spinner"></div>
             <p>Chargement des tournées...</p>
           </div>
@@ -204,15 +174,136 @@
               </tbody>
             </table>
           </div>
+          <div *ngIf="!isLoading">
 
-          <div *ngIf="!isLoading && filteredTournees.length === 0" class="oh-state">
-            <i class="bi bi-calendar-x"></i>
-            <p>Aucune tournée trouvée</p>
+            <!-- Empty state -->
+            <div class="empty-state" *ngIf="filteredTournees.length === 0">
+              <div class="empty-icon">
+                <i class="bi bi-calendar-x"></i>
+              </div>
+              <h3>Aucune tournée trouvée</h3>
+              <p>Aucune tournée ne correspond à vos critères.</p>
+            </div>
 
-          </div>
-        </div>
-      </div>
-    </div>
+            <!-- ── Table ── -->
+            <div class="table-wrapper" *ngIf="filteredTournees.length > 0">
+              <table class="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Statut</th>
+                    <th>Verger</th>
+                    <th>Agriculteur</th>
+                    <th>Date Début</th>
+                    <th>Date Fin</th>
+                    <th>Quantité</th>
+                    <th>Efficacité</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let t of paginatedTournees; trackBy: trackByTourneeId">
+                    <td><strong>{{ t.code }}</strong></td>
+                    <td>
+                      <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+                        {{ t.statut | statutTournee }}
+                      </span>
+                    </td>
+                    <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
+                    <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
+                    <td>{{ t.formattedDateDebut }}</td>
+                    <td>{{ t.formattedDateFin }}</td>
+                    <td>
+                      <div class="quantity-cell">
+                        <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
+                        <div *ngIf="t.totalCollecteVergerKg" class="quantity-total">
+                          Total verger: {{ t.totalCollecteVergerKg | number:'1.0-0' }} kg
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="progress-cell" *ngIf="t.efficacite">
+                        <div class="progress-bar-mini">
+                          <div class="progress-fill-mini" [style.width.%]="t.efficacite"
+                               [style.background]="getEfficaciteColor(t.efficacite)">
+                          </div>
+                        </div>
+                        <span class="maturite-value">{{ t.efficacite | number:'1.0-0' }}%</span>
+                      </div>
+                      <span *ngIf="!t.efficacite" class="no-location">N/A</span>
+                    </td>
+                    <td class="actions-cell">
+                      <div class="action-buttons">
+                        <button class="btn-icon btn-view-t" (click)="viewDetails(t.id || t._id)" title="Voir détails">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-icon btn-start-t"
+                                (click)="startTournee(t.id || t._id)" title="Démarrer">
+                          <i class="bi bi-play-fill"></i>
+                        </button>
+                        <button *ngIf="t.statut === 'EN_COURS'" class="btn-icon btn-complete-t"
+                                (click)="openCompleteModal(t)" title="Terminer">
+                          <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-icon btn-edit-t"
+                                (click)="navigateToEdit(t.id || t._id)" title="Modifier">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button *ngIf="t.statut !== 'TERMINEE'" class="btn-icon btn-cancel-t"
+                                (click)="cancelTournee(t.id || t._id)" title="Annuler">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ── Pagination ── -->
+            <div class="pagination-section" *ngIf="filteredTournees.length > 0">
+              <button type="button" class="btn-pagination"
+                      (click)="previousPage()"
+                      [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i> Précédent
+              </button>
+
+              <div class="page-info">
+                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+                <span class="page-count">({{ filteredTournees.length }} tournées)</span>
+              </div>
+
+              <button type="button" class="btn-pagination"
+                      (click)="nextPage()"
+                      [disabled]="currentPage === totalPages">
+                Suivant <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- ── Stats footer (identical structure to vergers) ── -->
+            <div class="stats-footer" *ngIf="filteredTournees.length > 0">
+              <div class="stats-item">
+                <i class="bi bi-bar-chart-fill"></i>
+                <span>Total : <strong>{{ filteredTournees.length }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-calendar-check"></i>
+                <span>Planifiées : <strong>{{ getStatutCount('PLANIFIEE') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>En cours : <strong>{{ getStatutCount('EN_COURS') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Terminées : <strong>{{ getStatutCount('TERMINEE') }}</strong></span>
+              </div>
+            </div>
+
+          </div><!-- /!isLoading -->
+        </div><!-- /oh-card__body -->
+      </div><!-- /oh-card -->
+    </div><!-- /oh-scene -->
   </main>
 </div>
 
@@ -259,20 +350,18 @@
 
 <!-- ==================== IMPROVED COMPLETE MODAL ==================== -->
 <div class="modal-overlay" *ngIf="showCompleteModal" (click)="closeCompleteModal()">
-  <div class="modal-container complete-modal" (click)="$event.stopPropagation()">
+  <div class="modal-content complete-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>🚜 Terminer la tournée</h3>
-      <button class="modal-close" (click)="closeCompleteModal()">✕</button>
+      <button class="modal-close" (click)="closeCompleteModal()">×</button>
     </div>
 
     <div class="modal-body">
       <div class="tournee-info">
-        <strong>Tournée :</strong> {{ selectedTournee?.code }}
-        <br>
+        <strong>Tournée :</strong> {{ selectedTournee?.code }}<br>
         <strong>Verger :</strong> {{ selectedTournee?.vergerTypeOlive || 'N/A' }}
       </div>
 
-      <!-- Prominent Quantity Field -->
       <div class="quantity-section">
         <label class="big-label">Quantité collectée (kg)</label>
         <div class="quantity-input-group">
@@ -286,20 +375,16 @@
         </div>
         <small class="helper-text">Entrez la quantité réelle récoltée aujourd'hui</small>
       </div>
-
-      <div class="form-group">
-</div>
-
-      <div class="form-group">
-        </div>
     </div>
 
     <div class="modal-footer">
-      <button class="btn-cancel" (click)="closeCompleteModal()">Annuler</button>
-      <button class="btn-confirm"
+      <button class="btn-secondary" (click)="closeCompleteModal()">
+        <i class="bi bi-x-circle"></i> Annuler
+      </button>
+      <button class="btn-primary"
               (click)="confirmComplete()"
               [disabled]="!completeData.quantiteCollecteeKg || completeData.quantiteCollecteeKg <= 0">
-        ✅ Valider la fin de tournée
+        <i class="bi bi-check-circle"></i> Valider la fin de tournée
       </button>
     </div>
   </div>
