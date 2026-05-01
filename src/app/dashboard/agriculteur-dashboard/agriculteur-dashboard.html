@@ -138,38 +138,41 @@
               </div>
               <div class="card-body">
                 <div class="stats-list">
+                  <!-- Non récoltés -->
                   <div class="stat-item">
                     <div class="stat-header">
                       <span class="stat-name">Non récoltés</span>
-                      <span class="stat-count">{{ (data.mesVergersNonRecolte || 0) }} / {{ getTotalVergers() }}</span>
+                      <span class="stat-count">{{ (data.mesVergersNonRecolte || 0) }} / {{ (data.totalMesVergers || 0) }}</span>
                     </div>
                     <div class="stat-bar">
                       <div class="stat-fill blue" 
-                           [style.width.%]="percent(data.mesVergersNonRecolte, getTotalVergers())" 
+                           [style.width]="((data.mesVergersNonRecolte / data.totalMesVergers) * 100) + '%'"
                            [class.animate-fill]="metricsAnimated">
                       </div>
                     </div>
                   </div>
+                  <!-- En cours -->
                   <div class="stat-item">
                     <div class="stat-header">
                       <span class="stat-name">En cours</span>
-                      <span class="stat-count">{{ (data.mesVergersEnCours || 0) }} / {{ getTotalVergers() }}</span>
+                      <span class="stat-count">{{ (data.mesVergersEnCours || 0) }} / {{ (data.totalMesVergers || 0) }}</span>
                     </div>
                     <div class="stat-bar">
                       <div class="stat-fill amber" 
-                           [style.width.%]="percent(data.mesVergersEnCours, getTotalVergers())" 
+                           [style.width]="((data.mesVergersEnCours / data.totalMesVergers) * 100) + '%'"
                            [class.animate-fill]="metricsAnimated">
                       </div>
                     </div>
                   </div>
+                  <!-- Récoltés -->
                   <div class="stat-item">
                     <div class="stat-header">
                       <span class="stat-name">Récoltés</span>
-                      <span class="stat-count">{{ (data.mesVergersRecolte || 0) }} / {{ getTotalVergers() }}</span>
+                      <span class="stat-count">{{ (data.mesVergersRecolte || 0) }} / {{ (data.totalMesVergers || 0) }}</span>
                     </div>
                     <div class="stat-bar">
                       <div class="stat-fill green" 
-                           [style.width.%]="percent(data.mesVergersRecolte, getTotalVergers())" 
+                           [style.width]="((data.mesVergersRecolte / data.totalMesVergers) * 100) + '%'"
                            [class.animate-fill]="metricsAnimated">
                       </div>
                     </div>
@@ -270,6 +273,7 @@
               </div>
               <div class="card-body">
                 <div class="tournees-stats">
+                  <!-- Planifiées -->
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>Planifiées</span>
@@ -277,11 +281,12 @@
                     </div>
                     <div class="stat-bar">
                       <div class="stat-fill blue" 
-                           [style.width.%]="percent(data.mesTourneesPlanifiees, getTotalTournees())" 
+                           [style.width]="((data.mesTourneesPlanifiees / getTotalTournees()) * 100) + '%'"
                            [class.animate-fill]="metricsAnimated">
                       </div>
                     </div>
                   </div>
+                  <!-- En cours -->
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>En cours</span>
@@ -289,11 +294,12 @@
                     </div>
                     <div class="stat-bar">
                       <div class="stat-fill amber" 
-                           [style.width.%]="percent(data.mesTourneesEnCours, getTotalTournees())" 
+                           [style.width]="((data.mesTourneesEnCours / getTotalTournees()) * 100) + '%'"
                            [class.animate-fill]="metricsAnimated">
                       </div>
                     </div>
                   </div>
+                  <!-- Terminées -->
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>Terminées</span>
@@ -301,7 +307,7 @@
                     </div>
                     <div class="stat-bar">
                       <div class="stat-fill green" 
-                           [style.width.%]="percent(data.mesTourneesTerminees, getTotalTournees())" 
+                           [style.width]="((data.mesTourneesTerminees / getTotalTournees()) * 100) + '%'"
                            [class.animate-fill]="metricsAnimated">
                       </div>
                     </div>

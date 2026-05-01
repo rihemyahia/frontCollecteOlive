@@ -1,0 +1,192 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed()"
+    (toggleSidebar)="toggleSidebar($event)"
+    [userRole]="userRole()">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed()">
+    <div *ngIf="loading" class="loading-screen">
+      <div class="olive-loader">
+        <div class="olive-leaf"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+      </div>
+      <p class="loading-text">Chargement de votre tableau de bord...</p>
+      <p class="loading-sub">Vos données se préparent</p>
+    </div>
+
+    <div *ngIf="error && !loading" class="oh-error">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <div *ngIf="!loading" class="dashboard-wrapper">
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-truck-front"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">ESPACE TRANSPORTEUR</p>
+                <h2 class="oh-header__title">Tableau de bord <span class="highlight">Transporteur</span></h2>
+                <p class="header-subtitle">Bienvenue, {{ displayName() }} 👋</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <div class="season-chip">
+                <i class="bi bi-calendar-heart"></i>
+                <span>Saison {{ currentSeason() }}</span>
+              </div>
+              <div class="user-chip">
+                <div class="uc-avatar">{{ initials() }}</div>
+                <span>{{ displayName() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div class="alert-banner" (click)="navigate('/transporteur/tournees')">
+            <i class="bi bi-truck"></i>
+            <div class="alert-content">
+              <strong>Vos missions du jour</strong> Consultez vos tournées et vérifiez la météo locale avant de partir.
+            </div>
+            <div class="alert-action">
+              <span>Voir</span>
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #2D6A4F, #40916C)">
+                <i class="bi bi-truck-front"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value">3</div>
+                <div class="metric-label">Missions du jour</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>Prêt à partir</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24)">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value">2</div>
+                <div class="metric-label">En attente</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>À démarrer</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA)">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value">1</div>
+                <div class="metric-label">En livraison</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>Route active</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #EF4444, #F87171)">
+                <i class="bi bi-sun"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value">{{ temperatureValue() }}</div>
+                <div class="metric-label">Météo locale</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>{{ weatherValue() }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-truck-front"></i>
+                  <span>Mes missions</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="stats-list">
+                  <div class="stat-item" *ngFor="let item of missionStats">
+                    <div class="stat-header">
+                      <span class="stat-name">{{ item.label }}</span>
+                      <span class="stat-count">{{ item.value }}</span>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill green" [style.width.%]="100"></div>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn-create-alert" type="button" (click)="navigate('/transporteur/tournees')">
+                  <i class="bi bi-truck-front"></i>
+                  Voir mes tournées
+                </button>
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-info-circle"></i>
+                  <span>Météo locale</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="collectes-grid">
+                  <div class="collecte-card" *ngFor="let item of routeConditions()">
+                    <i [class]="'bi ' + item.icon"></i>
+                    <div class="collecte-info">
+                      <div class="collecte-value">{{ item.value }}</div>
+                      <div class="collecte-label">{{ item.label }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="bi bi-lightning-charge"></i>
+                  <span>Raccourcis</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="collectes-grid">
+                  <div class="collecte-card" *ngFor="let action of quickActions" (click)="navigate(action.route)">
+                    <i [class]="'bi ' + action.icon"></i>
+                    <div class="collecte-info">
+                      <div class="collecte-value">{{ action.title }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
