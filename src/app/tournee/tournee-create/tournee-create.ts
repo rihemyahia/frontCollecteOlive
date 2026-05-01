@@ -315,10 +315,7 @@ onSubmit() {
     this.showError('La date de fin doit être après la date de début');
     return;
   }
-  if (!this.formData.livraisonDestinationNom?.trim() || !this.formData.livraisonDestinationAdresse?.trim()) {
-    this.showError('Veuillez sélectionner un pressoir de destination via la recherche carte');
-    return;
-  }
+  
 
   this.isSubmitting = true;
   this.cdr.markForCheck();
