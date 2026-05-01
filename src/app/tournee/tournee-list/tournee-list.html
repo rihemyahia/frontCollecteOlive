@@ -438,3 +438,28 @@
     </div>
   </div>
 </div>
+
+<!-- Livraison Modal -->
+<div class="modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🚚 Finaliser la livraison</h3>
+      <button class="modal-close" (click)="closeLivraisonModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tournee-info">
+        <strong>Tournée :</strong> {{ selectedLivraisonTournee?.code }}
+      </div>
+      <div class="quantity-section">
+        <label class="big-label">Preuve de livraison</label>
+        <input type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt" (change)="onLivraisonProofSelected($event)">
+        <small class="helper-text" *ngIf="livraisonProofFile">Fichier: {{ livraisonProofFile.name }}</small>
+      </div>
+      <div *ngIf="livraisonProofError" class="oh-error">{{ livraisonProofError }}</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeLivraisonModal()">Annuler</button>
+      <button class="btn-primary" (click)="confirmCompleteLivraison()" [disabled]="!livraisonProofFile">Valider</button>
+    </div>
+  </div>
+</div>
