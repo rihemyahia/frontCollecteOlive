@@ -51,6 +51,8 @@ export class ModifierUtilisateur implements OnInit {
   availableTournees: any[] = [];
   assignedTournees: any[] = [];
   selectedAvailableTourneeIds: Set<string> = new Set();
+  /** Créneau livraison estimé (optionnel), par id tournée — permet plusieurs livraisons le même jour. */
+  deliveryEstimates: Record<string, { debut: string; fin: string; notes: string }> = {};
   availableSearch = '';
   assignedSearch = '';
   availablePage = 1;
@@ -272,9 +274,23 @@ changePassword(): void {
     // Load both lists in parallel (two independent calls)
     this.utilisateurService.getAvailableTourneesForTransporteurAdmin().subscribe({
       next: (response: any) => {
+        console.log('[FRONTEND DEBUG] getAvailableTourneesForTransporteurAdmin response:', response);
+        
         const list = Array.isArray(response)
           ? response
           : (response?.content || response?.tournees || []);
+        
+        console.log('[FRONTEND DEBUG] Extracted availableTournees list:', list);
+        console.log('[FRONTEND DEBUG] List length:', list?.length);
+        if (list && list.length > 0) {
+          console.log('[FRONTEND DEBUG] First 3 tournees FULL OBJECTS:');
+          for (let i = 0; i < Math.min(3, list.length); i++) {
+            console.log(`  [${i}]:`, JSON.stringify(list[i], null, 2));
+          }
+          console.log('[FRONTEND DEBUG] All tournee IDs:', list.map((t: any) => t?.id || t?._id));
+          console.log('[FRONTEND DEBUG] All tournee statuts:', list.map((t: any) => t?.statut));
+        }
+        
         // Backend already returns only PLANIFIEE + transporteur null, oldest first.
         this.availableTournees = list;
         this.availablePage = 1;
@@ -286,21 +302,35 @@ changePassword(): void {
         this.isLoadingTournees = false;
         clearTimeout(loadingGuard);
         this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement tournées disponibles';
+        console.error('[FRONTEND ERROR] getAvailableTourneesForTransporteurAdmin error:', err);
         this.cdr.detectChanges();
       }
     });
 
     this.utilisateurService.getAssignedTourneesForTransporteurAdmin(this.id).subscribe({
       next: (response: any) => {
+        console.log('[FRONTEND DEBUG] getAssignedTourneesForTransporteurAdmin response:', response);
+        
         // backend might return { tournees: [...] } or direct array
         const list = (response?.tournees || response?.tourneesAssigned || response) ?? [];
-        this.assignedTournees = Array.isArray(list) ? list : [];
+        console.log('[FRONTEND DEBUG] Extracted assignedTournees list:', list);
+        console.log('[FRONTEND DEBUG] List length:', Array.isArray(list) ? list.length : 'NOT AN ARRAY');
+        
+        // Align with backend: keep EN_LIVRAISON for conflict checks and UI; drop LIVREE/ANNULEE if ever present.
+        const panelList = Array.isArray(list) ? list.filter(t => {
+          const s = (t?.statut || '').toString();
+          return s !== 'LIVREE' && s !== 'ANNULEE';
+        }) : [];
+        console.log('[FRONTEND DEBUG] Assigned panel list length:', panelList.length);
+
+        this.assignedTournees = panelList;
         this.assignedPage = 1;
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.assignedTournees = [];
         this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement tournées assignées';
+        console.error('[FRONTEND ERROR] getAssignedTourneesForTransporteurAdmin error:', err);
         this.cdr.detectChanges();
       }
     });
@@ -316,9 +346,23 @@ changePassword(): void {
     }
     if (this.selectedAvailableTourneeIds.has(tourneeId)) {
       this.selectedAvailableTourneeIds.delete(tourneeId);
+      delete this.deliveryEstimates[tourneeId];
     } else {
       this.selectedAvailableTourneeIds.add(tourneeId);
     }
+  }
+
+  ensureDeliveryEstimate(tourneeId: string): { debut: string; fin: string; notes: string } {
+    if (!this.deliveryEstimates[tourneeId]) {
+      this.deliveryEstimates[tourneeId] = { debut: '', fin: '', notes: '' };
+    }
+    return this.deliveryEstimates[tourneeId];
+  }
+
+  onDeliveryFieldChange(tourneeId: string, field: 'debut' | 'fin' | 'notes', value: string): void {
+    const row = this.ensureDeliveryEstimate(tourneeId);
+    row[field] = value ?? '';
+    this.cdr.detectChanges();
   }
 
   toggleSelectAllAvailableOnPage(checked: boolean): void {
@@ -326,14 +370,20 @@ changePassword(): void {
       const id = t?.id || t?._id;
       if (!id) return;
       if (checked) {
-        this.selectedAvailableTourneeIds.add(id);
+        if (!this.isTourneeConflictingWithAssigned(t)) {
+          this.selectedAvailableTourneeIds.add(id);
+        }
       } else {
         this.selectedAvailableTourneeIds.delete(id);
+        delete this.deliveryEstimates[id];
       }
     });
   }
 
   clearSelection(): void {
+    for (const id of this.selectedAvailableTourneeIds) {
+      delete this.deliveryEstimates[id];
+    }
     this.selectedAvailableTourneeIds.clear();
   }
 
@@ -359,30 +409,61 @@ changePassword(): void {
     return A1 < B2 && B1 < A2;
   }
 
+  /** Fenêtre utilisée pour conflit livraison transporteur (créneau estimé si renseigné, sinon période tournée). */
+  private deliveryWindowStart(t: any): Date | null {
+    const le = this.asDate(t?.livraisonEstimeDebut);
+    const lf = this.asDate(t?.livraisonEstimeFin);
+    if (le && lf) return le;
+    return this.asDate(t?.dateDebut);
+  }
+
+  private deliveryWindowEnd(t: any): Date | null {
+    const le = this.asDate(t?.livraisonEstimeDebut);
+    const lf = this.asDate(t?.livraisonEstimeFin);
+    if (le && lf) return lf;
+    return this.asDate(t?.dateFin);
+  }
+
+  private pendingDeliveryWindow(t: any): { start: Date; end: Date } | null {
+    const id = t?.id || t?._id;
+    if (!id) return null;
+    const p = this.deliveryEstimates[id];
+    if (!p?.debut?.trim() || !p?.fin?.trim()) return null;
+    const s = new Date(p.debut);
+    const e = new Date(p.fin);
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || e <= s) return null;
+    return { start: s, end: e };
+  }
+
   isTourneeConflictingWithAssigned(t: any): boolean {
     if (!t || !this.assignedTournees || this.assignedTournees.length === 0) return false;
+    const tid = t?.id || t?._id;
+    const pending = tid ? this.pendingDeliveryWindow(t) : null;
+    const tLivStart = pending ? pending.start : this.deliveryWindowStart(t);
+    const tLivEnd = pending ? pending.end : this.deliveryWindowEnd(t);
+    if (!tLivStart || !tLivEnd) return false;
+
     for (const a of this.assignedTournees) {
-      if (this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
-      // also check resource conflicts: same benne or tracteur used in overlapping time
-      if (t.benneId && a.benneId && t.benneId === a.benneId && this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
-      if (t.tracteurId && a.tracteurId && t.tracteurId === a.tracteurId && this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
+      const aStart = this.deliveryWindowStart(a);
+      const aEnd = this.deliveryWindowEnd(a);
+      if (aStart && aEnd && tLivStart < aEnd && aStart < tLivEnd) return true;
+      if (t.benneId && a.benneId && t.benneId === a.benneId
+          && this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
+      if (t.tracteurId && a.tracteurId && t.tracteurId === a.tracteurId
+          && this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
     }
     return false;
   }
 
-  transporteurAvailableFlag(): boolean {
-    // Prefer explicit flag if provided by server; otherwise compute from assigned tournees
-    if (this.utilisateur && typeof this.utilisateur.disponibleTransport === 'boolean') return this.utilisateur.disponibleTransport;
-    // compute: transporteur is available if no assigned future/present overlapping tournees
-    return !(this.assignedTournees || []).some(a => {
-      const now = new Date();
-      const start = this.asDate(a.dateDebut);
-      const end = this.asDate(a.dateFin);
-      if (!start || !end) return false;
-      // if assigned tour is not finished or delivered, consider unavailable
-      const s = (a.statut || '').toUpperCase();
-      return ['PLANIFIEE','EN_COURS','TERMINEE','EN_LIVRAISON'].includes(s) && end >= now;
-    });
+  /** True if the transporteur has at least one tour in active delivery (for KPI / hints only). */
+  transporteurHasActiveDelivery(): boolean {
+    return (this.assignedTournees || []).some(a => (a?.statut || '').toString().toUpperCase() === 'EN_LIVRAISON');
+  }
+
+  /** Block unassigning while a delivery is in progress for that tour. */
+  canRemoveAssignedTournee(t: any): boolean {
+    const s = (t?.statut || '').toString().toUpperCase();
+    return s !== 'EN_LIVRAISON';
   }
 
   isAvailableSelected(tourneeId: string): boolean {
@@ -406,8 +487,46 @@ changePassword(): void {
     const existingIds = new Set(this.assignedTournees.map(t => t?.id || t?._id).filter(Boolean));
     ids.forEach(x => existingIds.add(x));
     const payload = Array.from(existingIds);
+    
+    // Safety check: ensure all tournees in payload are assignable (defensive)
+    const allTournees = [...this.availableTournees, ...this.assignedTournees];
+    const nonAssignableInPayload = payload.filter(pid => {
+      const t = allTournees.find(tt => (tt?.id || tt?._id) === pid);
+      return t && (t.statut === 'EN_LIVRAISON' || t.statut === 'LIVREE' || t.statut === 'ANNULEE');
+    });
+    
+    if (nonAssignableInPayload.length > 0) {
+      console.warn('[FRONTEND WARNING] Non-assignable tournees in payload:', nonAssignableInPayload);
+      this.errorMessage = 'Erreur: Certaines tournées ne peuvent pas être assignées (livrées, en livraison, ou annulées).';
+      this.cdr.detectChanges();
+      return;
+    }
+    
+    console.log('[DEBUG] Selected IDs for assignment:', ids);
+    console.log('[DEBUG] Final payload:', payload);
 
-    this.utilisateurService.assignTourneesToTransporteurAdmin(this.id, payload).subscribe({
+    const livraisonEstimations = payload
+      .map((pid: string) => {
+        const est = this.deliveryEstimates[pid];
+        if (!est?.debut?.trim() || !est?.fin?.trim()) return null;
+        const d0 = new Date(est.debut);
+        const d1 = new Date(est.fin);
+        if (isNaN(d0.getTime()) || isNaN(d1.getTime()) || d1 <= d0) return null;
+        const item: { tourneeId: string; livraisonEstimeDebut: string; livraisonEstimeFin: string; livraisonNotes?: string } = {
+          tourneeId: pid,
+          livraisonEstimeDebut: d0.toISOString(),
+          livraisonEstimeFin: d1.toISOString()
+        };
+        if (est.notes?.trim()) item.livraisonNotes = est.notes.trim();
+        return item;
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null);
+
+    this.utilisateurService.assignTourneesToTransporteurAdmin(
+      this.id,
+      payload,
+      livraisonEstimations.length > 0 ? livraisonEstimations : undefined
+    ).subscribe({
       next: () => {
         this.successMessage = 'Tournées assignées avec succès';
         this.isSavingTournees = false;
@@ -415,6 +534,7 @@ changePassword(): void {
         this.cdr.detectChanges();
       },
       error: (err) => {
+        console.error('[DEBUG] Backend assignment error:', err);
         this.isSavingTournees = false;
         this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors de l’assignation';
         this.cdr.detectChanges();
@@ -426,6 +546,11 @@ changePassword(): void {
     if (!this.id) return;
     const removeId = t?.id || t?._id;
     if (!removeId) return;
+    if (!this.canRemoveAssignedTournee(t)) {
+      this.errorMessage = 'Impossible de retirer une tournée pendant la livraison. Terminez la livraison côté transporteur d’abord.';
+      this.cdr.detectChanges();
+      return;
+    }
 
     this.isSavingTournees = true;
     this.successMessage = '';
@@ -455,6 +580,14 @@ changePassword(): void {
     const date = new Date(d);
     if (isNaN(date.getTime())) return 'N/A';
     return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  /** Affichage créneau livraison estimé (tournée déjà assignée). */
+  formatLivraisonEstimee(t: any): string {
+    const d0 = t?.livraisonEstimeDebut;
+    const d1 = t?.livraisonEstimeFin;
+    if (!d0 || !d1) return '—';
+    return `${this.formatTourneeDate(d0)} → ${this.formatTourneeDate(d1)}`;
   }
 
   getTourneeVergerName(t: any): string {
