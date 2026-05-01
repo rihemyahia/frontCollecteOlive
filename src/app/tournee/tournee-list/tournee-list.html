@@ -52,34 +52,51 @@
         <div class="oh-card__body">
 
           <!-- Search & Filters -->
-          <div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
-            <div class="oh-search-bar">
-              <input type="text"
-                     placeholder="🔍 Rechercher par code, verger ou agriculteur..."
-                     [(ngModel)]="searchTerm"
-                     (ngModelChange)="onSearchChange()"
-                     class="oh-search-input">
-            </div>
+<!-- Search & Filters -->
+<!-- Search & Filters -->
+<div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
+  <!-- Search Bar on top -->
+  <div class="oh-search-bar">
+    <input type="text"
+           placeholder="🔍 Rechercher par code, verger ou agriculteur..."
+           [(ngModel)]="searchTerm"
+           (ngModelChange)="onSearchChange()"
+           class="oh-search-input">
+  </div>
 
-            <div class="oh-filter-controls">
-              <div class="oh-filter-group">
-                <label class="oh-filter-label">Statut</label>
-                <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="oh-filter-select">
-                  <option value="">Tous</option>
-                  <option value="PLANIFIEE">Planifiée</option>
-                  <option value="EN_COURS">En cours</option>
-                  <option value="TERMINEE">Terminée</option>
-                  <option value="ANNULEE">Annulée</option>
-                </select>
-              </div>
-              <button class="oh-filter-reset" (click)="resetFilters()" *ngIf="searchTerm || selectedStatut">
-                <i class="bi bi-x-circle"></i> Réinitialiser
-              </button>
-              <button class="btn-refresh oh-filter-reset" (click)="refreshList()" title="Rafraîchir">
-                <i class="bi bi-arrow-repeat"></i> Rafraîchir
-              </button>
-            </div>
-          </div>
+  <!-- Filters below the search bar -->
+  <div class="oh-filter-controls">
+    <div class="filter-group">
+      <label>ANNÉE</label>
+      <select [(ngModel)]="selectedAnnee" (change)="onFilterChange()" class="form-control">
+        <option value="">Toutes les années</option>
+        <option *ngFor="let annee of availableAnnees" [value]="annee">{{ annee }}</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>STATUT</label>
+      <select [(ngModel)]="selectedStatut" (change)="onFilterChange()" class="form-control">
+        <option value="">Tous les statuts</option>
+        <option value="PLANIFIEE">Planifiée</option>
+        <option value="EN_COURS">En cours</option>
+        <option value="TERMINEE">Terminée</option>
+        <option value="EN_LIVRAISON">En livraison</option>
+        <option value="LIVREE">Livrée</option>
+        <option value="ANNULEE">Annulée</option>
+      </select>
+    </div>
+
+    <button class="oh-filter-reset" (click)="resetFilters()" *ngIf="searchTerm || selectedStatut || selectedAnnee">
+      <i class="bi bi-x-circle"></i> Réinitialiser
+    </button>
+
+    <button class="oh-filter-reset btn-refresh" (click)="refreshList()" title="Rafraîchir">
+      <i class="bi bi-arrow-repeat"></i> Rafraîchir
+    </button>
+  </div>
+</div>
+
 
           <!-- Feedback messages -->
           <div *ngIf="successMessage" class="oh-success">

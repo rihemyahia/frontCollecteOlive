@@ -21,6 +21,10 @@ export class TourneeListComponent implements OnInit {
   // UI State
   isSidebarCollapsed = false;
   userRole = '';
+  selectedAnnee: string = '';
+availableAnnees: number[] = [];
+showAllYears = false;
+
   isMobile = false;
   // Default to table: avoids expensive grouped computation during initial render.
   viewMode: 'table' | 'cards' | 'grouped' = 'table';
@@ -82,6 +86,17 @@ export class TourneeListComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private authService: AuthService
   ) {}
+extractAvailableYears(): void {
+  const years = new Set<number>();
+  this.tournees.forEach(t => {
+    if (t.dateDebut) {
+      const year = new Date(t.dateDebut).getFullYear();
+      if (!isNaN(year)) years.add(year);
+    }
+  });
+  this.availableAnnees = Array.from(years).sort((a, b) => b - a); // newest first
+  this.cdr.markForCheck();
+}
 
   get isTransporteur(): boolean {
     return this.userRole === 'TRANSPORTEUR';
@@ -114,50 +129,49 @@ export class TourneeListComponent implements OnInit {
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
+loadTournees(): void {
+  this.isLoading = true;
 
-  // ==================== DATA LOADING ====================
-  loadTournees(): void {
-    this.isLoading = true;
+  const loadObservable = this.userRole === 'TRANSPORTEUR'
+    ? this.utilisateurService.getMesTourneesTransporteur()
+    : this.tourneeService.getAll();
 
-    // For TRANSPORTEUR: load only current user's tournees
-    // For ADMIN/RESPONSABLE: load all tournees
-    const loadObservable = this.userRole === 'TRANSPORTEUR'
-      ? this.utilisateurService.getMesTourneesTransporteur()
-      : this.tourneeService.getAll();
+  loadObservable.subscribe({
+    next: (data: any) => {
+      console.log('Tournées reçues:', data);
+      const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
+      this.tournees = tourneeArray.map((t: any) => ({
+        ...t,
+        displayVergerTypeOlive: t.vergerTypeOlive || t.verger?.typeOlive || 'N/A',
+        displayVergerAgriculteurNom: t.vergerAgriculteurNom || this.extractAgriculteurName(t.verger?.agriculteur),
+        displayQuantiteCollectee: t.quantiteCollecteeKg && t.quantiteCollecteeKg > 0 ? t.quantiteCollecteeKg.toFixed(1) : '0',
+        displayTotalCollecte: t.totalCollecteVergerKg ? t.totalCollecteVergerKg.toFixed(1) : '0',
+        displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
+        displayLivraisonStatus: this.computeLivraisonStatus(t),
+        displayLivraisonWindow: this.computeLivraisonWindow(t),
+        displayDeliveryDestination: this.computeDeliveryDestination(t),
+        displayDeliveryAddress: this.computeDeliveryAddress(t),
+        hasDedicatedDeliveryVehicle: this.hasDedicatedDeliveryVehicle(t),
+        formattedDateDebut: this.formatDateTime(t.dateDebut),
+        formattedDateFin: this.formatDateTime(t.dateFin),
+        formattedDate: this.formatDate(t.dateDebut)
+      }));
 
-    loadObservable.subscribe({
-      next: (data: any) => {
-        console.log('Tournées reçues:', data);
-        // Handle both direct array and API response object
-        const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
-        this.tournees = tourneeArray.map((t: any) => ({
-          ...t,
-          displayVergerTypeOlive: t.vergerTypeOlive || t.verger?.typeOlive || 'N/A',
-          displayVergerAgriculteurNom: t.vergerAgriculteurNom || this.extractAgriculteurName(t.verger?.agriculteur),
-          displayQuantiteCollectee: t.quantiteCollecteeKg && t.quantiteCollecteeKg > 0 ? t.quantiteCollecteeKg.toFixed(1) : '0',
-          displayTotalCollecte: t.totalCollecteVergerKg ? t.totalCollecteVergerKg.toFixed(1) : '0',
-          displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
-          displayLivraisonStatus: this.computeLivraisonStatus(t),
-          displayLivraisonWindow: this.computeLivraisonWindow(t),
-          displayDeliveryDestination: this.computeDeliveryDestination(t),
-          displayDeliveryAddress: this.computeDeliveryAddress(t),
-          hasDedicatedDeliveryVehicle: this.hasDedicatedDeliveryVehicle(t),
-          formattedDateDebut: this.formatDateTime(t.dateDebut),
-          formattedDateFin: this.formatDateTime(t.dateFin),
-          formattedDate: this.formatDate(t.dateDebut)
-        }));
-        this.applyFilters();
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err: any) => {
-        this.errorMessage = 'Erreur lors du chargement des tournées';
-        this.isLoading = false;
-        this.cdr.markForCheck();
-        console.error(err);
-      }
-    });
-  }
+      // ✅ Extract years AFTER data is loaded
+      this.extractAvailableYears();
+
+      this.applyFilters();
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    },
+    error: (err: any) => {
+      this.errorMessage = 'Erreur lors du chargement des tournées';
+      this.isLoading = false;
+      this.cdr.markForCheck();
+      console.error(err);
+    }
+  });
+}
 
   private extractAgriculteurName(agriculteur: any): string {
     if (!agriculteur) return 'N/A';
@@ -411,29 +425,48 @@ groupByAgriculteurAndVerger() {
   }
 
   // ==================== FILTERS ====================
-  applyFilters() {
-    let filtered = [...this.tournees];
+ applyFilters() {
+  let filtered = [...this.tournees];
 
-    if (this.selectedStatut) {
-      filtered = filtered.filter(t => t.statut === this.selectedStatut);
-    }
+  // Sort by date descending (newest first)
+  filtered = filtered.sort((a, b) => {
+    const dateA = new Date(a.dateDebut).getTime();
+    const dateB = new Date(b.dateDebut).getTime();
+    return dateB - dateA; // Descending order
+  });
 
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(t =>
-        t.code?.toLowerCase().includes(term) ||
-        t.vergerTypeOlive?.toLowerCase().includes(term) ||
-        t.vergerAgriculteurNom?.toLowerCase().includes(term) ||
-        t.vergerNom?.toLowerCase().includes(term)
-      );
-    }
-
-    this.filteredTournees = filtered;
-    this.currentPage = 1;
-    this.updatePagination();
-    this.groupByAgriculteurAndVerger();
-    this.cdr.markForCheck();
+  // Status filter
+  if (this.selectedStatut) {
+    filtered = filtered.filter(t => t.statut === this.selectedStatut);
   }
+
+  // Year filter
+  if (this.selectedAnnee && this.selectedAnnee !== '') {
+    const year = parseInt(this.selectedAnnee, 10);
+    filtered = filtered.filter(t => {
+      if (!t.dateDebut) return false;
+      const tourneeYear = new Date(t.dateDebut).getFullYear();
+      return tourneeYear === year;
+    });
+  }
+
+  // Search filter
+  if (this.searchTerm) {
+    const term = this.searchTerm.toLowerCase();
+    filtered = filtered.filter(t =>
+      t.code?.toLowerCase().includes(term) ||
+      t.vergerTypeOlive?.toLowerCase().includes(term) ||
+      t.vergerAgriculteurNom?.toLowerCase().includes(term) ||
+      t.vergerNom?.toLowerCase().includes(term)
+    );
+  }
+
+  this.filteredTournees = filtered;
+  this.currentPage = 1;
+  this.updatePagination();
+  this.groupByAgriculteurAndVerger();
+  this.cdr.markForCheck();
+}
 
   updatePagination(): void {
     this.totalPages = Math.ceil(this.filteredTournees.length / this.itemsPerPage) || 1;

@@ -1,0 +1,174 @@
+<!-- src/app/tournees/tournee-edit/tournee-edit.component.html -->
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content"
+        [class.sidebar-collapsed]="isSidebarCollapsed"
+        [class.sidebar-open]="!isSidebarCollapsed">
+
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-pencil-square"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
+                <h2 class="oh-header__title">Modifier la tournée</h2>
+                <p class="header-subtitle">Mettez à jour les informations de la tournée</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <button class="btn-back" (click)="goBack()">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement des données de la tournée...</p>
+          </div>
+
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <form *ngIf="!isLoading && tournee" (ngSubmit)="onSubmit()" class="oh-form">
+
+            <!-- Add these sections inside your form, after the date fields -->
+
+<!-- Section: Ressources -->
+<div class="form-section">
+  <h3 class="section-title">
+    <i class="bi bi-tools"></i>
+    Ressources
+  </h3>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Benne</label>
+      <select class="form-control" [ngModel]="editData.benneId" name="benneId" (change)="onBenneChange($event)">
+        <option value="">Sélectionner une benne</option>
+        <option *ngFor="let b of bennes" [value]="b.id">
+          {{ b.nom }} - Capacité: {{ b.capaciteKg }} kg
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tracteur</label>
+      <select class="form-control" [ngModel]="editData.tracteurId" name="tracteurId" (change)="onTracteurChange($event)">
+        <option value="">Sélectionner un tracteur</option>
+        <option *ngFor="let t of tracteurs" [value]="t.id">
+          {{ t.nom }} - {{ t.immatriculation }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Travailleurs</label>
+      <select multiple class="form-control" [ngModel]="editData.travailleurIds" name="travailleurIds" (change)="onTravailleurChange($event)">
+        <option *ngFor="let w of travailleurs" [value]="w.id">
+          {{ w.prenom }} {{ w.nom }} - {{ w.specialites?.join(', ') || 'Aucune spécialité' }}
+        </option>
+      </select>
+      <small class="form-text text-muted">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs travailleurs</small>
+    </div>
+  </div>
+</div>
+
+            <!-- Section: Dates et horaires -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-calendar"></i>
+                Dates et horaires
+              </h3>
+              <div class="form-row form-row--2col">
+                <div class="form-group">
+                  <label class="form-label">Date et heure de début <span class="required">*</span></label>
+                  <input type="datetime-local"
+                         class="form-control"
+                         [(ngModel)]="dateDebutStr"
+                         name="dateDebut"
+                         (change)="onDateDebutChange($event)"
+                         required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Date et heure de fin <span class="required">*</span></label>
+                  <input type="datetime-local"
+                         class="form-control"
+                         [(ngModel)]="dateFinStr"
+                         name="dateFin"
+                         (change)="onDateFinChange($event)"
+                         required>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Section: Observations -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-chat-text"></i>
+                Observations
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Notes supplémentaires</label>
+                  <textarea class="form-control"
+                            [(ngModel)]="editData.observations"
+                            name="observations"
+                            rows="3"
+                            placeholder="Informations complémentaires..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Warning message if cannot edit -->
+            <div *ngIf="!canEdit()" class="warning-message">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Cette tournée ne peut pas être modifiée car elle n'est pas au statut PLANIFIEE.
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="loadTournee(tournee.id)">
+                <i class="bi bi-arrow-counterclockwise"></i> Recharger
+              </button>
+              <button type="button" class="btn-secondary" (click)="goBack()">
+                <i class="bi bi-x-circle"></i> Annuler
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="isSaving || !canEdit()">
+                <span *ngIf="isSaving" class="spinner-border"></span>
+                <i class="bi bi-save" *ngIf="!isSaving"></i>
+                {{ isSaving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+              </button>
+            </div>
+          </form>
+
+          <div class="info-note">
+            <i class="bi bi-info-circle-fill"></i>
+            <p>Les champs marqués d'un <span class="required">*</span> sont obligatoires. Seules les tournées au statut <strong>PLANIFIEE</strong> peuvent être modifiées.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
