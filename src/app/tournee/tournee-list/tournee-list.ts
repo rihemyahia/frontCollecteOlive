@@ -1,14 +1,13 @@
 // src/app/tournees/tournee-list/tournee-list.component.ts
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TourneeService } from '../../services/tournee';
+import { UtilisateurService } from '../../services/utilisateur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { StatutTourneePipe } from '../../pipes/statut-tournee-pipe';
 import { AuthService } from '../../services/auth';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-tournee-list',
@@ -18,25 +17,28 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
   styleUrls: ['./tournee-list.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TourneeListComponent implements OnInit, OnDestroy {
+export class TourneeListComponent implements OnInit {
   // UI State
   isSidebarCollapsed = false;
   userRole = '';
+  selectedAnnee: string = '';
+availableAnnees: number[] = [];
+showAllYears = false;
+
   isMobile = false;
+  // Default to table: avoids expensive grouped computation during initial render.
   viewMode: 'table' | 'cards' | 'grouped' = 'table';
 
   // Data
   tournees: any[] = [];
   filteredTournees: any[] = [];
   groupedByAgriculteur: AgriculteurGroup[] = [];
-  paginatedTournees: any[] = [];
+  pagedTournees: any[] = [];
 
   // Pagination
+  paginatedTournees: any[] = [];
   itemsPerPage = 10;
   totalPages = 1;
-  currentPage = 1;
-  totalElements = 0;
-  backendPage = 0;
 
   // Filters
   selectedStatut = '';
@@ -47,6 +49,10 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   successMessage = '';
   errorMessage = '';
 
+  // Pagination
+  currentPage = 1;
+  readonly pageSize = 20;
+
   // Modal
   showCompleteModal = false;
   selectedTournee: any = null;
@@ -55,69 +61,61 @@ export class TourneeListComponent implements OnInit, OnDestroy {
     distanceTotale: null,
     observations: ''
   };
+  showLivraisonModal = false;
+  selectedLivraisonTournee: any = null;
+  livraisonProofFile: File | null = null;
+  livraisonProofError = '';
+  isCompletingLivraison = false;
 
   // Statistics
   totalQuantite = 0;
   totalTournees = 0;
   totalAgriculteurs = 0;
   totalVergers = 0;
-
-  // Delivery summary stats
   livraisonSummary = {
     aLivrer: 0,
     enLivraison: 0,
-    livree: 0
-  };
-
-  // Cached stats
-  private statCounts = {
-    total: 0,
-    planifiee: 0,
-    enCours: 0,
-    terminee: 0,
-    enLivraison: 0,
     livree: 0,
-    annulee: 0
+    sansVehicule: 0
   };
-
-  // Search debouncer
-  private searchSubject = new Subject<string>();
-  private readonly SEARCH_DEBOUNCE_MS = 300;
-
-  // Cache for enriched tournées
-  private tourneeCache = new Map<string, any>();
 
   constructor(
     private tourneeService: TourneeService,
+    private utilisateurService: UtilisateurService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private authService: AuthService
-  ) {
-    this.searchSubject.pipe(
-      debounceTime(this.SEARCH_DEBOUNCE_MS),
-      distinctUntilChanged()
-    ).subscribe(() => {
-      this.applyFilters();
-    });
+  ) {}
+extractAvailableYears(): void {
+  const years = new Set<number>();
+  this.tournees.forEach(t => {
+    if (t.dateDebut) {
+      const year = new Date(t.dateDebut).getFullYear();
+      if (!isNaN(year)) years.add(year);
+    }
+  });
+  this.availableAnnees = Array.from(years).sort((a, b) => b - a); // newest first
+  this.cdr.markForCheck();
+}
+
+  get isTransporteur(): boolean {
+    return this.userRole === 'TRANSPORTEUR';
   }
 
   get pageTitle(): string {
-    return 'Liste des tournées';
+    return this.isTransporteur ? 'Mes tournées' : 'Liste des tournées';
   }
 
   get pageSubtitle(): string {
-    return 'Planifiez, suivez et gérez les tournées de récolte';
+    return this.isTransporteur
+      ? 'Suivez vos missions du jour, démarrez et terminez rapidement chaque tournée'
+      : 'Planifiez, suivez et gérez les tournées de récolte';
   }
 
   ngOnInit() {
     this.checkMobile();
     this.userRole = this.authService.getUserRole();
     this.loadTournees();
-  }
-
-  ngOnDestroy() {
-    this.searchSubject.complete();
-    this.tourneeCache.clear();
   }
 
   @HostListener('window:resize')
@@ -131,100 +129,49 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
+loadTournees(): void {
+  this.isLoading = true;
 
-  // ==================== DATA LOADING ====================
-  loadTournees(): void {
-    if (this.isLoading) return;
-    
-    this.isLoading = true;
+  const loadObservable = this.userRole === 'TRANSPORTEUR'
+    ? this.utilisateurService.getMesTourneesTransporteur()
+    : this.tourneeService.getAll();
 
-    this.tourneeService.getAll().subscribe({
-      next: (data: any) => {
-        const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
-        this.totalElements = tourneeArray.length;
-        this.tournees = tourneeArray.map((t: any) => this.enrichTournee(t));
-        this.applyFilters();
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err: any) => {
-        this.errorMessage = 'Erreur lors du chargement des tournées';
-        this.isLoading = false;
-        this.cdr.markForCheck();
-        console.error(err);
-      }
-    });
-  }
+  loadObservable.subscribe({
+    next: (data: any) => {
+      console.log('Tournées reçues:', data);
+      const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
+      this.tournees = tourneeArray.map((t: any) => ({
+        ...t,
+        displayVergerTypeOlive: t.vergerTypeOlive || t.verger?.typeOlive || 'N/A',
+        displayVergerAgriculteurNom: t.vergerAgriculteurNom || this.extractAgriculteurName(t.verger?.agriculteur),
+        displayQuantiteCollectee: t.quantiteCollecteeKg && t.quantiteCollecteeKg > 0 ? t.quantiteCollecteeKg.toFixed(1) : '0',
+        displayTotalCollecte: t.totalCollecteVergerKg ? t.totalCollecteVergerKg.toFixed(1) : '0',
+        displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
+        displayLivraisonStatus: this.computeLivraisonStatus(t),
+        displayLivraisonWindow: this.computeLivraisonWindow(t),
+        displayDeliveryDestination: this.computeDeliveryDestination(t),
+        displayDeliveryAddress: this.computeDeliveryAddress(t),
+        hasDedicatedDeliveryVehicle: this.hasDedicatedDeliveryVehicle(t),
+        formattedDateDebut: this.formatDateTime(t.dateDebut),
+        formattedDateFin: this.formatDateTime(t.dateFin),
+        formattedDate: this.formatDate(t.dateDebut)
+      }));
 
-  private enrichTournee(t: any): any {
-    const cacheKey = t.id || t._id;
-    if (this.tourneeCache.has(cacheKey)) {
-      return this.tourneeCache.get(cacheKey);
+      // ✅ Extract years AFTER data is loaded
+      this.extractAvailableYears();
+
+      this.applyFilters();
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    },
+    error: (err: any) => {
+      this.errorMessage = 'Erreur lors du chargement des tournées';
+      this.isLoading = false;
+      this.cdr.markForCheck();
+      console.error(err);
     }
-    
-    const enriched = {
-      ...t,
-      displayVergerTypeOlive: t.vergerTypeOlive || t.verger?.typeOlive || 'N/A',
-      displayVergerAgriculteurNom: t.vergerAgriculteurNom || this.extractAgriculteurName(t.verger?.agriculteur),
-      displayQuantiteCollectee: t.quantiteCollecteeKg && t.quantiteCollecteeKg > 0 ? t.quantiteCollecteeKg.toFixed(1) : '0',
-      displayTotalCollecte: t.totalCollecteVergerKg ? t.totalCollecteVergerKg.toFixed(1) : '0',
-      displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
-      displayLivraisonStatus: this.computeLivraisonStatus(t),
-      formattedDateDebut: this.formatDateTimeCached(t.dateDebut),
-      formattedDateFin: this.formatDateTimeCached(t.dateFin),
-      formattedDate: this.formatDateCached(t.dateDebut)
-    };
-    
-    this.tourneeCache.set(cacheKey, enriched);
-    return enriched;
-  }
-
-  private computeLivraisonStatus(tournee: any): string {
-    if (tournee.statut === 'TERMINEE') return 'A_LIVRER';
-    if (tournee.statut === 'EN_LIVRAISON') return 'EN_LIVRAISON';
-    if (tournee.statut === 'LIVREE') return 'LIVREE';
-    if (tournee.statut === 'EN_COURS') return 'COLLECTE_EN_COURS';
-    return 'NON_DISPONIBLE';
-  }
-
-  // Cached date formatters
-  private dateTimeCache = new Map<string, string>();
-  private dateCache = new Map<string, string>();
-
-  private formatDateTimeCached(date: any): string {
-    if (!date) return 'N/A';
-    const key = `dt_${date}`;
-    if (this.dateTimeCache.has(key)) return this.dateTimeCache.get(key)!;
-    try {
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return 'N/A';
-      const result = d.toLocaleString('fr-FR', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
-      this.dateTimeCache.set(key, result);
-      return result;
-    } catch (e) {
-      return 'N/A';
-    }
-  }
-
-  private formatDateCached(date: any): string {
-    if (!date) return 'N/A';
-    const key = `d_${date}`;
-    if (this.dateCache.has(key)) return this.dateCache.get(key)!;
-    try {
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return 'N/A';
-      const result = d.toLocaleDateString('fr-FR', {
-        day: '2-digit', month: '2-digit', year: 'numeric'
-      });
-      this.dateCache.set(key, result);
-      return result;
-    } catch (e) {
-      return 'N/A';
-    }
-  }
+  });
+}
 
   private extractAgriculteurName(agriculteur: any): string {
     if (!agriculteur) return 'N/A';
@@ -235,6 +182,51 @@ export class TourneeListComponent implements OnInit, OnDestroy {
     return 'N/A';
   }
 
+  private computeLivraisonStatus(tournee: any): string {
+    if (tournee.statut === 'TERMINEE') return 'A_LIVRER';
+    if (tournee.statut === 'EN_LIVRAISON') return 'EN_LIVRAISON';
+    if (tournee.statut === 'LIVREE') return 'LIVREE';
+    if (tournee.statut === 'EN_COURS') return 'COLLECTE_EN_COURS';
+    return 'NON_DISPONIBLE';
+  }
+
+  private computeLivraisonWindow(tournee: any): string {
+    const debut = tournee?.livraisonDebut || tournee?.expectedDeliveryDate || (tournee?.statut === 'TERMINEE' ? tournee?.dateFin : null);
+    if (!debut) return 'A définir';
+    return this.formatDateTime(debut);
+  }
+
+  private hasDedicatedDeliveryVehicle(tournee: any): boolean {
+    // Current model: delivery uses the planned tracteur (temporary rule).
+    // Treat tracteur as the delivery vehicle so UI doesn't show "A planifier".
+    if (tournee?.tracteurId || tournee?.tracteurNom || tournee?.tracteur?.id || tournee?.tracteur?.nom) return true;
+    // Future-proof keys for dedicated transport vehicle without breaking current model.
+    return !!(tournee?.vehiculeLivraison || tournee?.ressourceLivraison || tournee?.camionLivraison);
+  }
+
+  private computeDeliveryDestination(tournee: any): string {
+    return tournee?.livraisonDestinationNom
+      || tournee?.deliveryDestinationName
+      || (tournee?.collecteCode ? `Moulin collecte ${tournee.collecteCode}` : '')
+      || (tournee?.vergerTypeOlive ? `Point de livraison - ${tournee.vergerTypeOlive}` : '')
+      || 'Point de livraison principal';
+  }
+
+  private computeDeliveryAddress(tournee: any): string {
+    return tournee?.livraisonDestinationAdresse
+      || tournee?.deliveryDestinationAddress
+      || tournee?.destinationAdresse
+      || tournee?.verger?.responsable?.adresse
+      || tournee?.verger?.geolocalisation?.adresseIndicative
+      || 'Adresse a confirmer par le responsable';
+  }
+
+  getNavigationUrlForTournee(tournee: any): string {
+    const destination = tournee?.displayDeliveryAddress || this.computeDeliveryAddress(tournee);
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+  }
+
+  // Helper methods for template
   getVergerTypeOlive(t: any): string {
     return t.displayVergerTypeOlive || 'N/A';
   }
@@ -255,155 +247,154 @@ export class TourneeListComponent implements OnInit, OnDestroy {
     return t.displayEfficaciteValue || 'N/A';
   }
 
-  getLivraisonBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      'COLLECTE_EN_COURS': 'livraison-pending',
-      'A_LIVRER': 'livraison-ready',
-      'EN_LIVRAISON': 'livraison-in-progress',
-      'LIVREE': 'livraison-done',
-      'NON_DISPONIBLE': 'livraison-na'
-    };
-    return classes[status] || 'livraison-na';
-  }
-
-  getLivraisonLabel(status: string): string {
-    const labels: Record<string, string> = {
-      'COLLECTE_EN_COURS': 'Collecte en cours',
-      'A_LIVRER': 'A livrer',
-      'EN_LIVRAISON': 'En livraison',
-      'LIVREE': 'Livrée',
-      'NON_DISPONIBLE': 'N/A'
-    };
-    return labels[status] || status;
-  }
-
   // ==================== GROUPING LOGIC ====================
-  groupByAgriculteurAndVerger() {
-    const agriculteurMap = new Map<string, AgriculteurGroup>();
+  /**
+   * Groupe les tournées par Agriculteur → Verger
+   * Structure hiérarchique claire
+   */
+ // Replace your groupByAgriculteurAndVerger() method with this:
 
-    for (const tournee of this.filteredTournees) {
-      let agriculteurId = 'non-assigne';
-      let agriculteurNom = 'Non assigné';
-      let vergerId = 'sans-verger';
-      let vergerNom = 'Verger inconnu';
+groupByAgriculteurAndVerger() {
+  const agriculteurMap = new Map<string, AgriculteurGroup>();
 
-      if (tournee.verger) {
-        if (typeof tournee.verger === 'object') {
-          vergerId = tournee.verger._id || tournee.verger.id;
-          vergerNom = tournee.verger.typeOlive || 'Verger inconnu';
-          if (tournee.verger.agriculteur) {
-            if (typeof tournee.verger.agriculteur === 'object') {
-              agriculteurId = tournee.verger.agriculteur._id || tournee.verger.agriculteur.id;
-              agriculteurNom = tournee.verger.agriculteur.nom || 'Nom inconnu';
-            } else {
-              agriculteurId = tournee.verger.agriculteur;
-              agriculteurNom = `Agriculteur ${agriculteurId.substring(0, 8)}`;
-            }
+  this.filteredTournees.forEach(tournee => {
+    // IMPORTANT: Get agriculteur from the verger object
+    // Your tournee might have verger object populated or just verger ID
+    let agriculteurId = 'non-assigne';
+    let agriculteurNom = 'Non assigné';
+    let vergerId = 'sans-verger';
+    let vergerNom = 'Verger inconnu';
+
+    // Check if verger is populated (object) or just an ID
+    if (tournee.verger) {
+      if (typeof tournee.verger === 'object') {
+        // Verger is populated
+        vergerId = tournee.verger._id || tournee.verger.id;
+        vergerNom = tournee.verger.typeOlive || 'Verger inconnu';
+
+        // Get agriculteur from verger
+        if (tournee.verger.agriculteur) {
+          if (typeof tournee.verger.agriculteur === 'object') {
+            agriculteurId = tournee.verger.agriculteur._id || tournee.verger.agriculteur.id;
+            agriculteurNom = tournee.verger.agriculteur.nom || 'Nom inconnu';
+          } else {
+            agriculteurId = tournee.verger.agriculteur;
+            agriculteurNom = `Agriculteur ${agriculteurId.substring(0, 8)}`;
           }
-        } else {
-          vergerId = tournee.verger;
-          vergerNom = `Verger ${vergerId.substring(0, 8)}`;
         }
-      }
-
-      if (tournee.vergerTypeOlive) vergerNom = tournee.vergerTypeOlive;
-      if (tournee.vergerAgriculteurNom) agriculteurNom = tournee.vergerAgriculteurNom;
-
-      let agriculteur = agriculteurMap.get(agriculteurId);
-      if (!agriculteur) {
-        agriculteur = {
-          id: agriculteurId,
-          nom: agriculteurNom,
-          initials: this.getInitials(agriculteurNom),
-          vergers: [],
-          expanded: true,
-          totalTournees: 0,
-          totalQuantite: 0,
-          totalEfficacite: 0
-        };
-        agriculteurMap.set(agriculteurId, agriculteur);
-      }
-
-      let verger = agriculteur.vergers.find(v => v.id === vergerId);
-      if (!verger) {
-        verger = {
-          id: vergerId,
-          nom: vergerNom,
-          tournees: [],
-          expanded: true,
-          totalQuantite: 0,
-          totalTournees: 0,
-          totalEfficacite: 0
-        };
-        agriculteur.vergers.push(verger);
-      }
-
-      verger.tournees.push(tournee);
-      verger.totalQuantite += tournee.quantiteCollecteeKg || 0;
-      verger.totalTournees++;
-      if (tournee.efficacite) verger.totalEfficacite += tournee.efficacite;
-
-      agriculteur.totalQuantite += tournee.quantiteCollecteeKg || 0;
-      agriculteur.totalTournees++;
-      if (tournee.efficacite) agriculteur.totalEfficacite += tournee.efficacite;
-    }
-
-    for (const agriculteur of agriculteurMap.values()) {
-      agriculteur.moyenneEfficacite = agriculteur.totalTournees > 0
-        ? agriculteur.totalEfficacite / agriculteur.totalTournees : 0;
-      for (const verger of agriculteur.vergers) {
-        verger.moyenneEfficacite = verger.totalTournees > 0
-          ? verger.totalEfficacite / verger.totalTournees : 0;
-      }
-      agriculteur.vergers.sort((a, b) => a.nom.localeCompare(b.nom));
-    }
-
-    this.groupedByAgriculteur = Array.from(agriculteurMap.values())
-      .sort((a, b) => a.nom.localeCompare(b.nom));
-  }
-
-  private updateStats(): void {
-    let planifiee = 0, enCours = 0, terminee = 0, enLivraison = 0, livree = 0, annulee = 0;
-    let aLivrer = 0;
-    
-    for (const t of this.filteredTournees) {
-      switch (t.statut) {
-        case 'PLANIFIEE': planifiee++; break;
-        case 'EN_COURS': enCours++; break;
-        case 'TERMINEE': terminee++; aLivrer++; break;
-        case 'EN_LIVRAISON': enLivraison++; break;
-        case 'LIVREE': livree++; break;
-        case 'ANNULEE': annulee++; break;
+      } else {
+        // Verger is just an ID, need to look it up
+        vergerId = tournee.verger;
+        vergerNom = `Verger ${vergerId.substring(0, 8)}`;
       }
     }
-    
-    this.statCounts = {
-      total: this.filteredTournees.length,
-      planifiee,
-      enCours,
-      terminee,
-      enLivraison,
-      livree,
-      annulee
-    };
-    
-    this.livraisonSummary = {
-      aLivrer,
-      enLivraison,
-      livree
-    };
-    
+
+    // Also check direct fields as fallback
+    if (tournee.vergerTypeOlive) {
+      vergerNom = tournee.vergerTypeOlive;
+    }
+    if (tournee.vergerAgriculteurNom) {
+      agriculteurNom = tournee.vergerAgriculteurNom;
+    }
+    if (tournee.vergerAgriculteurId) {
+      agriculteurId = tournee.vergerAgriculteurId;
+    }
+
+    // Create or get agriculteur
+    if (!agriculteurMap.has(agriculteurId)) {
+      agriculteurMap.set(agriculteurId, {
+        id: agriculteurId,
+        nom: agriculteurNom,
+        initials: this.getInitials(agriculteurNom),
+        vergers: [],
+        expanded: true,
+        totalTournees: 0,
+        totalQuantite: 0,
+        totalEfficacite: 0
+      });
+    }
+
+    const agriculteur = agriculteurMap.get(agriculteurId)!;
+
+    // Find or create verger
+    let verger = agriculteur.vergers.find(v => v.id === vergerId);
+    if (!verger) {
+      verger = {
+        id: vergerId,
+        nom: vergerNom,
+        tournees: [],
+        expanded: true,
+        totalQuantite: 0,
+        totalTournees: 0,
+        totalEfficacite: 0
+      };
+      agriculteur.vergers.push(verger);
+    }
+
+    // Add tournee
+    verger.tournees.push(tournee);
+    verger.totalQuantite += tournee.quantiteCollecteeKg || 0;
+    verger.totalTournees++;
+    if (tournee.efficacite) {
+      verger.totalEfficacite += tournee.efficacite;
+    }
+
+    agriculteur.totalQuantite += tournee.quantiteCollecteeKg || 0;
+    agriculteur.totalTournees++;
+    if (tournee.efficacite) {
+      agriculteur.totalEfficacite += tournee.efficacite;
+    }
+  });
+
+  // Calculate averages and sort
+  agriculteurMap.forEach(agriculteur => {
+    agriculteur.moyenneEfficacite = agriculteur.totalTournees > 0
+      ? agriculteur.totalEfficacite / agriculteur.totalTournees
+      : 0;
+
+    agriculteur.vergers.forEach(verger => {
+      verger.moyenneEfficacite = verger.totalTournees > 0
+        ? verger.totalEfficacite / verger.totalTournees
+        : 0;
+    });
+
+    agriculteur.vergers.sort((a, b) => a.nom.localeCompare(b.nom));
+  });
+
+  this.groupedByAgriculteur = Array.from(agriculteurMap.values())
+    .sort((a, b) => a.nom.localeCompare(b.nom));
+
+  this.updateGlobalStats();
+}
+
+  updateGlobalStats() {
+    this.totalTournees = this.filteredTournees.length;
     this.totalQuantite = this.filteredTournees.reduce((sum, t) => sum + (t.quantiteCollecteeKg || 0), 0);
-    
     const uniqueAgriculteurs = new Set(this.filteredTournees.map(t => t.displayVergerAgriculteurNom || 'N/A'));
     const uniqueVergers = new Set(this.filteredTournees.map(t => t.displayVergerTypeOlive || 'N/A'));
     this.totalAgriculteurs = uniqueAgriculteurs.size;
     this.totalVergers = uniqueVergers.size;
+    this.updateLivraisonSummary();
+  }
+
+  private updateLivraisonSummary(): void {
+    const getCount = (status: string) => this.filteredTournees.filter(t => t.displayLivraisonStatus === status).length;
+    this.livraisonSummary = {
+      aLivrer: getCount('A_LIVRER'),
+      enLivraison: getCount('EN_LIVRAISON'),
+      livree: getCount('LIVREE'),
+      sansVehicule: this.filteredTournees.filter(t => t.displayLivraisonStatus === 'A_LIVRER' && !t.hasDedicatedDeliveryVehicle).length
+    };
   }
 
   getInitials(name: string): string {
     if (!name || name === 'Non assigné') return 'NA';
-    return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(w => w[0].toUpperCase())
+      .join('');
   }
 
   // ==================== EXPAND/COLLAPSE ====================
@@ -418,49 +409,64 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   }
 
   expandAll() {
-    for (const a of this.groupedByAgriculteur) {
+    this.groupedByAgriculteur.forEach(a => {
       a.expanded = true;
-      for (const v of a.vergers) v.expanded = true;
-    }
+      a.vergers.forEach(v => v.expanded = true);
+    });
     this.cdr.markForCheck();
   }
 
   collapseAll() {
-    for (const a of this.groupedByAgriculteur) {
+    this.groupedByAgriculteur.forEach(a => {
       a.expanded = false;
-      for (const v of a.vergers) v.expanded = false;
-    }
+      a.vergers.forEach(v => v.expanded = false);
+    });
     this.cdr.markForCheck();
   }
 
   // ==================== FILTERS ====================
-  applyFilters() {
-    let filtered = [...this.tournees];
+ applyFilters() {
+  let filtered = [...this.tournees];
 
-    if (this.selectedStatut) {
-      filtered = filtered.filter(t => t.statut === this.selectedStatut);
-    }
+  // Sort by date descending (newest first)
+  filtered = filtered.sort((a, b) => {
+    const dateA = new Date(a.dateDebut).getTime();
+    const dateB = new Date(b.dateDebut).getTime();
+    return dateB - dateA; // Descending order
+  });
 
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(t =>
-        t.code?.toLowerCase().includes(term) ||
-        t.displayVergerTypeOlive?.toLowerCase().includes(term) ||
-        t.displayVergerAgriculteurNom?.toLowerCase().includes(term)
-      );
-    }
-
-    this.filteredTournees = filtered;
-    this.currentPage = 1;
-    this.updateStats();
-    this.updatePagination();
-
-    if (this.viewMode === 'grouped') {
-      this.groupByAgriculteurAndVerger();
-    }
-    
-    this.cdr.markForCheck();
+  // Status filter
+  if (this.selectedStatut) {
+    filtered = filtered.filter(t => t.statut === this.selectedStatut);
   }
+
+  // Year filter
+  if (this.selectedAnnee && this.selectedAnnee !== '') {
+    const year = parseInt(this.selectedAnnee, 10);
+    filtered = filtered.filter(t => {
+      if (!t.dateDebut) return false;
+      const tourneeYear = new Date(t.dateDebut).getFullYear();
+      return tourneeYear === year;
+    });
+  }
+
+  // Search filter
+  if (this.searchTerm) {
+    const term = this.searchTerm.toLowerCase();
+    filtered = filtered.filter(t =>
+      t.code?.toLowerCase().includes(term) ||
+      t.vergerTypeOlive?.toLowerCase().includes(term) ||
+      t.vergerAgriculteurNom?.toLowerCase().includes(term) ||
+      t.vergerNom?.toLowerCase().includes(term)
+    );
+  }
+
+  this.filteredTournees = filtered;
+  this.currentPage = 1;
+  this.updatePagination();
+  this.groupByAgriculteurAndVerger();
+  this.cdr.markForCheck();
+}
 
   updatePagination(): void {
     this.totalPages = Math.ceil(this.filteredTournees.length / this.itemsPerPage) || 1;
@@ -491,15 +497,7 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   }
 
   getStatutCount(statut: string): number {
-    switch (statut) {
-      case 'PLANIFIEE': return this.statCounts.planifiee;
-      case 'EN_COURS': return this.statCounts.enCours;
-      case 'TERMINEE': return this.statCounts.terminee;
-      case 'EN_LIVRAISON': return this.statCounts.enLivraison;
-      case 'LIVREE': return this.statCounts.livree;
-      case 'ANNULEE': return this.statCounts.annulee;
-      default: return 0;
-    }
+    return this.filteredTournees.filter(t => t.statut === statut).length;
   }
 
   onFilterChange() {
@@ -507,16 +505,16 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   }
 
   onSearchChange() {
-    this.searchSubject.next(this.searchTerm);
+    this.applyFilters();
   }
 
   refreshList() {
-    this.tourneeCache.clear();
-    this.dateTimeCache.clear();
-    this.dateCache.clear();
     this.loadTournees();
     this.successMessage = 'Liste actualisée';
-    setTimeout(() => this.successMessage = '', 3000);
+    setTimeout(() => {
+      this.successMessage = '';
+      this.cdr.markForCheck();
+    }, 3000);
   }
 
   // ==================== STATUT UTILITIES ====================
@@ -525,8 +523,8 @@ export class TourneeListComponent implements OnInit, OnDestroy {
       'PLANIFIEE': 'statut-planifiee',
       'EN_COURS': 'statut-en-cours',
       'TERMINEE': 'statut-terminee',
-      'EN_LIVRAISON': 'statut-en-livraison',
-      'LIVREE': 'statut-livree',
+      'EN_LIVRAISON': 'statut-en-cours',
+      'LIVREE': 'statut-terminee',
       'ANNULEE': 'statut-annulee'
     };
     return classes[statut] || '';
@@ -570,21 +568,71 @@ export class TourneeListComponent implements OnInit, OnDestroy {
     return '#28a745';
   }
 
+  getLivraisonBadgeClass(status: string): string {
+    const classes: Record<string, string> = {
+      'COLLECTE_EN_COURS': 'livraison-pending',
+      'A_LIVRER': 'livraison-ready',
+      'EN_LIVRAISON': 'livraison-in-progress',
+      'LIVREE': 'livraison-done',
+      'NON_DISPONIBLE': 'livraison-na'
+    };
+    return classes[status] || 'livraison-na';
+  }
+
+  getLivraisonLabel(status: string): string {
+    const labels: Record<string, string> = {
+      'COLLECTE_EN_COURS': 'Collecte en cours',
+      'A_LIVRER': 'A livrer',
+      'EN_LIVRAISON': 'En livraison',
+      'LIVREE': 'Livrée',
+      'NON_DISPONIBLE': 'N/A'
+    };
+    return labels[status] || status;
+  }
+
   // ==================== DATE/TIME FORMATTING ====================
   formatDateTime(date: any): string {
-    return this.formatDateTimeCached(date);
+    if (!date) return 'N/A';
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'N/A';
+      return d.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
   }
 
   formatDate(date: any): string {
-    return this.formatDateCached(date);
+    if (!date) return 'N/A';
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'N/A';
+      return d.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
   }
 
   formatTime(seconds: number): string {
     if (!seconds) return 'N/A';
-    if (seconds < 60) return `${seconds} secondes`;
+    if (seconds < 60) {
+      return `${seconds} secondes`;
+    }
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    if (minutes < 60) return `${minutes}min ${secs}s`;
+    if (minutes < 60) {
+      return `${minutes}min ${secs}s`;
+    }
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}min`;
@@ -592,10 +640,12 @@ export class TourneeListComponent implements OnInit, OnDestroy {
 
   // ==================== NAVIGATION ====================
   navigateToCreate() {
+    if (this.isTransporteur) return;
     this.router.navigate(['/tournees/create']);
   }
 
   navigateToEdit(id: string) {
+    if (this.isTransporteur) return;
     this.router.navigate(['/tournees/edit', id]);
   }
 
@@ -603,13 +653,18 @@ export class TourneeListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tournees', id]);
   }
 
-  // ==================== TOURNEE ACTIONS (Admin only) ====================
+  // ==================== TOURNEE ACTIONS ====================
+  private getTourneeId(tournee: any): string {
+    return tournee?.id || tournee?._id || '';
+  }
+
   startTournee(id: string) {
+    if (this.isTransporteur) return;
     if (confirm('Démarrer cette tournée ?')) {
       this.tourneeService.demarrer(id).subscribe({
         next: () => {
           this.successMessage = 'Tournée démarrée avec succès';
-          this.refreshList();
+          this.loadTournees();
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -622,6 +677,7 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   }
 
   openCompleteModal(tournee: any) {
+    if (this.isTransporteur) return;
     this.selectedTournee = tournee;
     this.completeData = {
       quantiteCollecteeKg: 0,
@@ -639,12 +695,13 @@ export class TourneeListComponent implements OnInit, OnDestroy {
   }
 
   confirmComplete() {
+    if (this.isTransporteur) return;
     if (this.selectedTournee && this.completeData.quantiteCollecteeKg > 0) {
       this.tourneeService.terminer(this.selectedTournee.id || this.selectedTournee._id, this.completeData)
         .subscribe({
           next: () => {
             this.successMessage = 'Tournée terminée avec succès';
-            this.refreshList();
+            this.loadTournees();
             this.closeCompleteModal();
             setTimeout(() => this.successMessage = '', 3000);
           },
@@ -657,12 +714,113 @@ export class TourneeListComponent implements OnInit, OnDestroy {
     }
   }
 
+  startLivraison(tournee: any): void {
+    if (!this.isTransporteur) return;
+    const id = this.getTourneeId(tournee);
+    if (!id) return;
+
+    if (confirm('Démarrer la livraison pour cette tournée ?')) {
+      this.utilisateurService.startLivraison(id).subscribe({
+        next: () => {
+          this.successMessage = 'Livraison démarrée avec succès';
+          this.loadTournees();
+          setTimeout(() => (this.successMessage = ''), 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors du démarrage de la livraison';
+          setTimeout(() => (this.errorMessage = ''), 4000);
+          this.cdr.markForCheck();
+        }
+      });
+    }
+  }
+
+  openLivraisonModal(tournee: any): void {
+    if (!this.isTransporteur) return;
+    this.selectedLivraisonTournee = tournee;
+    this.livraisonProofFile = null;
+    this.livraisonProofError = '';
+    this.showLivraisonModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeLivraisonModal(): void {
+    this.showLivraisonModal = false;
+    this.selectedLivraisonTournee = null;
+    this.livraisonProofFile = null;
+    this.livraisonProofError = '';
+    this.isCompletingLivraison = false;
+    this.cdr.markForCheck();
+  }
+
+  onLivraisonProofSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      this.livraisonProofFile = null;
+      return;
+    }
+    const file = input.files[0];
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'application/pdf',
+      'text/plain'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.livraisonProofError = 'Types autorisés: JPG, PNG, WEBP, PDF ou TXT';
+      this.livraisonProofFile = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.livraisonProofError = 'Le fichier ne doit pas dépasser 10 Mo';
+      this.livraisonProofFile = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.livraisonProofFile = file;
+    this.livraisonProofError = '';
+    this.cdr.markForCheck();
+  }
+
+  confirmCompleteLivraison(): void {
+    if (!this.isTransporteur || !this.selectedLivraisonTournee) return;
+    const id = this.getTourneeId(this.selectedLivraisonTournee);
+    if (!id) return;
+    if (!this.livraisonProofFile) {
+      this.livraisonProofError = 'Veuillez sélectionner un fichier de preuve';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.isCompletingLivraison = true;
+    this.utilisateurService.completeLivraison(id, this.livraisonProofFile).subscribe({
+      next: () => {
+        this.successMessage = 'Livraison terminée avec succès';
+        this.closeLivraisonModal();
+        this.loadTournees();
+        setTimeout(() => (this.successMessage = ''), 3000);
+      },
+      error: (err) => {
+        this.isCompletingLivraison = false;
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors de la finalisation de la livraison';
+        setTimeout(() => (this.errorMessage = ''), 4000);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   cancelTournee(id: string) {
+    if (this.isTransporteur) return;
     if (confirm('Annuler cette tournée ?')) {
       this.tourneeService.annuler(id).subscribe({
         next: () => {
           this.successMessage = 'Tournée annulée';
-          this.refreshList();
+          this.loadTournees();
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {

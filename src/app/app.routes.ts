@@ -36,6 +36,7 @@ import { ModifierAlerteComponent } from './alertes/modifier-alerte/modifier-aler
 import { IaPredictionDetailComponent } from './ia-prediction-detail/ia-prediction-detail/ia-prediction-detail';
 import { MaladieDetectionComponent } from './maladie-detection/maladie-detection';
 import { TransporteurTourneesComponent } from './tournee/transporteur-tournees/transporteur-tournees';
+import { TourneeEditComponent } from './tournee/edit-tournee/edit-tournee';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -104,6 +105,13 @@ export const routes: Routes = [
     component: TourneeListComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR'] }
+  },
+
+  {
+    path: 'tournees/edit/:id',
+    component: TourneeEditComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
   {
     path: 'tournees/create',

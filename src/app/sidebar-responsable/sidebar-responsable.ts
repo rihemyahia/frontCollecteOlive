@@ -45,7 +45,7 @@ export class SideBarResponsable implements OnInit {
       label: 'Tableau de bord',
       icon: 'dashboard',
       route: '/dashboard',
-    
+
       roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRANSPORTEUR']
     },
     {
@@ -345,40 +345,40 @@ export class SideBarResponsable implements OnInit {
     const icons: { [key: string]: string } = {
       // Dashboard - House / Home
       dashboard: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-5v-8H7v8H5a2 2 0 0 1-2-2V9z',
-      
+
       // Users - Person / People
       users: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 20c0-4 8-6 8-6s8 2 8 6',
-      
+
       // Resources - Box / Package
       resources: 'M20 7h-4.18A3 3 0 0 0 16 5.18V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v1.18A3 3 0 0 0 8.18 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z',
-      
+
       // Basket - Olive basket
       basket: 'M5 11h14M9 7l-2 4M15 7l2 4M12 15v4M8 15v3M16 15v3',
-      
+
       // Tractor - Farm vehicle
       tractor: 'M4 12h13M9 4v8M15 4v8M7 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 0h10',
-      
+
       // Leaf - Olive tree / Orchard
       leaf: 'M12 2C8 6 4 10 4 14c0 4 4 8 8 8s8-4 8-8c0-4-4-8-8-8z',
-      
+
       // Trees - Multiple trees
       trees: 'M7 11L5 9l2-2M17 11l2-2-2-2M12 3L9 8h6zM10 21v-8M14 21v-8',
-      
+
       // Diagnostic - Stethoscope
       diagnostic: 'M9 2v4M15 2v4M12 6a4 4 0 0 1 4 4v3a4 4 0 0 1-8 0v-3a4 4 0 0 1 4-4zm9 3v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9V9',
-      
+
       // Map pin - Routes / Tours
       'map-pin': 'M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z',
-      
+
       // Collectes - Clipboard / Harvest record
       collectes: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
-      
+
       // Calendar
       calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
-      
+
       // Alert - Bell
       alert: 'M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V9a6 6 0 0 0-12 0v7l-2 2v1h16v-1l-2-2z',
-      
+
       // User - Profile
       user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
     };

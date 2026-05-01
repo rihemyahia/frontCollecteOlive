@@ -23,7 +23,7 @@ export class ResponsableDashboardComponent implements OnInit, AfterViewInit {
   isMobile = false;
   userRole = 'RESPONSABLE';
   user: any = {};
-  currentSeason = 'Printemps 2025';
+  currentSeason = 'Printemps 2026';
 
   constructor(
     private dashboardService: DashboardService, 

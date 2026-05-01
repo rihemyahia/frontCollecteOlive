@@ -23,7 +23,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   isMobile = false;
   userRole = 'ADMIN';
   user: any = {};
-  currentSeason = 'Printemps 2025';
+  currentSeason = 'Printemps 2026';
 
   constructor(
     private dashboardService: DashboardService, 

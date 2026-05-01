@@ -1,3 +1,4 @@
+<!-- src/app/collecte/collecte-list/collecte-list.html -->
 <div class="app-layout">
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed"
@@ -20,17 +21,13 @@
       </div>
 
       <div class="oh-card">
-        <div class="oh-card__glow" aria-hidden="true"></div>
-
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                  </svg>
-                </div>
+              <div class="oh-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                </svg>
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">GESTION DES COLLECTES</p>
@@ -42,79 +39,132 @@
         </div>
 
         <div class="oh-card__body">
-          <!-- Filters -->
-          <div class="search-actions">
-            <div class="filter-group">
-              <label>Filtrer par année:</label>
-              <select [(ngModel)]="selectedAnnee" (change)="filterByAnnee(selectedAnnee)" class="filter-select">
-                <option value="">Toutes les années</option>
-                <option *ngFor="let annee of annees" [value]="annee">{{ annee }}</option>
-              </select>
+          <!-- Search & Filters -->
+          <div class="oh-search-filters" *ngIf="!isLoading && collectes.length > 0">
+            <div class="oh-search-bar">
+              <input type="text"
+                     placeholder="🔍 Rechercher par code, verger ou année..."
+                     [(ngModel)]="searchTerm"
+                     (ngModelChange)="onSearchChange()"
+                     class="oh-search-input">
             </div>
-            <div class="stats-summary" *ngIf="collectes.length > 0">
-              <span class="stat-badge">
-                <i class="bi bi-collection"></i>
-                Total: {{ getFilteredCollectes().length }} collectes
-              </span>
-              <span class="stat-badge">
-                <i class="bi bi-tree-fill"></i>
-                Total récolté: {{ getTotalQuantite() | number }} kg
-              </span>
+
+            <div class="oh-filter-controls">
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Année</label>
+                <select [(ngModel)]="selectedAnnee" (change)="onFilterChange()" class="oh-filter-select">
+                  <option value="">Toutes les années</option>
+                  <option *ngFor="let annee of annees" [value]="annee">{{ annee }}</option>
+                </select>
+              </div>
             </div>
           </div>
 
+          <!-- Feedback messages -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
           <!-- Loading -->
-          <div *ngIf="isLoading" class="loading-container">
+          <div *ngIf="isLoading" class="loading-state">
             <div class="spinner"></div>
             <p>Chargement des collectes...</p>
           </div>
 
-          <!-- Error -->
-          <div *ngIf="errorMessage" class="oh-error">
-            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
-            <button class="btn-retry" (click)="loadCollectes()">Réessayer</button>
-          </div>
+          <div *ngIf="!isLoading">
+            <!-- Empty state -->
+            <div class="empty-state" *ngIf="filteredCollectes.length === 0">
+              <div class="empty-icon">
+                <i class="bi bi-collection"></i>
+              </div>
+              <h3>Aucune collecte trouvée</h3>
+              <p>Aucune collecte ne correspond à vos critères.</p>
+            </div>
 
-          <!-- Collectes Table -->
-          <div *ngIf="!isLoading && !errorMessage && getFilteredCollectes().length > 0" class="table-container">
-            <table class="collecte-table">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Statut</th>
-                  <th>Verger</th>
-                  <th>Année</th>
-                  <th>Quantité totale</th>
-                  <th>Tournées</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let collecte of getFilteredCollectes()" (click)="viewCollecte(collecte.id)" style="cursor: pointer;">
-                  <td data-label="Code"><strong>{{ collecte.code }}</strong></td>
-                  <td data-label="Statut">
-                    <span class="statut-badge" [class]="getStatutClass(collecte.statut)">
-                      {{ collecte.statut }}
-                    </span>
-                  </td>
-                  <td data-label="Verger">{{ collecte.vergerNom || 'N/A' }}</td>
-                  <td data-label="Année">{{ collecte.annee }}</td>
-                  <td data-label="Quantité totale" class="highlight">{{ (collecte.quantiteTotaleKg || 0) | number }} kg</td>
-                  <td data-label="Tournées">{{ collecte.nbreTournees || 0 }}</td>
-                  <td data-label="Actions">
-                    <button class="btn-icon view" (click)="viewCollecte(collecte.id); $event.stopPropagation()" title="Voir détails">
-                      <i class="bi bi-eye"></i> Détails
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+            <!-- Collectes Table -->
+            <div class="table-wrapper" *ngIf="filteredCollectes.length > 0">
+              <table class="alerts-table">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Statut</th>
+                    <th>Verger</th>
+                    <th>Année</th>
+                    <th>Quantité totale</th>
+                    <th>Tournées</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let collecte of paginatedCollectes; trackBy: trackByCollecteId">
+                    <td data-label="Code"><strong>{{ collecte.code }}</strong></td>
+                    <td data-label="Statut">
+                      <span class="statut-badge" [ngClass]="getStatutClass(collecte.statut)">
+                        {{ collecte.statut }}
+                      </span>
+                    </td>
+                    <td data-label="Verger">{{ collecte.vergerNom || 'N/A' }}</td>
+                    <td data-label="Année">{{ collecte.annee }}</td>
+                    <td data-label="Quantité totale" class="highlight">{{ (collecte.quantiteTotaleKg || 0) | number }} kg</td>
+                    <td data-label="Tournées">{{ collecte.nbreTournees || 0 }}</td>
+                    <td data-label="Actions">
+                      <div class="action-buttons">
+                        <button class="btn-icon" (click)="viewCollecte(collecte.id)" title="Voir détails">
+                          <i class="bi bi-eye"></i> Détails
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-          <!-- No Data -->
-          <div *ngIf="!isLoading && !errorMessage && getFilteredCollectes().length === 0" class="oh-state">
-            <i class="bi bi-inbox"></i>
-            <p>Aucune collecte trouvée</p>
+            <!-- Pagination -->
+            <div class="pagination-section" *ngIf="filteredCollectes.length > 0">
+              <button type="button" class="btn-pagination"
+                      (click)="previousPage()"
+                      [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i> Précédent
+              </button>
+
+              <div class="page-info">
+                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+                <span class="page-count">({{ filteredCollectes.length }} collectes)</span>
+              </div>
+
+              <button type="button" class="btn-pagination"
+                      (click)="nextPage()"
+                      [disabled]="currentPage === totalPages">
+                Suivant <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- Stats footer -->
+            <div class="stats-footer" *ngIf="filteredCollectes.length > 0">
+              <div class="stats-item">
+                <i class="bi bi-bar-chart-fill"></i>
+                <span>Total : <strong>{{ filteredCollectes.length }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-calendar-check"></i>
+                <span>Planifiées : <strong>{{ getStatutCount('PLANIFIEE') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>En cours : <strong>{{ getStatutCount('EN_COURS') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Terminées : <strong>{{ getStatutCount('TERMINEE') }}</strong></span>
+              </div>
+              <div class="stats-item">
+                <i class="bi bi-cup-straw"></i>
+                <span>Total récolté : <strong>{{ getTotalQuantite() | number }} kg</strong></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
