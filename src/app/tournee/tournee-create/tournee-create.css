@@ -893,3 +893,59 @@ select.form-control option {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.map-search-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.map-search-row .form-control {
+  flex: 1;
+  min-width: 260px;
+}
+
+.destination-suggestions {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.destination-suggestion {
+  text-align: left;
+  border: 1px solid #E8ECDC;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  color: #2C3A10;
+  cursor: pointer;
+}
+
+.destination-suggestion:hover {
+  background: #F6F8EE;
+}
+
+.map-preview-card {
+  margin-top: 0.8rem;
+  border: 1px solid #E8ECDC;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.map-preview-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid #E8ECDC;
+}
+
+.map-preview-card iframe {
+  width: 100%;
+  min-height: 280px;
+  border: 0;
+}

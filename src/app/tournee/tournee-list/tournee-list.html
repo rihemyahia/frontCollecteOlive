@@ -120,6 +120,7 @@
                   <th>Statut</th>
                   <th>Verger</th>
                   <th>Agriculteur</th>
+                  <th>Destination livraison</th>
                   <th>Date Début</th>
                   <th>Date Fin</th>
                   <th>Quantité</th>
@@ -137,6 +138,18 @@
                   </td>
                   <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
                   <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
+                  <td>
+                    <div class="quantity-cell">
+                      <span class="quantity-value">{{ t.displayDeliveryDestination }}</span>
+                      <div class="quantity-total">{{ t.displayDeliveryAddress }}</div>
+                      <a class="quantity-total"
+                         [href]="getNavigationUrlForTournee(t)"
+                         target="_blank"
+                         rel="noopener noreferrer">
+                        Ouvrir la carte
+                      </a>
+                    </div>
+                  </td>
                   <td>{{ t.formattedDateDebut }}</td>
                   <td>{{ t.formattedDateFin }}</td>
                   <td>

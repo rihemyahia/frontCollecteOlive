@@ -134,6 +134,8 @@ export class TourneeListComponent implements OnInit {
           displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
           displayLivraisonStatus: this.computeLivraisonStatus(t),
           displayLivraisonWindow: this.computeLivraisonWindow(t),
+          displayDeliveryDestination: this.computeDeliveryDestination(t),
+          displayDeliveryAddress: this.computeDeliveryAddress(t),
           hasDedicatedDeliveryVehicle: this.hasDedicatedDeliveryVehicle(t),
           formattedDateDebut: this.formatDateTime(t.dateDebut),
           formattedDateFin: this.formatDateTime(t.dateFin),
@@ -181,6 +183,28 @@ export class TourneeListComponent implements OnInit {
     if (tournee?.tracteurId || tournee?.tracteurNom || tournee?.tracteur?.id || tournee?.tracteur?.nom) return true;
     // Future-proof keys for dedicated transport vehicle without breaking current model.
     return !!(tournee?.vehiculeLivraison || tournee?.ressourceLivraison || tournee?.camionLivraison);
+  }
+
+  private computeDeliveryDestination(tournee: any): string {
+    return tournee?.livraisonDestinationNom
+      || tournee?.deliveryDestinationName
+      || (tournee?.collecteCode ? `Moulin collecte ${tournee.collecteCode}` : '')
+      || (tournee?.vergerTypeOlive ? `Point de livraison - ${tournee.vergerTypeOlive}` : '')
+      || 'Point de livraison principal';
+  }
+
+  private computeDeliveryAddress(tournee: any): string {
+    return tournee?.livraisonDestinationAdresse
+      || tournee?.deliveryDestinationAddress
+      || tournee?.destinationAdresse
+      || tournee?.verger?.responsable?.adresse
+      || tournee?.verger?.geolocalisation?.adresseIndicative
+      || 'Adresse a confirmer par le responsable';
+  }
+
+  getNavigationUrlForTournee(tournee: any): string {
+    const destination = tournee?.displayDeliveryAddress || this.computeDeliveryAddress(tournee);
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
   }
 
   // Helper methods for template

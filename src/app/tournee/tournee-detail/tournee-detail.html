@@ -7,41 +7,70 @@
   </app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
-    <div class="oh-scene">
+    <div class="oh-scene tournee-detail-scene">
       <div class="oh-ambient" aria-hidden="true">
         <div class="amb-orb amb-orb--1"></div>
         <div class="amb-orb amb-orb--2"></div>
         <div class="amb-orb amb-orb--3"></div>
       </div>
 
-      <div class="oh-card" *ngIf="tournee">
+      <!-- Loading -->
+      <div class="detail-loading-panel" *ngIf="isLoading">
+        <div class="detail-loading-spinner" aria-hidden="true"></div>
+        <p>Chargement de la tournée…</p>
+      </div>
+
+      <!-- Loaded: error only -->
+      <div class="oh-card detail-empty-card" *ngIf="!isLoading && !tournee">
+        <div class="detail-empty-inner">
+          <i class="bi bi-inbox detail-empty-icon"></i>
+          <h3>Impossible d'afficher la tournée</h3>
+          <p *ngIf="errorMessage">{{ errorMessage }}</p>
+          <p *ngIf="!errorMessage">Aucune donnée disponible.</p>
+          <button type="button" class="btn-back detail-empty-btn" (click)="goBack()">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+          </button>
+        </div>
+      </div>
+
+      <!-- Detail -->
+      <div class="oh-card tournee-detail-card" *ngIf="!isLoading && tournee">
         <div class="oh-card__glow" aria-hidden="true"></div>
 
-        <div class="oh-card__header">
+        <div class="oh-card__header tournee-detail-header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
               <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                  </svg>
+                <div class="oh-brand__icon tournee-detail-brand-icon">
+                  <i class="bi" [ngClass]="getStatutIcon(tournee.statut)"></i>
                 </div>
               </div>
               <div class="oh-header__text">
-                <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
-                <h2 class="oh-header__title">{{ tournee.code }}</h2>
-                <p class="header-subtitle">Détails de la tournée</p>
+                <p class="oh-header__eyebrow">Tournée</p>
+                <h2 class="oh-header__title">{{ isTransporteur ? 'Ma tournée' : tournee.code }}</h2>
+                <p class="header-subtitle tournee-detail-subtitle">
+                  <span class="tournee-detail-subtitle__dates">
+                    <i class="bi bi-calendar3"></i>
+                    {{ formatDateDay(tournee.dateDebut) }} → {{ formatDateDay(tournee.dateFin) }}
+                  </span>
+                  <span *ngIf="!isTransporteur" class="tournee-detail-subtitle__code">
+                    <i class="bi bi-hash"></i> {{ tournee.code }}
+                  </span>
+                </p>
               </div>
             </div>
-            <div class="oh-header__right">
-              <button class="btn-back" (click)="goBack()">
+            <div class="oh-header__right tournee-detail-header-actions">
+              <span class="statut-badge tournee-detail-status-pill" [ngClass]="getStatutClass(tournee.statut)">
+                {{ tournee.statut | statutTournee }}
+              </span>
+              <button type="button" class="btn-back" (click)="goBack()">
                 <i class="bi bi-arrow-left"></i> Retour
               </button>
             </div>
           </div>
         </div>
 
-        <div class="oh-card__body">
+        <div class="oh-card__body tournee-detail-body">
           <div *ngIf="successMessage" class="oh-success">
             <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
           </div>
@@ -49,144 +78,238 @@
             <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
           </div>
 
-          <div class="detail-section">
-            <h3>Informations générales</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Code:</label>
-                <span>{{ tournee.code }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Statut:</label>
-                <span class="statut-badge" [ngClass]="getStatutClass(tournee.statut)">
-                  {{ tournee.statut | statutTournee }}
-                </span>
-              </div>
-              <div class="detail-item">
-                <label>Date création:</label>
-                <span>{{ formatDate(tournee.dateCreation) }}</span>
-              </div>
+          <!-- KPI strip -->
+          <div class="detail-kpi-row">
+            <div class="detail-kpi">
+              <span class="detail-kpi__label">Agriculteur</span>
+              <span class="detail-kpi__value">{{ tournee.vergerAgriculteurNom || '—' }}</span>
+            </div>
+            <div class="detail-kpi">
+              <span class="detail-kpi__label">Olives / verger</span>
+              <span class="detail-kpi__value">{{ tournee.vergerTypeOlive || '—' }}</span>
+            </div>
+            <div class="detail-kpi" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
+              <span class="detail-kpi__label">Collecté</span>
+              <span class="detail-kpi__value">{{ (tournee.quantiteCollecteeKg || 0) | number }} kg</span>
+            </div>
+            <div class="detail-kpi detail-kpi--accent" *ngIf="isTransporteur || tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
+              <span class="detail-kpi__label">Livraison</span>
+              <span class="detail-kpi__value">{{ getDeliveryStatusLabel() }}</span>
             </div>
           </div>
 
-          <div class="detail-section">
-            <h3>Verger</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Type d'olive:</label>
-                <span>{{ tournee.vergerTypeOlive || 'N/A' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Agriculteur:</label>
-                <span>{{ tournee.vergerAgriculteurNom || 'N/A' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Superficie:</label>
-                <span>{{ tournee.vergerSuperficie || 'N/A' }} ha</span>
-              </div>
-              <div class="detail-item">
-                <label>Nombre d'arbres:</label>
-                <span>{{ tournee.nbreArbre }}</span>
-              </div>
+          <div class="detail-layout">
+            <div class="detail-layout__main">
+
+              <section class="detail-panel" *ngIf="!isTransporteur">
+                <div class="detail-panel__head">
+                  <i class="bi bi-info-circle detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Informations générales</h3>
+                </div>
+                <div class="detail-grid detail-grid--cards">
+                  <div class="detail-field">
+                    <span class="detail-field__label">Code</span>
+                    <span class="detail-field__value">{{ tournee.code }}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Créée le</span>
+                    <span class="detail-field__value">{{ formatDate(tournee.dateCreation) }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="detail-panel detail-panel--highlight" *ngIf="isTransporteur || tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
+                <div class="detail-panel__head">
+                  <i class="bi bi-geo-alt detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Destination de livraison</h3>
+                </div>
+                <div class="delivery-split">
+                  <div class="delivery-address-card">
+                    <p class="delivery-pressoir-name">{{ getDeliveryDestinationName() }}</p>
+                    <p class="delivery-address-line">{{ getDeliveryDestinationAddress() }}</p>
+                    <a class="btn-route" [href]="getNavigationUrl()" target="_blank" rel="noopener noreferrer">
+                      <i class="bi bi-signpost-split"></i> Ouvrir l'itinéraire
+                    </a>
+                  </div>
+                  <div class="destination-map destination-map--lifted">
+                    <iframe
+                      title="Carte de destination"
+                      [src]="getEmbeddedMapUrl()"
+                      loading="lazy"
+                      referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                  </div>
+                </div>
+              </section>
+
+              <section class="detail-panel" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
+                <div class="detail-panel__head">
+                  <i class="bi bi-truck detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Suivi livraison</h3>
+                </div>
+                <div class="livraison-timeline">
+                  <div class="livraison-step" [class.livraison-step--done]="tournee.livraisonStartedAt">
+                    <span class="livraison-step__dot"></span>
+                    <div>
+                      <span class="livraison-step__title">Départ</span>
+                      <span class="livraison-step__time">{{ tournee.livraisonStartedAt ? formatDate(tournee.livraisonStartedAt) : 'En attente' }}</span>
+                    </div>
+                  </div>
+                  <div class="livraison-step" [class.livraison-step--done]="tournee.livraisonCompletedAt">
+                    <span class="livraison-step__dot"></span>
+                    <div>
+                      <span class="livraison-step__title">Réception au pressoir</span>
+                      <span class="livraison-step__time">{{ tournee.livraisonCompletedAt ? formatDate(tournee.livraisonCompletedAt) : '—' }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="detail-grid detail-grid--cards detail-grid--tight mt-tight">
+                  <div class="detail-field detail-field--wide">
+                    <span class="detail-field__label">Preuve</span>
+                    <span class="detail-field__value">
+                      <ng-container *ngIf="hasLivraisonEvidence(); else noProof2">
+                        <a class="proof-link" [href]="getLivraisonEvidenceUrl()" target="_blank" rel="noopener noreferrer">
+                          <i class="bi bi-box-arrow-up-right"></i> Ouvrir la preuve
+                        </a>
+                      </ng-container>
+                      <ng-template #noProof2>—</ng-template>
+                    </span>
+                  </div>
+                </div>
+                <div *ngIf="hasLivraisonEvidence()" class="proof-preview proof-preview--framed">
+                  <img *ngIf="isImageEvidence()"
+                       [src]="getLivraisonEvidenceUrl()"
+                       alt="Preuve de livraison"
+                       loading="lazy">
+                  <iframe *ngIf="isPdfEvidence()"
+                          [src]="getEvidencePreviewUrl()"
+                          title="Aperçu PDF preuve livraison"
+                          loading="lazy"></iframe>
+                  <p *ngIf="!isImageEvidence() && !isPdfEvidence()" class="helper-line proof-preview-hint">
+                    Aperçu non disponible pour ce format — utilisez « Ouvrir la preuve ».
+                  </p>
+                </div>
+              </section>
+
+              <section class="detail-panel">
+                <div class="detail-panel__head">
+                  <i class="bi bi-tree detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Verger</h3>
+                </div>
+                <div class="detail-grid detail-grid--cards">
+                  <div class="detail-field">
+                    <span class="detail-field__label">Type d'olive</span>
+                    <span class="detail-field__value">{{ tournee.vergerTypeOlive || '—' }}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Agriculteur</span>
+                    <span class="detail-field__value">{{ tournee.vergerAgriculteurNom || '—' }}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Superficie</span>
+                    <span class="detail-field__value">{{ tournee.vergerSuperficie ?? '—' }}<ng-container *ngIf="tournee.vergerSuperficie != null"> ha</ng-container></span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Arbres</span>
+                    <span class="detail-field__value">{{ tournee.nbreArbre }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="detail-panel">
+                <div class="detail-panel__head">
+                  <i class="bi bi-gear-wide-connected detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Ressources affectées</h3>
+                </div>
+                <div class="detail-grid detail-grid--cards">
+                  <div class="detail-field">
+                    <span class="detail-field__label">Benne</span>
+                    <span class="detail-field__value">{{ getBenneDisplay() }}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Tracteur</span>
+                    <span class="detail-field__value">{{ getTracteurDisplay() }}</span>
+                  </div>
+                  <div class="detail-field detail-field--wide">
+                    <span class="detail-field__label">Équipe</span>
+                    <span class="detail-field__value">{{ getTravailleursDisplay() }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="detail-panel">
+                <div class="detail-panel__head">
+                  <i class="bi bi-clock-history detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Période planifiée</h3>
+                </div>
+                <div class="detail-grid detail-grid--cards">
+                  <div class="detail-field">
+                    <span class="detail-field__label">Début</span>
+                    <span class="detail-field__value">{{ formatDate(tournee.dateDebut) }}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Fin</span>
+                    <span class="detail-field__value">{{ formatDate(tournee.dateFin) }}</span>
+                  </div>
+                  <div class="detail-field" *ngIf="tournee.tempsTotal">
+                    <span class="detail-field__label">Durée</span>
+                    <span class="detail-field__value">{{ formatDuration(tournee.tempsTotal) }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="detail-panel" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
+                <div class="detail-panel__head">
+                  <i class="bi bi-graph-up-arrow detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Résultats de collecte</h3>
+                </div>
+                <div class="detail-grid detail-grid--cards">
+                  <div class="detail-field">
+                    <span class="detail-field__label">Quantité</span>
+                    <span class="detail-field__value strong">{{ (tournee.quantiteCollecteeKg || 0) | number }} kg</span>
+                  </div>
+                  <div class="detail-field" *ngIf="tournee.distanceTotale != null">
+                    <span class="detail-field__label">Distance</span>
+                    <span class="detail-field__value">{{ tournee.distanceTotale }} km</span>
+                  </div>
+                  <div class="detail-field" *ngIf="tournee.efficacite != null">
+                    <span class="detail-field__label">Efficacité</span>
+                    <span class="detail-field__value">{{ tournee.efficacite | number:'1.0-0' }} %</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="detail-panel" *ngIf="tournee.observations">
+                <div class="detail-panel__head">
+                  <i class="bi bi-chat-left-text detail-panel__icon"></i>
+                  <h3 class="detail-panel__title">Observations</h3>
+                </div>
+                <p class="observations-block">{{ tournee.observations }}</p>
+              </section>
             </div>
-          </div>
 
-          <div class="detail-section">
-            <h3>Ressources</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Benne:</label>
-                <span>{{ tournee.benneNom || 'N/A' }}</span>
+            <aside class="detail-layout__rail" *ngIf="hasVisibleActions()">
+              <div class="detail-rail-card">
+                <p class="detail-rail-card__title">Actions</p>
+                <div class="detail-rail-actions">
+                  <button *ngIf="canUseAdminActions && tournee.statut === 'PLANIFIEE'" type="button" class="btn-detail btn-detail--primary" (click)="startTournee()">
+                    <i class="bi bi-play-fill"></i> Démarrer
+                  </button>
+                  <button *ngIf="canUseAdminActions && tournee.statut === 'EN_COURS'" type="button" class="btn-detail btn-detail--success" (click)="completeTournee()">
+                    <i class="bi bi-check-lg"></i> Terminer collecte
+                  </button>
+                  <button *ngIf="canUseAdminActions && tournee.statut !== 'LIVREE' && tournee.statut !== 'EN_LIVRAISON'" type="button" class="btn-detail btn-detail--danger" (click)="cancelTournee()">
+                    <i class="bi bi-x-lg"></i> Annuler
+                  </button>
+                  <button *ngIf="canStartLivraison" type="button" class="btn-detail btn-detail--primary" (click)="startLivraison()">
+                    <i class="bi bi-truck"></i> Démarrer livraison
+                  </button>
+                  <button *ngIf="canCompleteLivraison" type="button" class="btn-detail btn-detail--success" (click)="openLivraisonModal()">
+                    <i class="bi bi-check2-circle"></i> Finaliser livraison
+                  </button>
+                </div>
               </div>
-              <div class="detail-item">
-                <label>Tracteur:</label>
-                <span>{{ tournee.tracteurNom || 'N/A' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Travailleurs:</label>
-                <span>{{ tournee.travailleurNoms?.join(', ') || 'N/A' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="detail-section">
-            <h3>Période</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Date début:</label>
-                <span>{{ formatDate(tournee.dateDebut) }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Date fin:</label>
-                <span>{{ formatDate(tournee.dateFin) }}</span>
-              </div>
-              <div class="detail-item" *ngIf="tournee.tempsTotal">
-                <label>Durée totale:</label>
-                <span>{{ formatDuration(tournee.tempsTotal) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="detail-section" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
-            <h3>Résultats</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Quantité collectée:</label>
-                <span>{{ (tournee.quantiteCollecteeKg || 0) | number }} kg</span>
-              </div>
-              <div class="detail-item" *ngIf="tournee.distanceTotale">
-                <label>Distance totale:</label>
-                <span>{{ tournee.distanceTotale }} km</span>
-              </div>
-              <div class="detail-item" *ngIf="tournee.efficacite">
-                <label>Efficacité:</label>
-                <span>{{ tournee.efficacite | number:'1.0-0' }}%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="detail-section" *ngIf="tournee.observations">
-            <h3>Observations</h3>
-            <p class="observations">{{ tournee.observations }}</p>
-          </div>
-
-          <div class="detail-section" *ngIf="tournee.statut === 'TERMINEE' || tournee.statut === 'EN_LIVRAISON' || tournee.statut === 'LIVREE'">
-            <h3>Suivi livraison</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Démarrage livraison:</label>
-                <span>{{ tournee.livraisonStartedAt ? formatDate(tournee.livraisonStartedAt) : 'Non démarrée' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Fin livraison:</label>
-                <span>{{ tournee.livraisonCompletedAt ? formatDate(tournee.livraisonCompletedAt) : 'Non terminée' }}</span>
-              </div>
-              <div class="detail-item">
-                <label>Preuve:</label>
-                <span *ngIf="tournee.livraisonEvidenceUrl; else noProof">
-                  <a [href]="tournee.livraisonEvidenceUrl" target="_blank" rel="noopener noreferrer">Voir la preuve</a>
-                </span>
-                <ng-template #noProof>—</ng-template>
-              </div>
-            </div>
-          </div>
-
-          <div class="action-buttons">
-            <button *ngIf="canUseAdminActions && tournee.statut === 'PLANIFIEE'" class="btn-start" (click)="startTournee()">
-              <i class="bi bi-play-fill"></i> Démarrer
-            </button>
-            <button *ngIf="canUseAdminActions && tournee.statut === 'EN_COURS'" class="btn-complete" (click)="completeTournee()">
-              <i class="bi bi-check-lg"></i> Terminer
-            </button>
-            <button *ngIf="canUseAdminActions && tournee.statut !== 'LIVREE'" class="btn-cancel" (click)="cancelTournee()">
-              <i class="bi bi-x-lg"></i> Annuler
-            </button>
-            <button *ngIf="canStartLivraison" class="btn-start" (click)="startLivraison()">
-              <i class="bi bi-truck"></i> Démarrer livraison
-            </button>
-            <button *ngIf="canCompleteLivraison" class="btn-complete" (click)="openLivraisonModal()">
-              <i class="bi bi-check2-circle"></i> Finaliser livraison
-            </button>
+            </aside>
           </div>
         </div>
       </div>

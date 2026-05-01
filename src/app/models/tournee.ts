@@ -1,7 +1,7 @@
 export interface Tournee {
   id: string;
   code: string;
-  statut: 'PLANIFIEE' | 'EN_COURS' | 'TERMINEE' | 'ANNULEE';
+  statut: 'PLANIFIEE' | 'EN_COURS' | 'TERMINEE' | 'EN_LIVRAISON' | 'LIVREE' | 'ANNULEE';
   vergerId: string;
   vergerTypeOlive?: string;
   vergerAgriculteurNom?: string;
@@ -21,6 +21,12 @@ export interface Tournee {
   collecteFinalisee: boolean;
   efficacite?: number;
   observations?: string;
+  livraisonDestinationNom?: string;
+  livraisonDestinationAdresse?: string;
+  livraisonStartedAt?: Date | string;
+  livraisonCompletedAt?: Date | string;
+  livraisonEvidenceName?: string;
+  livraisonEvidenceUrl?: string;
   dateDebut: Date;
   dateFin: Date;
   dateCreation: Date;
@@ -39,6 +45,8 @@ export interface TourneeRequest {
   dateFin: Date;
   distanceTotale?: number;
   observations?: string;
+  livraisonDestinationNom?: string;
+  livraisonDestinationAdresse?: string;
 }
 
 export interface TerminerTourneeRequest {
@@ -47,4 +55,4 @@ export interface TerminerTourneeRequest {
   observations?: string;
 }
 
-export type StatutTournee = 'PLANIFIEE' | 'EN_COURS' | 'TERMINEE' | 'ANNULEE';
+export type StatutTournee = 'PLANIFIEE' | 'EN_COURS' | 'TERMINEE' | 'EN_LIVRAISON' | 'LIVREE' | 'ANNULEE';

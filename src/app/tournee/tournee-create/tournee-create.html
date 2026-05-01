@@ -177,6 +177,39 @@
                 <input type="number" step="0.1" [(ngModel)]="formData.distanceTotale" name="distanceTotale" class="form-control">
               </div>
 
+              <div class="form-group">
+                <label>Pressoir de destination</label>
+                <input type="text"
+                       [(ngModel)]="formData.livraisonDestinationNom"
+                       name="livraisonDestinationNom"
+                       class="form-control"
+                       required
+                       placeholder="Ex: Pressoir Zitouna Centre">
+              </div>
+
+              <div class="form-group">
+                <label>Adresse du pressoir</label>
+                <input type="text"
+                       [(ngModel)]="formData.livraisonDestinationAdresse"
+                       name="livraisonDestinationAdresse"
+                       class="form-control"
+                       required
+                       placeholder="Adresse complète du point de livraison">
+              </div>
+
+              <div class="form-group full-width">
+                <label>Carte (même recherche que verger)</label>
+                <app-verger-map
+                  [editable]="true"
+                  [mode]="'single'"
+                  [height]="'320px'"
+                  (locationSelected)="onDestinationLocationSelected($event)">
+                </app-verger-map>
+                <div class="field-hint">
+                  Recherchez le pressoir dans la barre de la carte, puis cliquez pour le sélectionner.
+                </div>
+              </div>
+
               <!-- Travailleurs -->
               <div class="form-group full-width">
                 <label>Travailleurs assignés</label>

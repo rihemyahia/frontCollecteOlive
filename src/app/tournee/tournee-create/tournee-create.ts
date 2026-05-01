@@ -9,11 +9,12 @@ import { VergerService } from '../../services/verger';
 import { UtilisateurService } from '../../services/utilisateur';
 import { RessourceService } from '../../services/ressource';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
+import { VergerMapComponent } from '../../shared/verger-map/verger-map';
 
 @Component({
   selector: 'app-tournee-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, SideBarResponsable],
+  imports: [CommonModule, FormsModule, SideBarResponsable, VergerMapComponent],
   templateUrl: './tournee-create.html',
   styleUrls: ['./tournee-create.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,7 +35,9 @@ export class TourneeCreateComponent implements OnInit {
     dateDebut: new Date(),
     dateFin: new Date(),
     distanceTotale: 0,
-    observations: ''
+    observations: '',
+    livraisonDestinationNom: '',
+    livraisonDestinationAdresse: ''
   };
 
   vergers: any[] = [];
@@ -45,6 +48,8 @@ export class TourneeCreateComponent implements OnInit {
 
   dateDebutStr: string = '';
   dateFinStr: string = '';
+  selectedDestinationLat: number | null = null;
+  selectedDestinationLng: number | null = null;
 
   constructor(
     private tourneeService: TourneeService,
@@ -199,6 +204,16 @@ loadTravailleurs() {
     this.cdr.markForCheck();
   }
 
+  onDestinationLocationSelected(event: { lat: number; lng: number; address?: string }): void {
+    this.selectedDestinationLat = event.lat;
+    this.selectedDestinationLng = event.lng;
+    this.formData.livraisonDestinationAdresse = event.address || '';
+    if (!this.formData.livraisonDestinationNom?.trim() && event.address) {
+      this.formData.livraisonDestinationNom = event.address.split(',')[0]?.trim() || 'Pressoir';
+    }
+    this.cdr.markForCheck();
+  }
+
   // ADD THIS MISSING METHOD
   formatDateForDisplay(date: Date): string {
     if (!date) return 'Non récolté';
@@ -300,6 +315,10 @@ onSubmit() {
     this.showError('La date de fin doit être après la date de début');
     return;
   }
+  if (!this.formData.livraisonDestinationNom?.trim() || !this.formData.livraisonDestinationAdresse?.trim()) {
+    this.showError('Veuillez sélectionner un pressoir de destination via la recherche carte');
+    return;
+  }
 
   this.isSubmitting = true;
   this.cdr.markForCheck();
@@ -336,7 +355,9 @@ onSubmit() {
     dateDebut: this.formData.dateDebut,  // Envoyer directement
     dateFin: this.formData.dateFin,  // Envoyer directement
     distanceTotale: this.formData.distanceTotale,
-    observations: this.formData.observations || ''
+    observations: this.formData.observations || '',
+    livraisonDestinationNom: this.formData.livraisonDestinationNom || '',
+    livraisonDestinationAdresse: this.formData.livraisonDestinationAdresse || ''
   };
 
   console.log('Local date:', this.formData.dateDebut);

@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TourneeService } from '../../services/tournee';
 import { UtilisateurService } from '../../services/utilisateur';
@@ -32,6 +33,7 @@ export class TourneeDetailComponent implements OnInit {
     private tourneeService: TourneeService,
     private utilisateurService: UtilisateurService,
     private authService: AuthService,
+    private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -63,6 +65,31 @@ export class TourneeDetailComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: (err) => {
+        if (this.isTransporteur) {
+          this.utilisateurService.getMesTourneesTransporteur().subscribe({
+            next: (payload: any) => {
+              const list = payload?.tournees || payload?.content || payload?.data?.tournees || payload || [];
+              const found = Array.isArray(list)
+                ? list.find((t: any) => (t?.id || t?._id) === id)
+                : null;
+              if (found) {
+                this.tournee = found;
+                this.errorMessage = '';
+              } else {
+                this.errorMessage = this.extractErrorMessage(err);
+              }
+              this.isLoading = false;
+              this.cdr.markForCheck();
+            },
+            error: () => {
+              console.error('❌ Erreur lors du chargement:', err);
+              this.errorMessage = this.extractErrorMessage(err);
+              this.isLoading = false;
+              this.cdr.markForCheck();
+            }
+          });
+          return;
+        }
         console.error('❌ Erreur lors du chargement:', err);
         this.errorMessage = this.extractErrorMessage(err);
         this.isLoading = false;
@@ -103,6 +130,89 @@ formatDuration(seconds: number): string {
   return `${hours}h ${minutes}min`;
 }
 
+  getBenneDisplay(): string {
+    return this.tournee?.benneNom
+      || this.tournee?.benne?.nom
+      || 'N/A';
+  }
+
+  getTracteurDisplay(): string {
+    return this.tournee?.tracteurNom
+      || this.tournee?.tracteur?.nom
+      || 'N/A';
+  }
+
+  getTravailleursDisplay(): string {
+    if (Array.isArray(this.tournee?.travailleurNoms) && this.tournee.travailleurNoms.length > 0) {
+      return this.tournee.travailleurNoms.join(', ');
+    }
+    if (Array.isArray(this.tournee?.travailleurs) && this.tournee.travailleurs.length > 0) {
+      const names = this.tournee.travailleurs
+        .map((t: any) => `${t?.prenom || ''} ${t?.nom || ''}`.trim())
+        .filter((n: string) => n.length > 0);
+      return names.length ? names.join(', ') : 'N/A';
+    }
+    return 'N/A';
+  }
+
+  getDeliveryStatusLabel(): string {
+    if (this.tournee?.statut === 'LIVREE') return 'Livrée';
+    if (this.tournee?.statut === 'EN_LIVRAISON') return 'En livraison';
+    if (this.tournee?.statut === 'TERMINEE') return 'Prête pour livraison';
+    return 'Non démarrée';
+  }
+
+  getDeliveryDestinationName(): string {
+    return this.tournee?.livraisonDestinationNom
+      || this.tournee?.deliveryDestinationName
+      || (this.tournee?.vergerTypeOlive ? `Point de livraison - ${this.tournee.vergerTypeOlive}` : '')
+      || 'Point de livraison principal';
+  }
+
+  getDeliveryDestinationAddress(): string {
+    return this.tournee?.livraisonDestinationAdresse
+      || this.tournee?.deliveryDestinationAddress
+      || this.tournee?.destinationAdresse
+      || this.tournee?.verger?.responsable?.adresse
+      || this.tournee?.verger?.geolocalisation?.adresseIndicative
+      || 'Adresse a confirmer par le responsable';
+  }
+
+  getNavigationUrl(): string {
+    const destination = this.getDeliveryDestinationAddress();
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+  }
+
+  getEmbeddedMapUrl(): SafeResourceUrl {
+    const destination = this.getDeliveryDestinationAddress();
+    const mapUrl = `https://www.google.com/maps?q=${encodeURIComponent(destination)}&output=embed`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(mapUrl);
+  }
+
+  getLivraisonEvidenceUrl(): string {
+    return this.tournee?.livraisonEvidenceUrl
+      || this.tournee?.deliveryEvidenceUrl
+      || '';
+  }
+
+  hasLivraisonEvidence(): boolean {
+    return !!this.getLivraisonEvidenceUrl();
+  }
+
+  isImageEvidence(): boolean {
+    const url = this.getLivraisonEvidenceUrl().toLowerCase();
+    return /\.(jpg|jpeg|png|webp|gif)(\?|$)/.test(url);
+  }
+
+  isPdfEvidence(): boolean {
+    const url = this.getLivraisonEvidenceUrl().toLowerCase();
+    return /\.pdf(\?|$)/.test(url);
+  }
+
+  getEvidencePreviewUrl(): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.getLivraisonEvidenceUrl());
+  }
+
   getStatutClass(statut: string): string {
     const classes: Record<string, string> = {
       'PLANIFIEE': 'statut-planifiee',
@@ -141,6 +251,24 @@ formatDuration(seconds: number): string {
 
   get canUseAdminActions(): boolean {
     return !this.isTransporteur;
+  }
+
+  /** True if at least one primary action button is shown (for layout spacing). */
+  hasVisibleActions(): boolean {
+    const t = this.tournee;
+    if (!t) return false;
+    if (this.canStartLivraison || this.canCompleteLivraison) return true;
+    if (!this.canUseAdminActions) return false;
+    if (t.statut === 'PLANIFIEE' || t.statut === 'EN_COURS') return true;
+    if (t.statut !== 'LIVREE' && t.statut !== 'EN_LIVRAISON') return true;
+    return false;
+  }
+
+  /** Short window label for KPI row (jour seulement). */
+  formatDateDay(date: Date | string | null | undefined): string {
+    if (!date) return '—';
+    const d = new Date(date as Date);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   startLivraison(): void {
