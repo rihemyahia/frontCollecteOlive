@@ -1,27 +1,51 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlantDiseaseService } from '../services/plant-disease';
+import { SideBarResponsable } from '../sidebar-responsable/sidebar-responsable';
+import { AuthService } from '../services/auth';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-maladie-detection',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SideBarResponsable],
   templateUrl: './maladie-detection.html',
   styleUrls: ['./maladie-detection.css']
 })
 export class MaladieDetectionComponent {
   imagePreview: string | null = null;
   isLoading = false;
-  isLoadingModel = true;  // ← Changé : true au départ
+  isLoadingModel = true;
   resultat: any = null;
   errorMessage = '';
 
+  isSidebarCollapsed = false;
+  isMobile = false;
+  userRole: string = '';
+
   constructor(
+      private router: Router  ,// ← AJOUTE CETTE LIGNE
+
     private diseaseService: PlantDiseaseService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
+  @HostListener('window:resize')
+  checkMobile(): void {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile) this.isSidebarCollapsed = false;
+  }
+
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+
   async ngOnInit() {
+    this.userRole = this.authService.getUserRole();
+    this.checkMobile();
+
     console.log('🚀 Initialisation du composant');
     this.isLoadingModel = true;
     this.cdr.detectChanges();
@@ -38,6 +62,10 @@ export class MaladieDetectionComponent {
       this.cdr.detectChanges();
     }
   }
+  // Ajoute cette méthode
+signalerAlerte(): void {
+  this.router.navigate(['/alertes/creer']);
+}
 
   async onFileSelected(event: any) {
     const file = event.target.files[0];
@@ -93,4 +121,5 @@ export class MaladieDetectionComponent {
       this.cdr.detectChanges();
     }
   }
+
 }

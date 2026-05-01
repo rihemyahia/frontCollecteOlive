@@ -130,6 +130,7 @@ getTravailleurs(): Observable<any[]> {  // ⚠️ Important: retourne Observable
     return this.http.patch<Tournee>(`${this.apiUrl}/${id}/annuler`, {}, { headers: this.getHeaders() });
   }
 
+  
   supprimer(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
