@@ -169,6 +169,10 @@
                 <span class="kpi-label">Sélection</span>
                 <strong class="kpi-value">{{ selectedAvailableTourneeIds.size }}</strong>
               </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Disponible (transp.)</span>
+                <strong class="kpi-value">{{ transporteurAvailableFlag() ? 'Oui' : 'Non' }}</strong>
+              </div>
             </div>
 
             <div *ngIf="isLoadingTournees" class="loading-container">
@@ -261,7 +265,7 @@
                     <input type="checkbox"
                            [checked]="isAvailableSelected(t?.id || t?._id)"
                            (change)="toggleAvailableSelection(t?.id || t?._id)"
-                           [disabled]="isSavingTournees" />
+                           [disabled]="isSavingTournees || isTourneeConflictingWithAssigned(t) || !transporteurAvailableFlag()" />
                     <div class="tournee-main">
                       <div class="tournee-title">
                         <span class="tournee-name">{{ getTourneeVergerName(t) }}</span>
@@ -272,6 +276,14 @@
                         <span><strong>Date:</strong> {{ formatTourneeDate(t?.dateDebut) }}</span>
                         <span><strong>Arbres:</strong> {{ t?.nbreArbre || '—' }}</span>
                       </div>
+                    </div>
+                    <div class="tournee-warning" *ngIf="isTourneeConflictingWithAssigned(t)">
+                      <i class="bi bi-exclamation-triangle-fill"></i>
+                      <small>Conflit détecté avec une tournée assignée (ressource ou période).</small>
+                    </div>
+                    <div class="tournee-warning" *ngIf="!transporteurAvailableFlag()">
+                      <i class="bi bi-info-circle-fill"></i>
+                      <small>Le transporteur est marqué comme non disponible.</small>
                     </div>
                   </label>
                 </div>

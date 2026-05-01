@@ -308,6 +308,12 @@ changePassword(): void {
 
   toggleAvailableSelection(tourneeId: string): void {
     if (!tourneeId) return;
+    const t = this.availableTournees.find(x => (x?.id || x?._id) === tourneeId);
+    if (t && this.isTourneeConflictingWithAssigned(t)) {
+      this.errorMessage = 'Cette tournée entre en conflit avec une tournée déjà assignée au transporteur.';
+      this.cdr.detectChanges();
+      return;
+    }
     if (this.selectedAvailableTourneeIds.has(tourneeId)) {
       this.selectedAvailableTourneeIds.delete(tourneeId);
     } else {
@@ -335,6 +341,48 @@ changePassword(): void {
     const ids = this.availablePaged.map((t: any) => t?.id || t?._id).filter(Boolean);
     if (ids.length === 0) return false;
     return ids.every((id: string) => this.selectedAvailableTourneeIds.has(id));
+  }
+
+  // ======= Conflict helpers ========
+  private asDate(d: any): Date | null {
+    if (!d) return null;
+    const date = new Date(d);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  private overlaps(aStart: any, aEnd: any, bStart: any, bEnd: any): boolean {
+    const A1 = this.asDate(aStart);
+    const A2 = this.asDate(aEnd);
+    const B1 = this.asDate(bStart);
+    const B2 = this.asDate(bEnd);
+    if (!A1 || !A2 || !B1 || !B2) return false;
+    return A1 < B2 && B1 < A2;
+  }
+
+  isTourneeConflictingWithAssigned(t: any): boolean {
+    if (!t || !this.assignedTournees || this.assignedTournees.length === 0) return false;
+    for (const a of this.assignedTournees) {
+      if (this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
+      // also check resource conflicts: same benne or tracteur used in overlapping time
+      if (t.benneId && a.benneId && t.benneId === a.benneId && this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
+      if (t.tracteurId && a.tracteurId && t.tracteurId === a.tracteurId && this.overlaps(t.dateDebut, t.dateFin, a.dateDebut, a.dateFin)) return true;
+    }
+    return false;
+  }
+
+  transporteurAvailableFlag(): boolean {
+    // Prefer explicit flag if provided by server; otherwise compute from assigned tournees
+    if (this.utilisateur && typeof this.utilisateur.disponibleTransport === 'boolean') return this.utilisateur.disponibleTransport;
+    // compute: transporteur is available if no assigned future/present overlapping tournees
+    return !(this.assignedTournees || []).some(a => {
+      const now = new Date();
+      const start = this.asDate(a.dateDebut);
+      const end = this.asDate(a.dateFin);
+      if (!start || !end) return false;
+      // if assigned tour is not finished or delivered, consider unavailable
+      const s = (a.statut || '').toUpperCase();
+      return ['PLANIFIEE','EN_COURS','TERMINEE','EN_LIVRAISON'].includes(s) && end >= now;
+    });
   }
 
   isAvailableSelected(tourneeId: string): boolean {
