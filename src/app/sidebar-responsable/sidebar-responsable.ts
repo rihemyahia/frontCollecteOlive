@@ -49,6 +49,41 @@ export class SideBarResponsable implements OnInit {
       roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRANSPORTEUR']
     },
     {
+      id: 'pressoir-dashboard',
+      label: 'Tableau de bord',
+      icon: 'oil',
+      route: '/pressoir/dashboard',
+      roles: ['RESPONSABLE_PRESSOIR']
+    },
+    {
+      id: 'pressoir-tournees',
+      label: 'Tournées livrées',
+      icon: 'map-pin',
+      route: '/pressoir/tournees-livrees',
+      roles: ['RESPONSABLE_PRESSOIR']
+    },
+    {
+      id: 'pressoir-extractions',
+      label: 'Extractions',
+      icon: 'oil',
+      route: '/pressoir/extractions',
+      roles: ['RESPONSABLE_PRESSOIR']
+    },
+    {
+      id: 'pressoir-collectes',
+      label: 'Collectes huile',
+      icon: 'collectes',
+      route: '/pressoir/collectes-huile',
+      roles: ['RESPONSABLE_PRESSOIR']
+    },
+    {
+      id: 'pressoir-profile',
+      label: 'Mon profil',
+      icon: 'user',
+      route: '/pressoir/profile',
+      roles: ['RESPONSABLE_PRESSOIR']
+    },
+    {
       id: 'utilisateurs',
       label: 'Utilisateurs',
       icon: 'users',
@@ -115,7 +150,7 @@ export class SideBarResponsable implements OnInit {
     },
     {
       id: 'modifier-compte-transporteur',
-      label: 'Modifier compte',
+      label: 'Mon profile',
       icon: 'user',
       route: '/profile',
       roles: ['TRANSPORTEUR']
@@ -381,6 +416,7 @@ export class SideBarResponsable implements OnInit {
 
       // User - Profile
       user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+      oil: 'M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12zm-2 13a2 2 0 0 0 2 2',
     };
     return icons[iconName] || icons['dashboard'];
   }

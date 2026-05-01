@@ -1,0 +1,100 @@
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar()" [userRole]="userRole"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <div class="oh-scene">
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon"><i class="bi bi-droplet-half"></i></div>
+              <div>
+                <p class="oh-header__eyebrow">MODULE PRESSOIR</p>
+                <h2 class="oh-header__title">Tableau de bord pressoir</h2>
+                <p class="header-subtitle">Suivi des receptions, extractions et rendements d'huile</p>
+              </div>
+            </div>
+            <button class="btn-secondary" (click)="loadDashboard()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div *ngIf="errorMessage" class="oh-error"><i class="bi bi-exclamation-triangle-fill"></i>{{ errorMessage }}</div>
+          <div *ngIf="isLoading" class="loading-state"><div class="spinner"></div><p>Chargement des indicateurs...</p></div>
+
+          <ng-container *ngIf="data && !isLoading">
+            <div class="kpi-grid">
+              <div class="metric-card">
+                <div class="metric-card__icon" style="background: linear-gradient(135deg, #5A6E1A, #A8B84B)"><i class="bi bi-basket-fill"></i></div>
+                <div><div class="metric-value">{{ formatKg(data.totalOlivesRecuesKg) }}</div><div class="metric-label">Olives recues</div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-card__icon" style="background: linear-gradient(135deg, #0A7A8A, #17A2B8)"><i class="bi bi-droplet-fill"></i></div>
+                <div><div class="metric-value">{{ formatLiters(data.totalHuileExtraiteL) }}</div><div class="metric-label">Huile extraite</div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-card__icon" style="background: linear-gradient(135deg, #B45309, #F59E0B)"><i class="bi bi-percent"></i></div>
+                <div><div class="metric-value">{{ formatPercent(data.rendementMoyenPourcentage) }}</div><div class="metric-label">Rendement moyen</div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-card__icon" style="background: linear-gradient(135deg, #8A6A0A, #FBBF24)"><i class="bi bi-hourglass-split"></i></div>
+                <div><div class="metric-value">{{ data.tourneesEnAttenteReception }}</div><div class="metric-label">En attente reception</div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-card__icon" style="background: linear-gradient(135deg, #0A4A8A, #3B82F6)"><i class="bi bi-gear-wide-connected"></i></div>
+                <div><div class="metric-value">{{ data.tourneesEnAttenteExtraction }}</div><div class="metric-label">En attente extraction</div></div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-card__icon" style="background: linear-gradient(135deg, #2A6A0A, #4A7A2A)"><i class="bi bi-check-circle-fill"></i></div>
+                <div><div class="metric-value">{{ data.extractionsValidees }}</div><div class="metric-label">Extractions validees</div></div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid">
+              <div class="panel-card">
+                <div class="panel-header"><h3 class="panel-title"><i class="bi bi-trophy"></i> Rendements extremes</h3></div>
+                <div class="panel-body">
+                  <p><strong>Meilleure collecte :</strong> {{ getCollecteLabel(data.meilleureCollecte) }}</p>
+                  <p><strong>Plus faible collecte :</strong> {{ getCollecteLabel(data.plusFaibleCollecte) }}</p>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="panel-header"><h3 class="panel-title"><i class="bi bi-pie-chart-fill"></i> Statuts extraction</h3></div>
+                <div class="panel-body bar-list">
+                  <div class="bar-row"><span>RECUE</span><div class="bar-track"><div class="bar-fill" [style.width.%]="percent(statusCounts().recue, statusCounts().recue + statusCounts().extraite + statusCounts().validee)"></div></div><strong>{{ statusCounts().recue }}</strong></div>
+                  <div class="bar-row"><span>EXTRAITE</span><div class="bar-track"><div class="bar-fill" [style.width.%]="percent(statusCounts().extraite, statusCounts().recue + statusCounts().extraite + statusCounts().validee)"></div></div><strong>{{ statusCounts().extraite }}</strong></div>
+                  <div class="bar-row"><span>VALIDEE</span><div class="bar-track"><div class="bar-fill" [style.width.%]="percent(statusCounts().validee, statusCounts().recue + statusCounts().extraite + statusCounts().validee)"></div></div><strong>{{ statusCounts().validee }}</strong></div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="panel-header"><h3 class="panel-title"><i class="bi bi-bar-chart-fill"></i> Huile par collecte</h3></div>
+                <div class="panel-body bar-list">
+                  <div class="bar-row" *ngFor="let c of data.collectesHuile">
+                    <span>{{ c.collecteCode }}</span>
+                    <div class="bar-track"><div class="bar-fill" [style.width.%]="percent(c.totalHuileExtraiteL, maxOil())"></div></div>
+                    <strong>{{ formatLiters(c.totalHuileExtraiteL) }}</strong>
+                  </div>
+                  <div class="empty-state" *ngIf="!data.collectesHuile.length">Aucune collecte huile disponible</div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="panel-header"><h3 class="panel-title"><i class="bi bi-graph-up-arrow"></i> Rendement par collecte</h3></div>
+                <div class="panel-body bar-list">
+                  <div class="bar-row" *ngFor="let c of data.collectesHuile">
+                    <span>{{ c.collecteCode }}</span>
+                    <div class="bar-track"><div class="bar-fill" [style.width.%]="percent(c.rendementMoyenPourcentage, maxYield())"></div></div>
+                    <strong>{{ formatPercent(c.rendementMoyenPourcentage) }}</strong>
+                  </div>
+                  <div class="empty-state" *ngIf="!data.collectesHuile.length">Aucun rendement calcule</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

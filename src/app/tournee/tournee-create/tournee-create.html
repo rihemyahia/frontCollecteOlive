@@ -139,6 +139,19 @@
                 </select>
               </div>
 
+              <div class="form-group">
+                <label>Responsable pressoir</label>
+                <select [(ngModel)]="formData.responsablePressoirId" name="responsablePressoirId" class="form-control">
+                  <option value="">Selectionnez un responsable pressoir</option>
+                  <option *ngFor="let r of responsablesPressoir" [value]="r.id">
+                    {{ getResponsablePressoirLabel(r) }}
+                  </option>
+                </select>
+                <div *ngIf="responsablesPressoir.length === 0" class="field-warning">
+                  Aucun responsable pressoir disponible.
+                </div>
+              </div>
+
               <!-- Nombre d'arbres -->
               <div class="form-group">
                 <label>Nombre d'arbres à récolter</label>
