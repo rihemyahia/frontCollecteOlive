@@ -45,9 +45,8 @@ export class SideBarResponsable implements OnInit {
       label: 'Tableau de bord',
       icon: 'dashboard',
       route: '/dashboard',
-      roles: ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR']
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR']
     },
-    // Utilisateurs
     {
       id: 'utilisateurs',
       label: 'Utilisateurs',
@@ -55,18 +54,17 @@ export class SideBarResponsable implements OnInit {
       route: '/utilisateurs',
       roles: ['ADMIN']
     },
-    // Ressources
     {
       id: 'ressources',
       label: 'Ressources',
-      icon: 'package',
+      icon: 'resources',
       route: '/ressources',
       roles: ['ADMIN', 'RESPONSABLE'],
       children: [
         {
           id: 'bennes',
           label: 'Bennes',
-          icon: 'truck',
+          icon: 'basket',
           route: '/ressources/bennes',
           roles: ['ADMIN', 'RESPONSABLE']
         },
@@ -79,12 +77,11 @@ export class SideBarResponsable implements OnInit {
         }
       ]
     },
-    // Vergers
     {
       id: 'vergers',
       label: 'Vergers',
       icon: 'leaf',
-      route: '/vergers',
+          route: '/vergers',
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {
@@ -97,11 +94,10 @@ export class SideBarResponsable implements OnInit {
     {
       id: 'diagnostic',
       label: 'Diagnostic',
-      icon: 'stethoscope',
+      icon: 'diagnostic',
       route: '/diagnostic',
       roles: ['AGRICULTEUR']
     },
-    // Tournées
     {
       id: 'tournees',
       label: 'Tournées',
@@ -110,21 +106,12 @@ export class SideBarResponsable implements OnInit {
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {
-      id: 'mes-tournees-transporteur',
-      label: 'Mes tournées',
-      icon: 'map-pin',
-      route: '/tournees',
-      roles: ['TRANSPORTEUR']
-    },
-    // Collectes
-    {
       id: 'collectes',
       label: 'Collectes',
-      icon: 'basket',
+      icon: 'collectes',
       route: '/collectes',
       roles: ['RESPONSABLE', 'ADMIN']
     },
-    // Autres
     {
       id: 'calendrier',
       label: 'Calendrier',
@@ -252,7 +239,6 @@ export class SideBarResponsable implements OnInit {
       email: '',
       avatar: 'U'
     };
-
   }
 
   filterMenuByRole(): void {
@@ -341,30 +327,44 @@ export class SideBarResponsable implements OnInit {
 
   getIconPath(iconName: string): string {
     const icons: { [key: string]: string } = {
-      // Dashboard - Statistics/Overview
-      dashboard: 'M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z',
-      // Users - Team management
-      users: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z',
-      // Resources - Equipment/Machines
-      package: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
-      // Orchards - Single olive tree with leaves
-      leaf: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z',
-      // My Orchards - Multiple trees
-      trees: 'M8 19h3v4h2v-4h3l-4-4-4 4zm6-15h3V2h-2v2h-1V2h-2v2h3v2zm5.5 2.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM12 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c2.97 0 6-1.46 6-3.5V8h1.5c1.1 0 2-.9 2-2s-.9-2-2-2h-1.5V2h-2v2h-3V2h-2v2H6c-1.1 0-2 .9-2 2s.9 2 2 2H7.5v4.5C7.5 14.54 9.03 16 12 16z',
-      // Routes/Delivery - Route map/path icon
-      'map-pin': 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.5 5c.83 0 1.5.67 1.5 1.5S14.33 10 13.5 10 12 9.33 12 8.5s.67-1.5 1.5-1.5zm0 9l-6-6h12l-6 6z',
-      // Harvest/Collections - Basket/harvesting icon
-      basket: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z',
-      // Calendar - Schedule/Season planning
-      calendar: 'M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zm-5-5h4v4h-4z',
-      // Alerts - Warning/notifications
-      alert: 'M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z',
-      // Profile - User account
-      user: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-      // Trucks/Containers - Transport
-      truck: 'M18 18.5a1.5 1.5 0 01-1.5-1.5 1.5 1.5 0 011.5-1.5 1.5 1.5 0 011.5 1.5 1.5 1.5 0 01-1.5 1.5m1.5-9l-6-6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V11m-9 9a1.5 1.5 0 01-1.5-1.5 1.5 1.5 0 011.5-1.5 1.5 1.5 0 011.5 1.5 1.5 1.5 0 01-1.5 1.5z',
-      // Tractors - Farm machinery
-      tractor: 'M9.5 11c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m0-9C5.6 2 2.5 5.1 2.5 9s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7m10 6v4c0 .55.45 1 1 1h2v-2h-2v-2h-1c-.55 0-1 .45-1 1zm0-4h6v2h-6V3z',
+      // Dashboard - House / Home
+      dashboard: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-5v-8H7v8H5a2 2 0 0 1-2-2V9z',
+
+      // Users - Person / People
+      users: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 20c0-4 8-6 8-6s8 2 8 6',
+
+      // Resources - Box / Package
+      resources: 'M20 7h-4.18A3 3 0 0 0 16 5.18V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v1.18A3 3 0 0 0 8.18 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z',
+
+      // Basket - Olive basket
+      basket: 'M5 11h14M9 7l-2 4M15 7l2 4M12 15v4M8 15v3M16 15v3',
+
+      // Tractor - Farm vehicle
+      tractor: 'M4 12h13M9 4v8M15 4v8M7 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 0h10',
+
+      // Leaf - Olive tree / Orchard
+      leaf: 'M12 2C8 6 4 10 4 14c0 4 4 8 8 8s8-4 8-8c0-4-4-8-8-8z',
+
+      // Trees - Multiple trees
+      trees: 'M7 11L5 9l2-2M17 11l2-2-2-2M12 3L9 8h6zM10 21v-8M14 21v-8',
+
+      // Diagnostic - Stethoscope
+      diagnostic: 'M9 2v4M15 2v4M12 6a4 4 0 0 1 4 4v3a4 4 0 0 1-8 0v-3a4 4 0 0 1 4-4zm9 3v3a9 9 0 0 1-9 9 9 9 0 0 1-9-9V9',
+
+      // Map pin - Routes / Tours
+      'map-pin': 'M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z',
+
+      // Collectes - Clipboard / Harvest record
+      collectes: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2',
+
+      // Calendar
+      calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+
+      // Alert - Bell
+      alert: 'M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V9a6 6 0 0 0-12 0v7l-2 2v1h16v-1l-2-2z',
+
+      // User - Profile
+      user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
     };
     return icons[iconName] || icons['dashboard'];
   }

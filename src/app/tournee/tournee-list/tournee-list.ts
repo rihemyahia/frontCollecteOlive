@@ -34,6 +34,12 @@ export class TourneeListComponent implements OnInit {
   groupedByAgriculteur: AgriculteurGroup[] = [];
   pagedTournees: any[] = [];
 
+  // Pagination
+  paginatedTournees: any[] = [];
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 1;
+
   // Filters
   selectedStatut = '';
   searchTerm = '';
@@ -474,6 +480,38 @@ export class TourneeListComponent implements OnInit {
     this.currentPage = 1;
     this.updatePagedTournees();
     this.cdr.markForCheck();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredTournees.length / this.itemsPerPage) || 1;
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    this.paginatedTournees = this.filteredTournees.slice(start, start + this.itemsPerPage);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+      this.cdr.markForCheck();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+      this.cdr.markForCheck();
+    }
+  }
+
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.selectedStatut = '';
+    this.applyFilters();
+  }
+
+  getStatutCount(statut: string): number {
+    return this.filteredTournees.filter(t => t.statut === statut).length;
   }
 
   onFilterChange() {
