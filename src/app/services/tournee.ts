@@ -71,15 +71,15 @@ export class TourneeService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<Tournee[]> {
-    return this.http.get<Tournee[]>(this.apiUrl);
+    return this.http.get<Tournee[]>(this.apiUrl, { headers: this.getHeaders() });
   }
 
   getActive(): Observable<Tournee[]> {
-    return this.http.get<Tournee[]>(`${this.apiUrl}/active`);
+    return this.http.get<Tournee[]>(`${this.apiUrl}/active`, { headers: this.getHeaders() });
   }
 
   getById(id: string): Observable<Tournee> {
-    return this.http.get<Tournee>(`${this.apiUrl}/${id}`);
+    return this.http.get<Tournee>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
 private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token'); // ou comment vous stockez le token
@@ -92,45 +92,45 @@ private getHeaders(): HttpHeaders {
 // Dans tournee.service.ts
 getTravailleurs(): Observable<any[]> {  // ⚠️ Important: retourne Observable<any[]> pas Observable<Tournee>
   return this.http.get<any[]>(`${this.apiUrl}/travailleurs`, {
-    headers: this.getHeaders ()
+    headers: this.getHeaders()
   });
 }
 
   getByVerger(vergerId: string): Observable<Tournee[]> {
-    return this.http.get<Tournee[]>(`${this.apiUrl}/verger/${vergerId}`);
+    return this.http.get<Tournee[]>(`${this.apiUrl}/verger/${vergerId}`, { headers: this.getHeaders() });
   }
 
   getByStatut(statut: string): Observable<Tournee[]> {
-    return this.http.get<Tournee[]>(`${this.apiUrl}/statut?statut=${statut}`);
+    return this.http.get<Tournee[]>(`${this.apiUrl}/statut?statut=${statut}`, { headers: this.getHeaders() });
   }
 
   getTotalCollecteParVerger(vergerId: string): Observable<{ vergerId: string; totalCollecteKg: number; nbTourneesNecessaires: number }> {
     return this.http.get<{ vergerId: string; totalCollecteKg: number; nbTourneesNecessaires: number }>(
-      `${this.apiUrl}/verger/${vergerId}/total-collecte`
+      `${this.apiUrl}/verger/${vergerId}/total-collecte`, { headers: this.getHeaders() }
     );
   }
 
   create(request: TourneeRequest): Observable<Tournee> {
-    return this.http.post<Tournee>(this.apiUrl, request);
+    return this.http.post<Tournee>(this.apiUrl, request, { headers: this.getHeaders() });
   }
 
   update(id: string, request: TourneeRequest): Observable<Tournee> {
-    return this.http.put<Tournee>(`${this.apiUrl}/${id}`, request);
+    return this.http.put<Tournee>(`${this.apiUrl}/${id}`, request, { headers: this.getHeaders() });
   }
 
   demarrer(id: string): Observable<Tournee> {
-    return this.http.patch<Tournee>(`${this.apiUrl}/${id}/demarrer`, {});
+    return this.http.patch<Tournee>(`${this.apiUrl}/${id}/demarrer`, {}, { headers: this.getHeaders() });
   }
 
   terminer(id: string, request: TerminerTourneeRequest): Observable<Tournee> {
-    return this.http.patch<Tournee>(`${this.apiUrl}/${id}/terminer`, request);
+    return this.http.patch<Tournee>(`${this.apiUrl}/${id}/terminer`, request, { headers: this.getHeaders() });
   }
 
   annuler(id: string): Observable<Tournee> {
-    return this.http.patch<Tournee>(`${this.apiUrl}/${id}/annuler`, {});
+    return this.http.patch<Tournee>(`${this.apiUrl}/${id}/annuler`, {}, { headers: this.getHeaders() });
   }
 
   supprimer(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
 }
