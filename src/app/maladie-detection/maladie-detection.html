@@ -1,93 +1,201 @@
+<!-- src/app/maladie-detection/maladie-detection.html -->
 <div class="app-layout">
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed"
-    (toggleSidebar)="toggleSidebar()"
+    (toggleSidebar)="toggleSidebar($event)"
     [userRole]="userRole">
   </app-sidebar>
 
-  <main class="main-content"
-        [class.sidebar-collapsed]="isSidebarCollapsed"
-        [class.sidebar-open]="!isSidebarCollapsed">
-
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
     <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
-      <svg viewBox="0 0 24 24" fill="none">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
         <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
 
     <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
       <div class="oh-card">
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
               <div class="oh-brand__icon">
-                <i class="bi bi-bug"></i>
+                <i class="bi bi-robot"></i>
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">INTELLIGENCE ARTIFICIELLE</p>
-                <h2 class="oh-header__title">Diagnostic des maladies</h2>
-                <p class="header-subtitle">Analysez les feuilles d'olivier avec l'IA</p>
+                <h2 class="oh-header__title">Diagnostic <span class="highlight">Maladies</span> de l'olivier</h2>
+                <p class="header-subtitle">Analysez vos feuilles d'olivier en quelques secondes</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <div class="season-chip">
+                <i class="bi bi-calendar-heart"></i>
+                <span>Saison {{ currentSeason }}</span>
+              </div>
+              <div class="user-chip" (click)="navigate('/profile')">
+                <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
+                <span>{{ user?.prenom }} {{ user?.nom }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="oh-card__body">
-          <div class="detection-container">
-            <div class="detection-card">
-              <!-- État de chargement du modèle -->
-              <div *ngIf="isLoadingModel" class="loading-model">
-                <div class="spinner"></div>
-                <p>🧠 Chargement du modèle IA...</p>
-                <small>Premier chargement peut prendre quelques secondes</small>
-              </div>
 
-              <!-- Zone d'upload -->
-              <div *ngIf="!isLoadingModel && !errorMessage" class="upload-area" (click)="fileInput.click()">
-                <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept="image/*">
-                <i class="bi bi-cloud-upload"></i>
-                <p>📸 Cliquez pour télécharger une photo de feuille</p>
-                <small>Format JPG, PNG</small>
-              </div>
+          <!-- Loading Model State -->
+          <div *ngIf="isLoadingModel" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement du modèle IA...</p>
+            <small class="loading-sub">Premier chargement peut prendre quelques secondes</small>
+          </div>
 
-              <!-- Aperçu -->
-              <div *ngIf="imagePreview" class="image-preview">
-                <img [src]="imagePreview" alt="Feuille d'olivier">
-              </div>
+          <!-- Main Content -->
+          <div *ngIf="!isLoadingModel" class="detection-container">
 
-              <!-- Analyse en cours -->
-              <div *ngIf="isLoading" class="loading">
-                <div class="spinner-small"></div>
-                <span>🔬 Analyse IA en cours...</span>
-              </div>
-
-              <!-- Résultat -->
-              <div *ngIf="resultat" class="resultat" [ngClass]="resultat.type">
-                <div class="resultat-header">
-                  <i class="bi" [class.bi-bug]="resultat.type === 'maladie'"
-                               [class.bi-check-circle]="resultat.type === 'sain'"
-                               [class.bi-info-circle]="resultat.type === 'information'"></i>
-                  <span class="label">Diagnostic IA</span>
-                </div>
-                <div class="resultat-label">{{ resultat.label }}</div>
-                <div class="confidence">🎯 Confiance: {{ resultat.confidence }}%</div>
-                <div class="recommandation">
-                  <strong>💊 Recommandation :</strong> {{ resultat.recommandation }}
-                </div>
-              </div>
-
-              <!-- Bouton Signaler une alerte -->
-              <div class="alert-button-container" *ngIf="resultat">
-                <button class="btn-alert" (click)="signalerAlerte()">
-                  <i class="bi bi-bell-fill"></i> Signaler une alerte
-                </button>
-              </div>
-
-              <!-- Erreur -->
-              <div *ngIf="errorMessage" class="error">
-                <i class="bi bi-exclamation-triangle"></i> {{ errorMessage }}
+            <!-- Info Banner -->
+            <div class="info-banner">
+              <i class="bi bi-info-circle-fill"></i>
+              <div class="info-content">
+                <strong>Diagnostic IA avancé</strong>
+                <span>Notre modèle détecte plusieurs maladies : Œil de Paon, Verticilliose, Fumagine, et plus encore</span>
               </div>
             </div>
+
+            <div class="detection-grid">
+              <!-- Upload Section -->
+              <div class="detection-card upload-card">
+                <div class="card-header">
+                  <i class="bi bi-cloud-upload"></i>
+                  <h3>Téléchargement</h3>
+                </div>
+
+                <div class="upload-area" (click)="fileInput.click()">
+                  <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept="image/*">
+                  <i class="bi bi-camera"></i>
+                  <p>Cliquez pour télécharger une photo</p>
+                  <small>Format JPG, PNG — Max 10 Mo</small>
+                </div>
+
+                <!-- Image Preview -->
+                <div *ngIf="imagePreview" class="image-preview">
+                  <div class="preview-header">
+                    <i class="bi bi-image"></i>
+                    <span>Image sélectionnée</span>
+                    <button class="btn-reset" (click)="resetDetection()" title="Réinitialiser">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </div>
+                  <img [src]="imagePreview" alt="Feuille d'olivier">
+                </div>
+              </div>
+
+              <!-- Results Section -->
+              <div class="detection-card result-card">
+                <div class="card-header">
+                  <i class="bi bi-clipboard-data"></i>
+                  <h3>Résultat du diagnostic</h3>
+                </div>
+
+                <!-- Loading Analysis -->
+                <div *ngIf="isLoading" class="loading-analysis">
+                  <div class="spinner-small"></div>
+                  <div class="loading-text">
+                    <span>🔬 Analyse IA en cours...</span>
+                    <small>Traitement de l'image et calcul des probabilités</small>
+                  </div>
+                </div>
+
+                <!-- No Image Yet -->
+                <div *ngIf="!isLoading && !resultat && !errorMessage && !imagePreview" class="empty-result">
+                  <i class="bi bi-camera"></i>
+                  <p>Aucune image analysée</p>
+                  <small>Téléchargez une photo pour commencer</small>
+                </div>
+
+                <!-- Error Message -->
+                <div *ngIf="errorMessage" class="error-message">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <div class="error-content">
+                    <strong>Erreur</strong>
+                    <span>{{ errorMessage }}</span>
+                  </div>
+                </div>
+
+                <!-- Success Result -->
+                <div *ngIf="resultat && !isLoading" class="result-content" [class.maladie]="resultat.type === 'maladie'" [class.sain]="resultat.type === 'sain'">
+                  <!-- Result Header -->
+                  <div class="result-header">
+                    <div class="result-icon">
+                      <i class="bi" [class.bi-bug]="resultat.type === 'maladie'" [class.bi-check-circle-fill]="resultat.type === 'sain'"></i>
+                    </div>
+                    <div class="result-title">
+                      <span class="result-label">Diagnostic IA</span>
+                      <h4>{{ resultat.label }}</h4>
+                    </div>
+                  </div>
+
+                  <!-- Confidence Bar -->
+                  <div class="confidence-section">
+                    <div class="confidence-header">
+                      <span>Niveau de confiance</span>
+                      <span class="confidence-value">{{ formatConfidence(resultat.confidence) }}%</span>
+                    </div>
+                    <div class="confidence-bar">
+                      <div class="confidence-fill" [style.width.%]="resultat.confidence"
+                           [class.high]="resultat.confidence >= 80"
+                           [class.medium]="resultat.confidence >= 50 && resultat.confidence < 80"
+                           [class.low]="resultat.confidence < 50">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Recommendation -->
+                  <div class="recommendation">
+                    <div class="recommendation-header">
+                      <i class="bi bi-patch-check-fill"></i>
+                      <span>Recommandation</span>
+                    </div>
+                    <p>{{ resultat.recommandation }}</p>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="result-actions">
+                    <button class="btn-secondary" (click)="resetDetection()">
+                      <i class="bi bi-arrow-repeat"></i> Nouvelle analyse
+                    </button>
+                    <button class="btn-primary" (click)="navigate('/alertes/creer')">
+                      <i class="bi bi-exclamation-triangle"></i> Signaler une alerte
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+              <div class="feature-card">
+                <i class="bi bi-eye"></i>
+                <h4>Détection avancée</h4>
+                <p>Notre IA analyse les feuilles avec une précision jusqu'à 95%</p>
+              </div>
+              <div class="feature-card">
+                <i class="bi bi-clock-history"></i>
+                <h4>Résultats instantanés</h4>
+                <p>Obtenez un diagnostic en moins de 5 secondes</p>
+              </div>
+              <div class="feature-card">
+                <i class="bi bi-shield-check"></i>
+                <h4>Recommandations expertes</h4>
+                <p>Conseils personnalisés pour traiter vos oliviers</p>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

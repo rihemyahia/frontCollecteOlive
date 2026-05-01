@@ -542,12 +542,17 @@
   background: #E8ECDC;
   border-radius: 10px;
   overflow: hidden;
+  position: relative;
 }
 
 .stat-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
   height: 100%;
   border-radius: 10px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 2px;
 }
 
 .stat-fill.animate-fill {
@@ -871,4 +876,7 @@
   .data-table {
     min-width: 700px;
   }
+}
+.stat-fill.green {
+  background: #4A7A2A !important;
 }

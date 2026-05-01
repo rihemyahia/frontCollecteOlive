@@ -49,7 +49,24 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
     this.dashboardService.getAgriculteurDashboard().subscribe({
       next: (res) => {
         this.data = res;
-        console.log('Agriculteur Dashboard data:', this.data);
+        console.log('=== AGRICULTEUR DASHBOARD DATA ===');
+        console.log('Total Vergers:', this.data?.totalMesVergers);
+        console.log('Vergers Non Récoltés:', this.data?.mesVergersNonRecolte);
+        console.log('Vergers En Cours:', this.data?.mesVergersEnCours);
+        console.log('Vergers Récoltés:', this.data?.mesVergersRecolte);
+        console.log('Tournees Planifiées:', this.data?.mesTourneesPlanifiees);
+        console.log('Tournees En Cours:', this.data?.mesTourneesEnCours);
+        console.log('Tournees Terminées:', this.data?.mesTourneesTerminees);
+        
+        // Calculate percentages
+        const totalVergers = this.getTotalVergers();
+        const recoltePercent = this.percent(this.data?.mesVergersRecolte, totalVergers);
+        console.log('Récoltés Percent:', recoltePercent + '%');
+        
+        const totalTournees = this.getTotalTournees();
+        const termineesPercent = this.percent(this.data?.mesTourneesTerminees, totalTournees);
+        console.log('Terminées Percent:', termineesPercent + '%');
+        
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -64,14 +81,18 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
 
   getTotalTournees(): number {
     if (!this.data) return 0;
-    return (this.data.mesTourneesPlanifiees || 0) + 
-           (this.data.mesTourneesEnCours || 0) + 
-           (this.data.mesTourneesTerminees || 0);
+    const total = (this.data.mesTourneesPlanifiees || 0) + 
+                  (this.data.mesTourneesEnCours || 0) + 
+                  (this.data.mesTourneesTerminees || 0);
+    console.log('Total Tournees:', total);
+    return total;
   }
 
   getTotalVergers(): number {
     if (!this.data) return 0;
-    return this.data.totalMesVergers || 0;
+    const total = this.data.totalMesVergers || 0;
+    console.log('Total Vergers:', total);
+    return total;
   }
 
   loadUser(): void {
@@ -106,6 +127,7 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
     if (total === 0) return 0;
     if (part === undefined || part === null) return 0;
     const result = Math.round((part / total) * 100);
+    console.log(`percent(${part}, ${total}) = ${result}%`);
     return Math.min(100, Math.max(0, result));
   }
 
