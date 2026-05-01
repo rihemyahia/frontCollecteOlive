@@ -153,7 +153,7 @@
           <div *ngIf="showTourneesPanel" class="transporteur-tournees">
             <div class="transporteur-tournees__header">
               <h3 class="section-title"><i class="bi bi-truck"></i> Tournées du transporteur</h3>
-              <p class="helper-line">Assignez des tournées planifiées ou retirez des tournées déjà assignées.</p>
+              <p class="helper-line">Assignez des tournées planifiées ou retirez des tournées déjà assignées. Pour plusieurs livraisons le même jour, renseignez un <strong>créneau de livraison estimé</strong> (début / fin) sur chaque ligne sélectionnée.</p>
             </div>
 
             <div class="assignment-kpis" *ngIf="!isLoadingTournees">
@@ -170,8 +170,8 @@
                 <strong class="kpi-value">{{ selectedAvailableTourneeIds.size }}</strong>
               </div>
               <div class="kpi-card">
-                <span class="kpi-label">Disponible (transp.)</span>
-                <strong class="kpi-value">{{ transporteurAvailableFlag() ? 'Oui' : 'Non' }}</strong>
+                <span class="kpi-label">Livraison en cours</span>
+                <strong class="kpi-value">{{ transporteurHasActiveDelivery() ? 'Oui' : 'Non' }}</strong>
               </div>
             </div>
 
@@ -207,11 +207,14 @@
                         <span><strong>Agriculteur:</strong> {{ getTourneeAgriculteurName(t) }}</span>
                         <span><strong>Date:</strong> {{ formatTourneeDate(t?.dateDebut) }}</span>
                         <span><strong>Arbres:</strong> {{ t?.nbreArbre || '—' }}</span>
+                        <span><strong>Livraison estimée:</strong> {{ formatLivraisonEstimee(t) }}</span>
+                        <span *ngIf="t?.livraisonNotes"><strong>Consigne:</strong> {{ t.livraisonNotes }}</span>
                       </div>
                     </div>
                     <button class="btn-mini btn-mini--danger"
                             (click)="removeAssignedTournee(t)"
-                            [disabled]="isSavingTournees">
+                            [disabled]="isSavingTournees || !canRemoveAssignedTournee(t)"
+                            [title]="!canRemoveAssignedTournee(t) ? 'Impossible pendant une livraison active' : ''">
                       Retirer
                     </button>
                   </div>
@@ -265,7 +268,7 @@
                     <input type="checkbox"
                            [checked]="isAvailableSelected(t?.id || t?._id)"
                            (change)="toggleAvailableSelection(t?.id || t?._id)"
-                           [disabled]="isSavingTournees || isTourneeConflictingWithAssigned(t) || !transporteurAvailableFlag()" />
+                           [disabled]="isSavingTournees || isTourneeConflictingWithAssigned(t)" />
                     <div class="tournee-main">
                       <div class="tournee-title">
                         <span class="tournee-name">{{ getTourneeVergerName(t) }}</span>
@@ -281,9 +284,26 @@
                       <i class="bi bi-exclamation-triangle-fill"></i>
                       <small>Conflit détecté avec une tournée assignée (ressource ou période).</small>
                     </div>
-                    <div class="tournee-warning" *ngIf="!transporteurAvailableFlag()">
+                    <div class="tournee-warning tournee-warning--info" *ngIf="transporteurHasActiveDelivery() && !isTourneeConflictingWithAssigned(t)">
                       <i class="bi bi-info-circle-fill"></i>
-                      <small>Le transporteur est marqué comme non disponible.</small>
+                      <small>Livraison en cours sur une autre tournée : vous pouvez quand même assigner des créneaux sans chevauchement de dates.</small>
+                    </div>
+                    <div class="delivery-estimate" *ngIf="isAvailableSelected(t?.id || t?._id)">
+                      <p class="delivery-estimate__title"><i class="bi bi-clock"></i> Créneau livraison estimé (optionnel)</p>
+                      <div class="delivery-estimate__row">
+                        <label>De</label>
+                        <input type="datetime-local" class="form-control"
+                               [value]="ensureDeliveryEstimate(t?.id || t?._id).debut"
+                               (input)="onDeliveryFieldChange(t?.id || t?._id, 'debut', $any($event.target).value)" />
+                        <label>à</label>
+                        <input type="datetime-local" class="form-control"
+                               [value]="ensureDeliveryEstimate(t?.id || t?._id).fin"
+                               (input)="onDeliveryFieldChange(t?.id || t?._id, 'fin', $any($event.target).value)" />
+                      </div>
+                      <input type="text" class="form-control delivery-estimate__notes"
+                             placeholder="Consigne pour le livreur (optionnel)"
+                             [value]="ensureDeliveryEstimate(t?.id || t?._id).notes"
+                             (input)="onDeliveryFieldChange(t?.id || t?._id, 'notes', $any($event.target).value)" />
                     </div>
                   </label>
                 </div>

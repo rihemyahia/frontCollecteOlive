@@ -127,6 +127,14 @@
                   <div class="delivery-address-card">
                     <p class="delivery-pressoir-name">{{ getDeliveryDestinationName() }}</p>
                     <p class="delivery-address-line">{{ getDeliveryDestinationAddress() }}</p>
+                    <p class="delivery-slot-estime" *ngIf="getEstimatedDeliverySlotLabel()">
+                      <i class="bi bi-clock"></i>
+                      <span><strong>Créneau estimé :</strong> {{ getEstimatedDeliverySlotLabel() }}</span>
+                    </p>
+                    <p class="delivery-notes" *ngIf="getLivraisonNotes()">
+                      <i class="bi bi-chat-left-text"></i>
+                      <span><strong>Consigne :</strong> {{ getLivraisonNotes() }}</span>
+                    </p>
                     <a class="btn-route" [href]="getNavigationUrl()" target="_blank" rel="noopener noreferrer">
                       <i class="bi bi-signpost-split"></i> Ouvrir l'itinéraire
                     </a>

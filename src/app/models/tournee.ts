@@ -23,6 +23,9 @@ export interface Tournee {
   observations?: string;
   livraisonDestinationNom?: string;
   livraisonDestinationAdresse?: string;
+  livraisonEstimeDebut?: Date | string;
+  livraisonEstimeFin?: Date | string;
+  livraisonNotes?: string;
   livraisonStartedAt?: Date | string;
   livraisonCompletedAt?: Date | string;
   livraisonEvidenceName?: string;

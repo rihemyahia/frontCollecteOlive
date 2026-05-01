@@ -362,11 +362,22 @@ getTravailleursPourResponsable(): Observable<Utilisateur[]> {
     );
   }
 
-  assignTourneesToTransporteurAdmin(transporteurId: string, tourneesIds: string[]): Observable<any> {
-    return this.http.patch(
-      `${this.adminTransporteurApiUrl}/${transporteurId}/tournees`,
-      { tourneesIds },
-      { headers: this.getHeaders() }
-    );
+  assignTourneesToTransporteurAdmin(
+    transporteurId: string,
+    tourneesIds: string[],
+    livraisonEstimations?: Array<{
+      tourneeId: string;
+      livraisonEstimeDebut: string;
+      livraisonEstimeFin: string;
+      livraisonNotes?: string;
+    }>
+  ): Observable<any> {
+    const body: Record<string, unknown> = { tourneesIds };
+    if (livraisonEstimations && livraisonEstimations.length > 0) {
+      body['livraisonEstimations'] = livraisonEstimations;
+    }
+    return this.http.patch(`${this.adminTransporteurApiUrl}/${transporteurId}/tournees`, body, {
+      headers: this.getHeaders()
+    });
   }
 }

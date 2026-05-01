@@ -178,6 +178,19 @@ formatDuration(seconds: number): string {
       || 'Adresse a confirmer par le responsable';
   }
 
+  /** Créneau fixé par l'admin à l'assignation (plusieurs livraisons / jour). */
+  getEstimatedDeliverySlotLabel(): string {
+    const d0 = this.tournee?.livraisonEstimeDebut;
+    const d1 = this.tournee?.livraisonEstimeFin;
+    if (!d0 || !d1) return '';
+    return `${this.formatDate(d0)} → ${this.formatDate(d1)}`;
+  }
+
+  getLivraisonNotes(): string {
+    const n = this.tournee?.livraisonNotes;
+    return (n && String(n).trim()) ? String(n).trim() : '';
+  }
+
   getNavigationUrl(): string {
     const destination = this.getDeliveryDestinationAddress();
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
