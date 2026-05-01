@@ -32,7 +32,7 @@
               </div>
             </div>
             <div class="oh-header__right">
-              <button *ngIf="!isTransporteur" class="btn-add" (click)="navigateToCreate()">
+              <button class="btn-add" (click)="navigateToCreate()">
                 <i class="bi bi-plus-lg"></i>
                 Nouvelle tournée
               </button>
@@ -43,7 +43,7 @@
         <!-- ===== BODY ===== -->
         <div class="oh-card__body">
 
-          <!-- ── Search & Filters (identical structure to vergers) ── -->
+          <!-- ── Search & Filters ── -->
           <div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
             <div class="oh-search-bar">
               <input type="text"
@@ -61,10 +61,11 @@
                   <option value="PLANIFIEE">Planifiée</option>
                   <option value="EN_COURS">En cours</option>
                   <option value="TERMINEE">Terminée</option>
+                  <option value="EN_LIVRAISON">En livraison</option>
+                  <option value="LIVREE">Livrée</option>
                   <option value="ANNULEE">Annulée</option>
                 </select>
               </div>
-
             </div>
           </div>
 
@@ -82,15 +83,24 @@
             <p>Chargement des tournées...</p>
           </div>
 
-          <div *ngIf="!isLoading && filteredTournees.length > 0" class="table-responsive">
-            <table class="data-table">
+          <!-- Empty state -->
+          <div class="empty-state" *ngIf="!isLoading && filteredTournees.length === 0">
+            <div class="empty-icon">
+              <i class="bi bi-calendar-x"></i>
+            </div>
+            <h3>Aucune tournée trouvée</h3>
+            <p>Aucune tournée ne correspond à vos critères.</p>
+          </div>
+
+          <!-- ── Table ── -->
+          <div class="table-wrapper" *ngIf="!isLoading && filteredTournees.length > 0">
+            <table class="alerts-table">
               <thead>
                 <tr>
                   <th>Code</th>
                   <th>Statut</th>
                   <th>Verger</th>
                   <th>Agriculteur</th>
-                  <th>Destination livraison</th>
                   <th>Date Début</th>
                   <th>Date Fin</th>
                   <th>Quantité</th>
@@ -99,72 +109,55 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let t of filteredTournees; trackBy: trackByTourneeId">
+                <tr *ngFor="let t of paginatedTournees; trackBy: trackByTourneeId">
                   <td><strong>{{ t.code }}</strong></td>
                   <td>
                     <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
-                      {{ t.statut | statutTournee }}
+                      {{ getStatutText(t.statut) }}
                     </span>
                   </td>
-                  <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
-                  <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
-                  <td>
-                    <div class="quantity-cell">
-                      <span class="quantity-value">{{ t.displayDeliveryDestination }}</span>
-                      <div class="quantity-total">{{ t.displayDeliveryAddress }}</div>
-                      <a class="quantity-total"
-                         [href]="getNavigationUrlForTournee(t)"
-                         target="_blank"
-                         rel="noopener noreferrer">
-                        Ouvrir la carte
-                      </a>
-                    </div>
-                  </td>
+                  <td>{{ getVergerTypeOlive(t) }}</td>
+                  <td>{{ getVergerAgriculteurNom(t) }}</td>
                   <td>{{ t.formattedDateDebut }}</td>
                   <td>{{ t.formattedDateFin }}</td>
                   <td>
                     <div class="quantity-cell">
-                      <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
+                      <span class="quantity-value">{{ getQuantiteCollectee(t) }} kg</span>
                       <div *ngIf="t.totalCollecteVergerKg" class="quantity-total">
-                        Total verger: {{ t.totalCollecteVergerKg | number:'1.0-0' }} kg
+                        Total verger: {{ getTotalCollecte(t) }} kg
                       </div>
                     </div>
                   </td>
                   <td>
-                    <div class="efficiency-cell" *ngIf="t.efficacite">
-                      <div class="progress-bar small">
-                        <div class="progress-fill" [style.width.%]="t.efficacite"></div>
+                    <div class="progress-cell" *ngIf="t.efficacite">
+                      <div class="progress-bar-mini">
+                        <div class="progress-fill-mini" [style.width.%]="t.efficacite"
+                             [style.background]="getEfficaciteColor(t.efficacite)">
+                        </div>
                       </div>
-                      <span>{{ t.efficacite | number:'1.0-0' }}%</span>
+                      <span class="maturite-value">{{ getEfficaciteValue(t) }}%</span>
                     </div>
-                    <span *ngIf="!t.efficacite">N/A</span>
+                    <span *ngIf="!t.efficacite" class="no-location">N/A</span>
                   </td>
-                  <td>
+                  <td class="actions-cell">
                     <div class="action-buttons">
-                      <button class="btn-view" (click)="viewDetails(t.id || t._id)" title="Voir détails">
+                      <button class="btn-icon btn-view-t" (click)="viewDetails(t.id || t._id)" title="Voir détails">
                         <i class="bi bi-eye"></i>
                       </button>
-                      <button *ngIf="!isTransporteur && t.statut === 'PLANIFIEE'" class="btn-start"
+                      <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-icon btn-start-t"
                               (click)="startTournee(t.id || t._id)" title="Démarrer">
                         <i class="bi bi-play-fill"></i>
                       </button>
-                      <button *ngIf="!isTransporteur && t.statut === 'EN_COURS'" class="btn-complete"
+                      <button *ngIf="t.statut === 'EN_COURS'" class="btn-icon btn-complete-t"
                               (click)="openCompleteModal(t)" title="Terminer">
                         <i class="bi bi-check-lg"></i>
                       </button>
-                      <button *ngIf="isTransporteur && t.statut === 'TERMINEE'" class="btn-start"
-                              (click)="startLivraison(t)" title="Démarrer livraison">
-                        <i class="bi bi-truck"></i>
-                      </button>
-                      <button *ngIf="isTransporteur && t.statut === 'EN_LIVRAISON'" class="btn-complete"
-                              (click)="openLivraisonModal(t)" title="Marquer livrée">
-                        <i class="bi bi-check2-circle"></i>
-                      </button>
-                      <button *ngIf="!isTransporteur && t.statut === 'PLANIFIEE'" class="btn-edit"
+                      <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-icon btn-edit-t"
                               (click)="navigateToEdit(t.id || t._id)" title="Modifier">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button *ngIf="!isTransporteur && t.statut !== 'LIVREE'" class="btn-cancel"
+                      <button *ngIf="t.statut !== 'TERMINEE' && t.statut !== 'EN_LIVRAISON' && t.statut !== 'LIVREE'" 
+                              class="btn-icon btn-cancel-t"
                               (click)="cancelTournee(t.id || t._id)" title="Annuler">
                         <i class="bi bi-x-lg"></i>
                       </button>
@@ -174,181 +167,62 @@
               </tbody>
             </table>
           </div>
-          <div *ngIf="!isLoading">
 
-            <!-- Empty state -->
-            <div class="empty-state" *ngIf="filteredTournees.length === 0">
-              <div class="empty-icon">
-                <i class="bi bi-calendar-x"></i>
-              </div>
-              <h3>Aucune tournée trouvée</h3>
-              <p>Aucune tournée ne correspond à vos critères.</p>
+          <!-- ── Pagination ── -->
+          <div class="pagination-section" *ngIf="!isLoading && filteredTournees.length > 0">
+            <button type="button" class="btn-pagination"
+                    (click)="previousPage()"
+                    [disabled]="currentPage === 1">
+              <i class="bi bi-chevron-left"></i> Précédent
+            </button>
+
+            <div class="page-info">
+              Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
+              <span class="page-count">({{ filteredTournees.length }} tournées)</span>
             </div>
 
-            <!-- ── Table ── -->
-            <div class="table-wrapper" *ngIf="filteredTournees.length > 0">
-              <table class="alerts-table">
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Statut</th>
-                    <th>Verger</th>
-                    <th>Agriculteur</th>
-                    <th>Date Début</th>
-                    <th>Date Fin</th>
-                    <th>Quantité</th>
-                    <th>Efficacité</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let t of paginatedTournees; trackBy: trackByTourneeId">
-                    <td><strong>{{ t.code }}</strong></td>
-                    <td>
-                      <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
-                        {{ t.statut | statutTournee }}
-                      </span>
-                    </td>
-                    <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
-                    <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
-                    <td>{{ t.formattedDateDebut }}</td>
-                    <td>{{ t.formattedDateFin }}</td>
-                    <td>
-                      <div class="quantity-cell">
-                        <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
-                        <div *ngIf="t.totalCollecteVergerKg" class="quantity-total">
-                          Total verger: {{ t.totalCollecteVergerKg | number:'1.0-0' }} kg
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div class="progress-cell" *ngIf="t.efficacite">
-                        <div class="progress-bar-mini">
-                          <div class="progress-fill-mini" [style.width.%]="t.efficacite"
-                               [style.background]="getEfficaciteColor(t.efficacite)">
-                          </div>
-                        </div>
-                        <span class="maturite-value">{{ t.efficacite | number:'1.0-0' }}%</span>
-                      </div>
-                      <span *ngIf="!t.efficacite" class="no-location">N/A</span>
-                    </td>
-                    <td class="actions-cell">
-                      <div class="action-buttons">
-                        <button class="btn-icon btn-view-t" (click)="viewDetails(t.id || t._id)" title="Voir détails">
-                          <i class="bi bi-eye"></i>
-                        </button>
-                        <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-icon btn-start-t"
-                                (click)="startTournee(t.id || t._id)" title="Démarrer">
-                          <i class="bi bi-play-fill"></i>
-                        </button>
-                        <button *ngIf="t.statut === 'EN_COURS'" class="btn-icon btn-complete-t"
-                                (click)="openCompleteModal(t)" title="Terminer">
-                          <i class="bi bi-check-lg"></i>
-                        </button>
-                        <button *ngIf="t.statut === 'PLANIFIEE'" class="btn-icon btn-edit-t"
-                                (click)="navigateToEdit(t.id || t._id)" title="Modifier">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button *ngIf="t.statut !== 'TERMINEE'" class="btn-icon btn-cancel-t"
-                                (click)="cancelTournee(t.id || t._id)" title="Annuler">
-                          <i class="bi bi-x-lg"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <button type="button" class="btn-pagination"
+                    (click)="nextPage()"
+                    [disabled]="currentPage === totalPages">
+              Suivant <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- ── Stats footer ── -->
+          <div class="stats-footer" *ngIf="!isLoading && filteredTournees.length > 0">
+            <div class="stats-item">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Total : <strong>{{ filteredTournees.length }}</strong></span>
             </div>
-
-            <!-- ── Pagination ── -->
-            <div class="pagination-section" *ngIf="filteredTournees.length > 0">
-              <button type="button" class="btn-pagination"
-                      (click)="previousPage()"
-                      [disabled]="currentPage === 1">
-                <i class="bi bi-chevron-left"></i> Précédent
-              </button>
-
-              <div class="page-info">
-                Page <strong>{{ currentPage }}</strong> sur <strong>{{ totalPages }}</strong>
-                <span class="page-count">({{ filteredTournees.length }} tournées)</span>
-              </div>
-
-              <button type="button" class="btn-pagination"
-                      (click)="nextPage()"
-                      [disabled]="currentPage === totalPages">
-                Suivant <i class="bi bi-chevron-right"></i>
-              </button>
+            <div class="stats-item">
+              <i class="bi bi-calendar-check"></i>
+              <span>Planifiées : <strong>{{ getStatutCount('PLANIFIEE') }}</strong></span>
             </div>
-
-            <!-- ── Stats footer (identical structure to vergers) ── -->
-            <div class="stats-footer" *ngIf="filteredTournees.length > 0">
-              <div class="stats-item">
-                <i class="bi bi-bar-chart-fill"></i>
-                <span>Total : <strong>{{ filteredTournees.length }}</strong></span>
-              </div>
-              <div class="stats-item">
-                <i class="bi bi-calendar-check"></i>
-                <span>Planifiées : <strong>{{ getStatutCount('PLANIFIEE') }}</strong></span>
-              </div>
-              <div class="stats-item">
-                <i class="bi bi-arrow-repeat"></i>
-                <span>En cours : <strong>{{ getStatutCount('EN_COURS') }}</strong></span>
-              </div>
-              <div class="stats-item">
-                <i class="bi bi-check-circle-fill"></i>
-                <span>Terminées : <strong>{{ getStatutCount('TERMINEE') }}</strong></span>
-              </div>
+            <div class="stats-item">
+              <i class="bi bi-arrow-repeat"></i>
+              <span>En cours : <strong>{{ getStatutCount('EN_COURS') }}</strong></span>
             </div>
+            <div class="stats-item">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Terminées : <strong>{{ getStatutCount('TERMINEE') }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-truck"></i>
+              <span>En livraison : <strong>{{ getStatutCount('EN_LIVRAISON') }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-check2-circle"></i>
+              <span>Livrées : <strong>{{ getStatutCount('LIVREE') }}</strong></span>
+            </div>
+          </div>
 
-          </div><!-- /!isLoading -->
         </div><!-- /oh-card__body -->
       </div><!-- /oh-card -->
     </div><!-- /oh-scene -->
   </main>
 </div>
 
-<!-- ==================== TRANSPORTEUR LIVRAISON PROOF MODAL ==================== -->
-<div class="modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
-  <div class="modal-container complete-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>🚚 Finaliser la livraison</h3>
-      <button class="modal-close" (click)="closeLivraisonModal()">✕</button>
-    </div>
-
-    <div class="modal-body">
-      <div class="tournee-info">
-        <strong>Tournée :</strong> {{ selectedLivraisonTournee?.code }}
-        <br>
-        <strong>Verger :</strong> {{ selectedLivraisonTournee?.vergerTypeOlive || 'N/A' }}
-      </div>
-
-      <div class="quantity-section">
-        <label class="big-label">Preuve de livraison</label>
-        <input type="file"
-               class="form-control"
-               accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
-               (change)="onLivraisonProofSelected($event)">
-        <small class="helper-text">Formats acceptes: JPG, PNG, WEBP, PDF, TXT (max 10 Mo)</small>
-        <small class="helper-text" *ngIf="livraisonProofFile">Fichier: {{ livraisonProofFile.name }}</small>
-      </div>
-
-      <div *ngIf="livraisonProofError" class="oh-error">
-        <i class="bi bi-exclamation-triangle-fill"></i> {{ livraisonProofError }}
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn-cancel" (click)="closeLivraisonModal()">Annuler</button>
-      <button class="btn-confirm"
-              (click)="confirmCompleteLivraison()"
-              [disabled]="!livraisonProofFile || isCompletingLivraison">
-        {{ isCompletingLivraison ? 'Upload...' : 'Valider la livraison' }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== IMPROVED COMPLETE MODAL ==================== -->
+<!-- ==================== COMPLETE COLLECTION MODAL ==================== -->
 <div class="modal-overlay" *ngIf="showCompleteModal" (click)="closeCompleteModal()">
   <div class="modal-content complete-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -359,7 +233,7 @@
     <div class="modal-body">
       <div class="tournee-info">
         <strong>Tournée :</strong> {{ selectedTournee?.code }}<br>
-        <strong>Verger :</strong> {{ selectedTournee?.vergerTypeOlive || 'N/A' }}
+        <strong>Verger :</strong> {{ getVergerTypeOlive(selectedTournee) }}
       </div>
 
       <div class="quantity-section">
