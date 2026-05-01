@@ -2,6 +2,8 @@ import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { UtilisateurService, Utilisateur } from '../../services/utilisateur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 
@@ -257,6 +259,55 @@ changePassword(): void {
 
   // ==================== TRANSPORTEUR TOURNEES UI ====================
 
+  /** Met en tête PLANIFIEE / EN_COURS pour l’assignation ; puis TERMINEE (prêtes pour livraison). */
+  private sortDisponiblesForAdmin(list: any[]): any[] {
+    const rank: Record<string, number> = { PLANIFIEE: 0, EN_COURS: 1, TERMINEE: 2 };
+    return [...list].sort((a, b) => {
+      const sa = (a?.statut || '').toString().toUpperCase();
+      const sb = (b?.statut || '').toString().toUpperCase();
+      const ra = rank[sa] ?? 50;
+      const rb = rank[sb] ?? 50;
+      if (ra !== rb) return ra - rb;
+      const da = new Date(a?.dateDebut || 0).getTime();
+      const db = new Date(b?.dateDebut || 0).getTime();
+      return da - db;
+    });
+  }
+
+  /**
+   * L’API pagine (page/size). Une seule page (ex. 20) montrait surtout d’anciennes TERMINEE
+   * triées par date, masquant PLANIFIEE / EN_COURS sur les pages suivantes.
+   */
+  private loadAllTourneesDisponiblesAdmin(): Observable<any[]> {
+    const pageSize = 100;
+    return this.utilisateurService.getAvailableTourneesForTransporteurAdmin(0, pageSize).pipe(
+      switchMap((first: any) => {
+        const firstContent: any[] = Array.isArray(first)
+          ? first
+          : (first?.content || first?.tournees || []);
+        const totalPages = first?.totalPages ?? 1;
+        if (!Array.isArray(firstContent)) {
+          return of([]);
+        }
+        if (totalPages <= 1) {
+          return of(this.sortDisponiblesForAdmin(firstContent));
+        }
+        const rest$ = [];
+        for (let p = 1; p < totalPages; p++) {
+          rest$.push(this.utilisateurService.getAvailableTourneesForTransporteurAdmin(p, pageSize));
+        }
+        return forkJoin(rest$).pipe(
+          map((pages: any[]) => {
+            const rest = pages.flatMap((r: any) =>
+              Array.isArray(r) ? r : (r?.content || r?.tournees || [])
+            );
+            return this.sortDisponiblesForAdmin([...firstContent, ...rest]);
+          })
+        );
+      })
+    );
+  }
+
   private refreshTourneesPanels(): void {
     if (!this.id) return;
     this.isLoadingTournees = true;
@@ -271,66 +322,37 @@ changePassword(): void {
       }
     }, 12000);
 
-    // Load both lists in parallel (two independent calls)
-    this.utilisateurService.getAvailableTourneesForTransporteurAdmin().subscribe({
-      next: (response: any) => {
-        console.log('[FRONTEND DEBUG] getAvailableTourneesForTransporteurAdmin response:', response);
-        
-        const list = Array.isArray(response)
-          ? response
-          : (response?.content || response?.tournees || []);
-        
-        console.log('[FRONTEND DEBUG] Extracted availableTournees list:', list);
-        console.log('[FRONTEND DEBUG] List length:', list?.length);
-        if (list && list.length > 0) {
-          console.log('[FRONTEND DEBUG] First 3 tournees FULL OBJECTS:');
-          for (let i = 0; i < Math.min(3, list.length); i++) {
-            console.log(`  [${i}]:`, JSON.stringify(list[i], null, 2));
-          }
-          console.log('[FRONTEND DEBUG] All tournee IDs:', list.map((t: any) => t?.id || t?._id));
-          console.log('[FRONTEND DEBUG] All tournee statuts:', list.map((t: any) => t?.statut));
-        }
-        
-        // Backend already returns only PLANIFIEE + transporteur null, oldest first.
-        this.availableTournees = list;
-        this.availablePage = 1;
-        this.isLoadingTournees = false;
-        clearTimeout(loadingGuard);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isLoadingTournees = false;
-        clearTimeout(loadingGuard);
-        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement tournées disponibles';
-        console.error('[FRONTEND ERROR] getAvailableTourneesForTransporteurAdmin error:', err);
-        this.cdr.detectChanges();
-      }
-    });
-
-    this.utilisateurService.getAssignedTourneesForTransporteurAdmin(this.id).subscribe({
-      next: (response: any) => {
-        console.log('[FRONTEND DEBUG] getAssignedTourneesForTransporteurAdmin response:', response);
-        
-        // backend might return { tournees: [...] } or direct array
+    const assigned$ = this.utilisateurService.getAssignedTourneesForTransporteurAdmin(this.id).pipe(
+      map((response: any) => {
         const list = (response?.tournees || response?.tourneesAssigned || response) ?? [];
-        console.log('[FRONTEND DEBUG] Extracted assignedTournees list:', list);
-        console.log('[FRONTEND DEBUG] List length:', Array.isArray(list) ? list.length : 'NOT AN ARRAY');
-        
-        // Align with backend: keep EN_LIVRAISON for conflict checks and UI; drop LIVREE/ANNULEE if ever present.
-        const panelList = Array.isArray(list) ? list.filter(t => {
+        if (!Array.isArray(list)) return [];
+        return list.filter((t: any) => {
           const s = (t?.statut || '').toString();
           return s !== 'LIVREE' && s !== 'ANNULEE';
-        }) : [];
-        console.log('[FRONTEND DEBUG] Assigned panel list length:', panelList.length);
+        });
+      })
+    );
 
-        this.assignedTournees = panelList;
+    forkJoin({
+      disponibles: this.loadAllTourneesDisponiblesAdmin(),
+      assignees: assigned$
+    }).subscribe({
+      next: ({ disponibles, assignees }) => {
+        this.availableTournees = disponibles;
+        this.assignedTournees = assignees;
+        this.availablePage = 1;
         this.assignedPage = 1;
+        this.isLoadingTournees = false;
+        clearTimeout(loadingGuard);
         this.cdr.detectChanges();
       },
       error: (err) => {
+        this.isLoadingTournees = false;
+        clearTimeout(loadingGuard);
+        this.availableTournees = [];
         this.assignedTournees = [];
-        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement tournées assignées';
-        console.error('[FRONTEND ERROR] getAssignedTourneesForTransporteurAdmin error:', err);
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement des tournées (disponibles ou assignées)';
+        console.error('[FRONTEND ERROR] refreshTourneesPanels:', err);
         this.cdr.detectChanges();
       }
     });

@@ -1,6 +1,6 @@
 // src/app/services/utilisateur.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 // src/app/services/utilisateur.ts
@@ -348,10 +348,17 @@ getTravailleursPourResponsable(): Observable<Utilisateur[]> {
 
   // ========== ADMIN: ASSIGN TOURNEES TO TRANSPORTEUR ==========
 
-  getAvailableTourneesForTransporteurAdmin(): Observable<PagedTourneesResponse> {
+  /**
+   * Tournées sans transporteur, paginées côté API (page/size).
+   * Pour l’écran d’assignation, charger toutes les pages ou augmenter size.
+   */
+  getAvailableTourneesForTransporteurAdmin(page = 0, size = 100): Observable<PagedTourneesResponse> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size));
     return this.http.get<PagedTourneesResponse>(
       `${this.adminTransporteurApiUrl}/tournees-disponibles`,
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders(), params }
     );
   }
 
