@@ -70,11 +70,11 @@
                 <i class="bi bi-tree"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesVergers }}</div>
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesVergers || 0 }}</div>
                 <div class="metric-label">Mes vergers</div>
                 <div class="metric-trend up">
                   <i class="bi bi-arrow-up"></i>
-                  <span>{{ data.mesVergersEnCours }} en cours</span>
+                  <span>{{ data.mesVergersEnCours || 0 }} en cours</span>
                 </div>
               </div>
             </div>
@@ -88,7 +88,7 @@
                 <div class="metric-label">Ma production</div>
                 <div class="metric-trend up">
                   <i class="bi bi-arrow-up"></i>
-                  <span>{{ data.mesCollectesTerminees }} collectes</span>
+                  <span>{{ data.mesCollectesTerminees || 0 }} collectes</span>
                 </div>
               </div>
             </div>
@@ -98,11 +98,11 @@
                 <i class="bi bi-truck"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.mesTourneesEnCours + data.mesTourneesPlanifiees }}</div>
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ (data.mesTourneesEnCours || 0) + (data.mesTourneesPlanifiees || 0) }}</div>
                 <div class="metric-label">Tournées actives</div>
                 <div class="metric-trend up">
                   <i class="bi bi-arrow-up"></i>
-                  <span>{{ data.mesTourneesPlanifiees }} planifiées</span>
+                  <span>{{ data.mesTourneesPlanifiees || 0 }} planifiées</span>
                 </div>
               </div>
             </div>
@@ -112,11 +112,11 @@
                 <i class="bi bi-exclamation-triangle"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesAlertes }}</div>
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesAlertes || 0 }}</div>
                 <div class="metric-label">Mes alertes</div>
                 <div class="metric-trend down" *ngIf="data.mesAlertesEnAttente > 0">
                   <i class="bi bi-arrow-down"></i>
-                  <span>{{ data.mesAlertesEnAttente }} en attente</span>
+                  <span>{{ data.mesAlertesEnAttente || 0 }} en attente</span>
                 </div>
               </div>
             </div>
@@ -141,28 +141,37 @@
                   <div class="stat-item">
                     <div class="stat-header">
                       <span class="stat-name">Non récoltés</span>
-                      <span class="stat-count">{{ data.mesVergersNonRecolte }}</span>
+                      <span class="stat-count">{{ (data.mesVergersNonRecolte || 0) }} / {{ getTotalVergers() }}</span>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill blue" [style.width.%]="percent(data.mesVergersNonRecolte, data.totalMesVergers)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill blue" 
+                           [style.width.%]="percent(data.mesVergersNonRecolte, getTotalVergers())" 
+                           [class.animate-fill]="metricsAnimated">
+                      </div>
                     </div>
                   </div>
                   <div class="stat-item">
                     <div class="stat-header">
                       <span class="stat-name">En cours</span>
-                      <span class="stat-count">{{ data.mesVergersEnCours }}</span>
+                      <span class="stat-count">{{ (data.mesVergersEnCours || 0) }} / {{ getTotalVergers() }}</span>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill amber" [style.width.%]="percent(data.mesVergersEnCours, data.totalMesVergers)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill amber" 
+                           [style.width.%]="percent(data.mesVergersEnCours, getTotalVergers())" 
+                           [class.animate-fill]="metricsAnimated">
+                      </div>
                     </div>
                   </div>
                   <div class="stat-item">
                     <div class="stat-header">
                       <span class="stat-name">Récoltés</span>
-                      <span class="stat-count">{{ data.mesVergersRecolte }}</span>
+                      <span class="stat-count">{{ (data.mesVergersRecolte || 0) }} / {{ getTotalVergers() }}</span>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill green" [style.width.%]="percent(data.mesVergersRecolte, data.totalMesVergers)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill green" 
+                           [style.width.%]="percent(data.mesVergersRecolte, getTotalVergers())" 
+                           [class.animate-fill]="metricsAnimated">
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -182,14 +191,14 @@
                   <div class="collecte-card">
                     <i class="bi bi-arrow-repeat"></i>
                     <div class="collecte-info">
-                      <div class="collecte-value">{{ data.mesCollectesEnCours }}</div>
+                      <div class="collecte-value">{{ data.mesCollectesEnCours || 0 }}</div>
                       <div class="collecte-label">En cours</div>
                     </div>
                   </div>
                   <div class="collecte-card">
                     <i class="bi bi-check-circle-fill"></i>
                     <div class="collecte-info">
-                      <div class="collecte-value">{{ data.mesCollectesTerminees }}</div>
+                      <div class="collecte-value">{{ data.mesCollectesTerminees || 0 }}</div>
                       <div class="collecte-label">Terminées</div>
                     </div>
                   </div>
@@ -221,14 +230,14 @@
                     <i class="bi bi-clock-history"></i>
                     <div class="alert-info">
                       <span class="alert-label">En attente</span>
-                      <span class="alert-count">{{ data.mesAlertesEnAttente }}</span>
+                      <span class="alert-count">{{ data.mesAlertesEnAttente || 0 }}</span>
                     </div>
                   </div>
                   <div class="alert-stat info">
                     <i class="bi bi-arrow-repeat"></i>
                     <div class="alert-info">
                       <span class="alert-label">En cours</span>
-                      <span class="alert-count">{{ data.mesAlertesEnCours }}</span>
+                      <span class="alert-count">{{ data.mesAlertesEnCours || 0 }}</span>
                     </div>
                   </div>
                   <div class="alert-stat success">
@@ -264,28 +273,37 @@
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>Planifiées</span>
-                      <strong>{{ data.mesTourneesPlanifiees }}</strong>
+                      <strong>{{ (data.mesTourneesPlanifiees || 0) }} / {{ getTotalTournees() }}</strong>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill blue" [style.width.%]="percent(data.mesTourneesPlanifiees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill blue" 
+                           [style.width.%]="percent(data.mesTourneesPlanifiees, getTotalTournees())" 
+                           [class.animate-fill]="metricsAnimated">
+                      </div>
                     </div>
                   </div>
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>En cours</span>
-                      <strong>{{ data.mesTourneesEnCours }}</strong>
+                      <strong>{{ (data.mesTourneesEnCours || 0) }} / {{ getTotalTournees() }}</strong>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill amber" [style.width.%]="percent(data.mesTourneesEnCours, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill amber" 
+                           [style.width.%]="percent(data.mesTourneesEnCours, getTotalTournees())" 
+                           [class.animate-fill]="metricsAnimated">
+                      </div>
                     </div>
                   </div>
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>Terminées</span>
-                      <strong>{{ data.mesTourneesTerminees }}</strong>
+                      <strong>{{ (data.mesTourneesTerminees || 0) }} / {{ getTotalTournees() }}</strong>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill green" [style.width.%]="percent(data.mesTourneesTerminees, data.mesTourneesPlanifiees + data.mesTourneesEnCours + data.mesTourneesTerminees)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill green" 
+                           [style.width.%]="percent(data.mesTourneesTerminees, getTotalTournees())" 
+                           [class.animate-fill]="metricsAnimated">
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -341,8 +359,8 @@
                           </div>
                         </td>
                         <td>{{ v.nbArbre | number }}</td>
-                        <td class="tournees-cell">{{ v.nbTournees }}</td>
-                        <td class="alert-cell" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes }}</td>
+                        <td class="tournees-cell">{{ v.nbTournees || 0 }}</td>
+                        <td class="alert-cell" [class.has-alert]="v.nbAlertes > 0">{{ v.nbAlertes || 0 }}</td>
                         <td class="production-cell">{{ formatKg(v.quantiteRecolteKg) }}</td>
                       </tr>
                     </tbody>

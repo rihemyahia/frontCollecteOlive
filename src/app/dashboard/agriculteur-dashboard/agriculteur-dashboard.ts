@@ -23,7 +23,7 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
   isMobile = false;
   userRole = 'AGRICULTEUR';
   user: any = {};
-  currentSeason = 'Printemps 2025';
+  currentSeason = 'Printemps 2026';
 
   constructor(
     private dashboardService: DashboardService, 
@@ -49,6 +49,7 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
     this.dashboardService.getAgriculteurDashboard().subscribe({
       next: (res) => {
         this.data = res;
+        console.log('Agriculteur Dashboard data:', this.data);
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -59,6 +60,18 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  getTotalTournees(): number {
+    if (!this.data) return 0;
+    return (this.data.mesTourneesPlanifiees || 0) + 
+           (this.data.mesTourneesEnCours || 0) + 
+           (this.data.mesTourneesTerminees || 0);
+  }
+
+  getTotalVergers(): number {
+    if (!this.data) return 0;
+    return this.data.totalMesVergers || 0;
   }
 
   loadUser(): void {
@@ -90,7 +103,10 @@ export class AgriculteurDashboardComponent implements OnInit, AfterViewInit {
   }
 
   percent(part: number, total: number): number {
-    return total > 0 ? Math.round((part / total) * 100) : 0;
+    if (total === 0) return 0;
+    if (part === undefined || part === null) return 0;
+    const result = Math.round((part / total) * 100);
+    return Math.min(100, Math.max(0, result));
   }
 
   formatKg(kg: number): string {

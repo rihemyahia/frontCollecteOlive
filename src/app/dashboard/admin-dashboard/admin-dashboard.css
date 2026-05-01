@@ -562,7 +562,7 @@
 
 .stat-fill.blue { background: #3B82F6; }
 .stat-fill.amber { background: #F59E0B; }
-.stat-fill.green { background: var(--oh-success); }
+.stat-fill.green { background: #10B981; }
 
 /* Donut Chart */
 .donut-container {
