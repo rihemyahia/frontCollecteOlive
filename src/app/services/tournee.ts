@@ -32,6 +32,9 @@ export interface Tournee {
   livraisonCompletedAt?: Date | string;
   livraisonEvidenceName?: string;
   livraisonEvidenceUrl?: string;
+  responsablePressoirId?: string;
+  responsablePressoirNom?: string;
+  pressoirNom?: string;
   dateDebut: Date;
   dateFin: Date;
   dateCreation: Date;
@@ -52,6 +55,20 @@ export interface TourneeRequest {
   observations?: string;
   livraisonDestinationNom?: string;
   livraisonDestinationAdresse?: string;
+  responsablePressoirId?: string;
+}
+
+export interface ResponsablePressoirDisponible {
+  id: string;
+  prenom?: string;
+  nom?: string;
+  email?: string;
+  disponible?: boolean;
+  pressoir?: {
+    nom?: string;
+    adresse?: string;
+    capaciteJournaliere?: string;
+  };
 }
 
 
@@ -102,6 +119,12 @@ getTravailleurs(): Observable<any[]> {  // ⚠️ Important: retourne Observable
 
   getByStatut(statut: string): Observable<Tournee[]> {
     return this.http.get<Tournee[]>(`${this.apiUrl}/statut?statut=${statut}`, { headers: this.getHeaders() });
+  }
+
+  getResponsablesPressoirDisponibles(): Observable<ResponsablePressoirDisponible[]> {
+    return this.http.get<ResponsablePressoirDisponible[]>('http://localhost:8080/api/responsables-pressoir/disponibles', {
+      headers: this.getHeaders()
+    });
   }
 
   getTotalCollecteParVerger(vergerId: string): Observable<{ vergerId: string; totalCollecteKg: number; nbTourneesNecessaires: number }> {

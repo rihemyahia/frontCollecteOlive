@@ -1,0 +1,119 @@
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar()" [userRole]="userRole"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <div class="oh-scene">
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon"><i class="bi bi-droplet-fill"></i></div>
+              <div>
+                <p class="oh-header__eyebrow">EXTRACTIONS HUILE</p>
+                <h2 class="oh-header__title">Suivi des extractions</h2>
+                <p class="header-subtitle">Enregistrer, valider et consulter les rendements</p>
+              </div>
+            </div>
+            <button class="btn-secondary" (click)="loadExtractions()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <div class="toolbar">
+            <div class="tabs">
+              <button class="tab-btn" [class.active]="activeTab === 'ALL'" (click)="activeTab = 'ALL'">Toutes</button>
+              <button class="tab-btn" [class.active]="activeTab === 'RECUE'" (click)="activeTab = 'RECUE'">En attente extraction</button>
+              <button class="tab-btn" [class.active]="activeTab === 'EXTRAITE'" (click)="activeTab = 'EXTRAITE'">Extraite</button>
+              <button class="tab-btn" [class.active]="activeTab === 'VALIDEE'" (click)="activeTab = 'VALIDEE'">Validee</button>
+            </div>
+          </div>
+
+          <div *ngIf="successMessage" class="oh-success"><i class="bi bi-check-circle-fill"></i>{{ successMessage }}</div>
+          <div *ngIf="errorMessage" class="oh-error"><i class="bi bi-exclamation-triangle-fill"></i>{{ errorMessage }}</div>
+          <div *ngIf="isLoading" class="loading-state"><div class="spinner"></div><p>Chargement des extractions...</p></div>
+
+          <div class="table-wrapper" *ngIf="!isLoading && filteredExtractions().length">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tournee</th>
+                  <th>Collecte</th>
+                  <th>Olives kg</th>
+                  <th>Huile L</th>
+                  <th>Rendement</th>
+                  <th>Qualite</th>
+                  <th>Reception</th>
+                  <th>Extraction</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of filteredExtractions()">
+                  <td><strong>{{ e.tourneeCode || e.tourneeId }}</strong></td>
+                  <td>{{ e.collecteCode || '-' }}</td>
+                  <td>{{ e.quantiteOlivesRecueKg || 0 | number:'1.0-2' }}</td>
+                  <td>{{ e.quantiteHuileExtraiteL || 0 | number:'1.0-2' }}</td>
+                  <td><span class="yield-badge" [ngClass]="getYieldClass(e.rendementPourcentage)">{{ e.rendementPourcentage || 0 | number:'1.0-2' }}%</span></td>
+                  <td>{{ e.qualiteHuile || '-' }}</td>
+                  <td>{{ formatDate(e.dateReception) }}</td>
+                  <td>{{ formatDate(e.dateExtraction) }}</td>
+                  <td><span class="status-badge" [ngClass]="'status-' + e.statut">{{ getStatusLabel(e.statut) }}</span></td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn-primary" *ngIf="e.statut === 'RECUE'" (click)="openExtractionModal(e)">
+                        <i class="bi bi-droplet"></i> Extraire
+                      </button>
+                      <button class="btn-secondary" *ngIf="e.statut === 'EXTRAITE'" (click)="valider(e)">
+                        <i class="bi bi-check2-circle"></i> Valider
+                      </button>
+                      <span *ngIf="e.statut === 'VALIDEE'" class="status-badge status-VALIDEE">Finalisee</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="!isLoading && !filteredExtractions().length" class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>Aucune extraction dans cet onglet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" *ngIf="selectedExtraction">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Extraire huile - {{ selectedExtraction.tourneeCode || selectedExtraction.tourneeId }}</h3>
+        <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Quantite huile extraite L</label>
+            <input class="form-control" type="number" min="0" step="0.01" [(ngModel)]="extractionForm.quantiteHuileExtraiteL" name="quantiteHuileExtraiteL">
+          </div>
+          <div class="form-group">
+            <label>Qualite huile</label>
+            <select class="form-control" [(ngModel)]="extractionForm.qualiteHuile" name="qualiteHuile">
+              <option *ngFor="let q of qualites" [value]="q">{{ q }}</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Observations</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="extractionForm.observations" name="observations"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" [disabled]="isSubmitting" (click)="submitExtraction()">
+            <i class="bi bi-save"></i> {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer extraction' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

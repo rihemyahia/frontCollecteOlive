@@ -94,6 +94,17 @@
   </div>
 </div>
 
+    <div class="form-group">
+      <label class="form-label">Responsable pressoir</label>
+      <select class="form-control" [ngModel]="editData.responsablePressoirId" name="responsablePressoirId" (change)="onResponsablePressoirChange($event)">
+        <option value="">Selectionner un responsable pressoir</option>
+        <option *ngFor="let r of responsablesPressoir" [value]="r.id">
+          {{ getResponsablePressoirLabel(r) }}
+        </option>
+      </select>
+      <small class="form-text text-muted">Responsable qui receptionnera les olives apres livraison.</small>
+    </div>
+
             <!-- Section: Dates et horaires -->
             <div class="form-section">
               <h3 class="section-title">

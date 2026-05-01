@@ -37,6 +37,11 @@ import { IaPredictionDetailComponent } from './ia-prediction-detail/ia-predictio
 import { MaladieDetectionComponent } from './maladie-detection/maladie-detection';
 import { TransporteurTourneesComponent } from './tournee/transporteur-tournees/transporteur-tournees';
 import { TourneeEditComponent } from './tournee/edit-tournee/edit-tournee';
+import { PressoirDashboardComponent } from './pressoir/dashboard/pressoir-dashboard';
+import { PressoirTourneesLivreesComponent } from './pressoir/tournees-livrees/tournees-livrees';
+import { PressoirExtractionsComponent } from './pressoir/extractions/extractions';
+import { PressoirCollectesHuileComponent } from './pressoir/collectes-huile/collectes-huile';
+import { PressoirProfileComponent } from './pressoir/profile/pressoir-profile';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -69,6 +74,36 @@ export const routes: Routes = [
     component: TransporteurDashboardComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['TRANSPORTEUR'] }
+  },
+  {
+    path: 'pressoir/dashboard',
+    component: PressoirDashboardComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE_PRESSOIR'] }
+  },
+  {
+    path: 'pressoir/tournees-livrees',
+    component: PressoirTourneesLivreesComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE_PRESSOIR'] }
+  },
+  {
+    path: 'pressoir/extractions',
+    component: PressoirExtractionsComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE_PRESSOIR'] }
+  },
+  {
+    path: 'pressoir/collectes-huile',
+    component: PressoirCollectesHuileComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE_PRESSOIR'] }
+  },
+  {
+    path: 'pressoir/profile',
+    component: PressoirProfileComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['RESPONSABLE_PRESSOIR'] }
   },
 
   // ── Calendrier ────────────────────────────────────────────────────────────

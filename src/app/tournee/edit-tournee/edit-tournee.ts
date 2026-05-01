@@ -3,7 +3,7 @@ import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TourneeService } from '../../services/tournee';
+import { ResponsablePressoirDisponible, TourneeService } from '../../services/tournee';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { AuthService } from '../../services/auth';
 import { RessourceService } from '../../services/ressource';
@@ -37,6 +37,7 @@ export class TourneeEditComponent implements OnInit {
     livraisonDestinationAdresse: '',
     benneId: '',
     tracteurId: '',
+    responsablePressoirId: '',
     travailleurIds: [] as string[]
   };
 
@@ -47,6 +48,7 @@ export class TourneeEditComponent implements OnInit {
   bennes: any[] = [];
   tracteurs: any[] = [];
   travailleurs: any[] = [];
+  responsablesPressoir: ResponsablePressoirDisponible[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -109,6 +111,14 @@ loadResources() {
     },
     error: (err) => console.error('Erreur chargement travailleurs:', err)
   });
+
+  this.tourneeService.getResponsablesPressoirDisponibles().subscribe({
+    next: (data) => {
+      this.responsablesPressoir = data || [];
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error('Erreur chargement responsables pressoir:', err)
+  });
 }
 
   loadTournee(id: string) {
@@ -132,6 +142,7 @@ loadResources() {
           livraisonDestinationAdresse: data.livraisonDestinationAdresse || '',
           benneId: data.benneId || '',
           tracteurId: data.tracteurId || '',
+          responsablePressoirId: data.responsablePressoirId || '',
           travailleurIds: data.travailleurIds || []
         };
 
@@ -185,6 +196,21 @@ loadResources() {
     const select = event.target as HTMLSelectElement;
     this.editData.tracteurId = select.value;
     this.cdr.detectChanges();
+  }
+
+  onResponsablePressoirChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.editData.responsablePressoirId = select.value;
+    this.cdr.detectChanges();
+  }
+
+  getResponsablePressoirLabel(responsable: ResponsablePressoirDisponible): string {
+    const name = `${responsable.prenom || ''} ${responsable.nom || ''}`.trim() || responsable.email || 'Responsable pressoir';
+    const pressoir = responsable.pressoir?.nom || 'Pressoir non renseigne';
+    const address = responsable.pressoir?.adresse || 'Adresse non renseignee';
+    const capacity = responsable.pressoir?.capaciteJournaliere || 'Capacite non renseignee';
+    const availability = responsable.disponible === false ? 'Indisponible' : 'Disponible';
+    return `${name} - ${pressoir} - ${address} - ${availability} - ${capacity}`;
   }
 
   onTravailleurChange(event: Event) {
@@ -253,6 +279,7 @@ onSubmit() {
     observations: this.editData.observations,
     benneId: this.editData.benneId,
     tracteurId: this.editData.tracteurId,
+    responsablePressoirId: this.editData.responsablePressoirId || undefined,
     travailleurIds: this.editData.travailleurIds
   };
 

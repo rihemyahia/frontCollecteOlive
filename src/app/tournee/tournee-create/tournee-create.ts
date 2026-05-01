@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { TourneeService, TourneeRequest } from '../../services/tournee';
+import { ResponsablePressoirDisponible, TourneeService, TourneeRequest } from '../../services/tournee';
 import { VergerService } from '../../services/verger';
 import { UtilisateurService } from '../../services/utilisateur';
 import { RessourceService } from '../../services/ressource';
@@ -37,13 +37,15 @@ export class TourneeCreateComponent implements OnInit {
     distanceTotale: 0,
     observations: '',
     livraisonDestinationNom: '',
-    livraisonDestinationAdresse: ''
+    livraisonDestinationAdresse: '',
+    responsablePressoirId: ''
   };
 
   vergers: any[] = [];
   bennes: any[] = [];
   tracteurs: any[] = [];
   travailleurs: any[] = [];
+  responsablesPressoir: ResponsablePressoirDisponible[] = [];
   selectedVerger: any = null;
 
   dateDebutStr: string = '';
@@ -230,7 +232,30 @@ loadTravailleurs() {
     this.loadBennes();
     this.loadTracteurs();
     this.loadTravailleurs();
+    this.loadResponsablesPressoir();
   }
+
+loadResponsablesPressoir() {
+  this.tourneeService.getResponsablesPressoirDisponibles().subscribe({
+    next: (data) => {
+      this.responsablesPressoir = data || [];
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      console.error('Erreur chargement responsables pressoir:', err);
+      this.showError('Erreur lors du chargement des responsables pressoir');
+    }
+  });
+}
+
+getResponsablePressoirLabel(responsable: ResponsablePressoirDisponible): string {
+  const name = `${responsable.prenom || ''} ${responsable.nom || ''}`.trim() || responsable.email || 'Responsable pressoir';
+  const pressoir = responsable.pressoir?.nom || 'Pressoir non renseigne';
+  const address = responsable.pressoir?.adresse || 'Adresse non renseignee';
+  const capacity = responsable.pressoir?.capaciteJournaliere || 'Capacite non renseignee';
+  const availability = responsable.disponible === false ? 'Indisponible' : 'Disponible';
+  return `${name} - ${pressoir} - ${address} - ${availability} - ${capacity}`;
+}
 loadVergers() {
   this.vergerService.getAll().subscribe({
     next: (data) => {
@@ -354,7 +379,8 @@ onSubmit() {
     distanceTotale: this.formData.distanceTotale,
     observations: this.formData.observations || '',
     livraisonDestinationNom: this.formData.livraisonDestinationNom || '',
-    livraisonDestinationAdresse: this.formData.livraisonDestinationAdresse || ''
+    livraisonDestinationAdresse: this.formData.livraisonDestinationAdresse || '',
+    responsablePressoirId: this.formData.responsablePressoirId || undefined
   };
 
   console.log('Local date:', this.formData.dateDebut);
