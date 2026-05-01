@@ -425,8 +425,8 @@ groupByAgriculteurAndVerger() {
   }
 
   // ==================== FILTERS ====================
- applyFilters() {
-  let filtered = [...this.tournees];
+  applyFilters() {
+    let filtered = [...this.tournees];
 
   // Sort by date descending (newest first)
   filtered = filtered.sort((a, b) => {
@@ -450,23 +450,26 @@ groupByAgriculteurAndVerger() {
     });
   }
 
-  // Search filter
-  if (this.searchTerm) {
-    const term = this.searchTerm.toLowerCase();
-    filtered = filtered.filter(t =>
-      t.code?.toLowerCase().includes(term) ||
-      t.vergerTypeOlive?.toLowerCase().includes(term) ||
-      t.vergerAgriculteurNom?.toLowerCase().includes(term) ||
-      t.vergerNom?.toLowerCase().includes(term)
-    );
-  }
+    if (this.selectedStatut) {
+      filtered = filtered.filter(t => t.statut === this.selectedStatut);
+    }
 
-  this.filteredTournees = filtered;
-  this.currentPage = 1;
-  this.updatePagination();
-  this.groupByAgriculteurAndVerger();
-  this.cdr.markForCheck();
-}
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(t =>
+        t.code?.toLowerCase().includes(term) ||
+        t.vergerTypeOlive?.toLowerCase().includes(term) ||
+        t.vergerAgriculteurNom?.toLowerCase().includes(term) ||
+        t.vergerNom?.toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredTournees = filtered;
+    this.currentPage = 1;
+    this.updatePagination();
+    this.groupByAgriculteurAndVerger();
+    this.cdr.markForCheck();
+  }
 
   updatePagination(): void {
     this.totalPages = Math.ceil(this.filteredTournees.length / this.itemsPerPage) || 1;
