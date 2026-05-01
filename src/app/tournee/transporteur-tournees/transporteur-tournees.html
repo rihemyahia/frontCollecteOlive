@@ -7,367 +7,242 @@
   </app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
-
-    <button class="mobile-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
-      <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
         <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
 
-    <!-- ══════════════════════════════════════════════
-         HEADER
-    ══════════════════════════════════════════════ -->
-    <header class="tp-header">
-      <div class="tp-header__inner">
-        <div class="tp-header__brand">
-          <div class="tp-brand-icon">
-            <svg viewBox="0 0 40 40" fill="none" width="28" height="28">
-              <rect x="2" y="14" width="28" height="14" rx="3" fill="#fff" opacity="0.9"/>
-              <circle cx="9"  cy="30" r="4" fill="#fff"/>
-              <circle cx="23" cy="30" r="4" fill="#fff"/>
-              <rect x="26" y="18" width="12" height="8" rx="2" fill="#fff" opacity="0.7"/>
-              <circle cx="33" cy="30" r="3" fill="#fff"/>
-            </svg>
-          </div>
-          <div>
-            <p class="tp-header__eyebrow">ESPACE TRANSPORTEUR</p>
-            <h1 class="tp-header__title">Mes missions</h1>
-            <p class="tp-header__sub">Consultez et gérez vos livraisons du jour</p>
-          </div>
-        </div>
+    <div class="oh-scene">
+      <div class="oh-card">
 
-        <button class="tp-refresh-btn" (click)="loadTournees()" [disabled]="isLoading">
-          <svg viewBox="0 0 24 24" fill="none" width="15" height="15" [class.spin]="isLoading">
-            <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Actualiser
-        </button>
-      </div>
-    </header>
-
-    <!-- ══════════════════════════════════════════════
-         STAT CARDS
-    ══════════════════════════════════════════════ -->
-    <div class="tp-stats" *ngIf="!isLoading">
-      <div class="tp-stat tp-stat--waiting">
-        <div class="tp-stat__icon">
-          <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <polyline points="12 6 12 12 16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="tp-stat__body">
-          <span class="tp-stat__value">{{ countEnAttente }}</span>
-          <span class="tp-stat__label">En attente</span>
-        </div>
-      </div>
-      <div class="tp-stat tp-stat--delivering">
-        <div class="tp-stat__icon">
-          <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-            <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
-            <path d="M16 8h4l3 3v5h-7V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="2"/>
-            <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="tp-stat__body">
-          <span class="tp-stat__value">{{ countEnLivraison }}</span>
-          <span class="tp-stat__label">En livraison</span>
-        </div>
-      </div>
-      <div class="tp-stat tp-stat--done">
-        <div class="tp-stat__icon">
-          <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="tp-stat__body">
-          <span class="tp-stat__value">{{ countLivrees }}</span>
-          <span class="tp-stat__label">Livrées</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feedback -->
-    <div class="tp-msg tp-msg--success" *ngIf="successMessage">
-      <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      {{ successMessage }}
-    </div>
-    <div class="tp-msg tp-msg--error" *ngIf="errorMessage">
-      <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"/></svg>
-      {{ errorMessage }}
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         SEARCH & FILTER
-    ══════════════════════════════════════════════ -->
-    <div class="tp-filters" *ngIf="!isLoading && tournees.length > 0">
-      <div class="tp-search">
-        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" class="tp-search__icon">
-          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <input
-          type="text"
-          class="tp-search__input"
-          placeholder="Rechercher par code, verger…"
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="applyFilters()">
-      </div>
-
-      <select class="tp-filter-select" [(ngModel)]="selectedStatut" (change)="applyFilters()">
-        <option value="">Tous les statuts</option>
-        <option value="RECOLTEE">À livrer</option>
-        <option value="TERMINEE">À livrer (terminée)</option>
-        <option value="EN_LIVRAISON">En livraison</option>
-        <option value="LIVREE">Livrée</option>
-      </select>
-
-      <button class="tp-reset-btn" *ngIf="searchTerm || selectedStatut" (click)="resetFilters()">
-        <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Réinitialiser
-      </button>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         LOADING
-    ══════════════════════════════════════════════ -->
-    <div class="tp-loading" *ngIf="isLoading">
-      <div class="tp-spinner"></div>
-      <p>Chargement de vos missions…</p>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         EMPTY STATE
-    ══════════════════════════════════════════════ -->
-    <div class="tp-empty" *ngIf="!isLoading && filteredTournees.length === 0">
-      <div class="tp-empty__icon">
-        <svg viewBox="0 0 64 64" fill="none" width="56" height="56">
-          <rect x="4" y="20" width="40" height="28" rx="4" stroke="currentColor" stroke-width="2.5"/>
-          <path d="M44 28h10l6 8v12H44V28z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
-          <circle cx="14" cy="50" r="5" stroke="currentColor" stroke-width="2.5"/>
-          <circle cx="34" cy="50" r="5" stroke="currentColor" stroke-width="2.5"/>
-          <circle cx="54" cy="50" r="4" stroke="currentColor" stroke-width="2.5"/>
-        </svg>
-      </div>
-      <h3>Aucune mission</h3>
-      <p>Vous n'avez pas de missions assignées pour le moment.</p>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         MISSION CARDS
-    ══════════════════════════════════════════════ -->
-    <div class="tp-missions" *ngIf="!isLoading && filteredTournees.length > 0">
-      <div
-        class="tp-mission-card"
-        [class.tp-mission-card--urgent]="canStartLivraison(t)"
-        [class.tp-mission-card--active]="t.statut === 'EN_LIVRAISON'"
-        [class.tp-mission-card--done]="t.statut === 'LIVREE'"
-        *ngFor="let t of filteredTournees; trackBy: trackById">
-
-        <!-- Card top bar -->
-        <div class="tp-card__bar">
-          <span class="tp-code">{{ t.code }}</span>
-          <span class="tp-badge" [ngClass]="getStatutClass(t.statut)">
-            {{ getStatutLabel(t.statut) }}
-          </span>
-        </div>
-
-        <!-- Card body -->
-        <div class="tp-card__body">
-
-          <!-- Verger info -->
-          <div class="tp-card__row">
-            <div class="tp-card__field">
-              <span class="tp-field-label">Verger</span>
-              <span class="tp-field-value">{{ t.vergerTypeOlive || 'N/A' }}</span>
+        <!-- ===== HEADER ===== -->
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                </svg>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">ESPACE TRANSPORTEUR</p>
+                <h2 class="oh-header__title">Mes missions</h2>
+                <p class="header-subtitle">Consultez et gérez vos livraisons du jour</p>
+              </div>
             </div>
-            <div class="tp-card__field">
-              <span class="tp-field-label">Agriculteur</span>
-              <span class="tp-field-value">{{ t.vergerAgriculteurNom || 'N/A' }}</span>
-            </div>
-          </div>
-
-          <!-- Destination -->
-          <div class="tp-card__destination">
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14" class="tp-dest-icon">
-              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <div>
-              <span class="tp-dest-name">{{ t.destination }}</span>
-              <span class="tp-dest-addr">{{ t.adresse }}</span>
-            </div>
-            <a [href]="t.mapsUrl" target="_blank" rel="noopener" class="tp-maps-btn" title="Ouvrir dans Google Maps">
-              <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="15 3 21 3 21 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <line x1="10" y1="14" x2="21" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              Carte
-            </a>
-          </div>
-
-          <!-- Dates -->
-          <div class="tp-card__row tp-card__row--dates">
-            <div class="tp-card__field">
-              <span class="tp-field-label">Récolte terminée</span>
-              <span class="tp-field-value">{{ t.formattedDateFin }}</span>
-            </div>
-            <div class="tp-card__field" *ngIf="t.quantiteCollecteeKg">
-              <span class="tp-field-label">Quantité</span>
-              <span class="tp-field-value tp-field-value--highlight">
-                {{ t.quantiteCollecteeKg | number:'1.0-0' }} kg
-              </span>
+            <div class="oh-header__right">
+              <button class="btn-refresh" (click)="loadTournees()" [disabled]="isLoading">
+                <i class="bi bi-arrow-repeat"></i> Actualiser
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Card actions -->
-        <div class="tp-card__actions">
-          <button class="tp-btn tp-btn--secondary" (click)="viewDetails(t.id || t._id)">
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            Détails
-          </button>
+        <!-- ===== BODY ===== -->
+        <div class="oh-card__body">
 
-          <button
-            *ngIf="canStartLivraison(t)"
-            class="tp-btn tp-btn--start"
-            (click)="startLivraison(t)">
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
-              <path d="M16 8h4l3 3v5h-7V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-              <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="2"/>
-              <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            Démarrer la livraison
-          </button>
+          <!-- Stats cards -->
+          <div class="stats-grid" *ngIf="!isLoading">
+            <div class="stat-card">
+              <div class="stat-icon">📦</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ countEnAttente }}</span>
+                <span class="stat-label">À livrer</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🚚</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ countEnLivraison }}</span>
+                <span class="stat-label">En livraison</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <span class="stat-value">{{ countLivrees }}</span>
+                <span class="stat-label">Livrées</span>
+              </div>
+            </div>
+          </div>
 
-          <button
-            *ngIf="canCompleteLivraison(t)"
-            class="tp-btn tp-btn--complete"
-            (click)="openLivraisonModal(t)">
-            <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-              <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Confirmer livraison
-          </button>
-        </div>
-      </div>
-    </div>
+          <!-- ── Search & Filters ── -->
+          <div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
+            <div class="oh-search-bar">
+              <input type="text"
+                     placeholder="🔍 Rechercher par code, verger ou agriculteur..."
+                     [(ngModel)]="searchTerm"
+                     (ngModelChange)="applyFilters()"
+                     class="oh-search-input">
+            </div>
 
-    <!-- Footer count -->
-    <p class="tp-count" *ngIf="!isLoading && filteredTournees.length > 0">
-      {{ filteredTournees.length }} mission(s) affichée(s) sur {{ tournees.length }} au total
-    </p>
+            <div class="oh-filter-controls">
+              <div class="oh-filter-group">
+                <label class="oh-filter-label">Statut</label>
+                <select [(ngModel)]="selectedStatut" (change)="applyFilters()" class="oh-filter-select">
+                  <option value="">Tous</option>
+                  <option value="RECOLTEE">À livrer</option>
+                  <option value="TERMINEE">À livrer (terminée)</option>
+                  <option value="EN_LIVRAISON">En livraison</option>
+                  <option value="LIVREE">Livrée</option>
+                </select>
+              </div>
+              <button class="oh-filter-reset" *ngIf="searchTerm || selectedStatut" (click)="resetFilters()">
+                Réinitialiser
+              </button>
+            </div>
+          </div>
 
+          <!-- Feedback messages -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement de vos missions...</p>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" *ngIf="!isLoading && filteredTournees.length === 0">
+            <div class="empty-icon">
+              <i class="bi bi-truck"></i>
+            </div>
+            <h3>Aucune mission</h3>
+            <p>Vous n'avez pas de missions assignées pour le moment.</p>
+          </div>
+
+          <!-- ── TABLE ── -->
+          <div class="table-wrapper" *ngIf="!isLoading && filteredTournees.length > 0">
+            <table class="alerts-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Statut</th>
+                  <th>Verger</th>
+                  <th>Agriculteur</th>
+                  <th>Destination</th>
+                  <th>Date récolte</th>
+                  <th>Quantité</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of filteredTournees; trackBy: trackById">
+                  <td><strong>{{ t.code }}</strong></td>
+                  <td>
+                    <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+                      {{ getStatutLabel(t.statut) }}
+                    </span>
+                  </td>
+                  <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
+                  <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
+                  <td>
+                    <div class="destination-cell">
+                      <span>{{ t.destination }}</span>
+                      <span class="destination-address">{{ t.adresse }}</span>
+                      <a [href]="t.mapsUrl" target="_blank" rel="noopener" class="map-link">
+                        <i class="bi bi-geo-alt"></i> Carte
+                      </a>
+                    </div>
+                  </td>
+                  <td>{{ t.formattedDateFin || 'N/A' }}</td>
+                  <td>
+                    <span class="quantity-badge" *ngIf="t.quantiteCollecteeKg">
+                      {{ t.quantiteCollecteeKg | number:'1.0-0' }} kg
+                    </span>
+                    <span *ngIf="!t.quantiteCollecteeKg">—</span>
+                  </td>
+                  <td class="actions-cell">
+                    <div class="action-buttons">
+                      <button class="btn-icon btn-view-t" (click)="viewDetails(t.id || t._id)" title="Voir détails">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button *ngIf="canStartLivraison(t)" class="btn-icon btn-start-t"
+                              (click)="startLivraison(t)" title="Démarrer livraison">
+                        <i class="bi bi-truck"></i>
+                      </button>
+                      <button *ngIf="canCompleteLivraison(t)" class="btn-icon btn-complete-t"
+                              (click)="openLivraisonModal(t)" title="Confirmer livraison">
+                        <i class="bi bi-check2-circle"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer count -->
+          <div class="stats-footer" *ngIf="!isLoading && filteredTournees.length > 0">
+            <div class="stats-item">
+              <i class="bi bi-bar-chart-fill"></i>
+              <span>Total : <strong>{{ filteredTournees.length }} / {{ tournees.length }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-clock-history"></i>
+              <span>En attente : <strong>{{ countEnAttente }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-truck"></i>
+              <span>En livraison : <strong>{{ countEnLivraison }}</strong></span>
+            </div>
+            <div class="stats-item">
+              <i class="bi bi-check2-circle"></i>
+              <span>Livrées : <strong>{{ countLivrees }}</strong></span>
+            </div>
+          </div>
+
+        </div><!-- /oh-card__body -->
+      </div><!-- /oh-card -->
+    </div><!-- /oh-scene -->
   </main>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     LIVRAISON PROOF MODAL
-══════════════════════════════════════════════════════════ -->
-<div class="tp-modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
-  <div class="tp-modal" (click)="$event.stopPropagation()">
-
-    <div class="tp-modal__header">
-      <div class="tp-modal__title">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Confirmer la livraison
-      </div>
-      <button class="tp-modal__close" (click)="closeLivraisonModal()">
-        <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
-          <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
+<!-- ==================== LIVRAISON PROOF MODAL ==================== -->
+<div class="modal-overlay" *ngIf="showLivraisonModal" (click)="closeLivraisonModal()">
+  <div class="modal-content complete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🚚 Finaliser la livraison</h3>
+      <button class="modal-close" (click)="closeLivraisonModal()">✕</button>
     </div>
 
-    <div class="tp-modal__body">
-      <!-- Tournee summary -->
-      <div class="tp-modal__info">
-        <div class="tp-modal__info-row">
-          <span>Mission</span>
-          <strong>{{ selectedLivraisonTournee?.code }}</strong>
-        </div>
-        <div class="tp-modal__info-row">
-          <span>Verger</span>
-          <strong>{{ selectedLivraisonTournee?.vergerTypeOlive || 'N/A' }}</strong>
-        </div>
-        <div class="tp-modal__info-row" *ngIf="selectedLivraisonTournee?.quantiteCollecteeKg">
-          <span>Quantité</span>
-          <strong>{{ selectedLivraisonTournee?.quantiteCollecteeKg | number:'1.0-0' }} kg</strong>
-        </div>
+    <div class="modal-body">
+      <div class="tournee-info">
+        <strong>Tournée :</strong> {{ selectedLivraisonTournee?.code }}<br>
+        <strong>Verger :</strong> {{ selectedLivraisonTournee?.vergerTypeOlive || 'N/A' }}
       </div>
 
-      <!-- Upload zone -->
-      <div class="tp-upload-zone" [class.tp-upload-zone--has-file]="livraisonProofFile">
-        <input
-          type="file"
-          id="proof-upload"
-          class="tp-upload-input"
-          accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
-          (change)="onProofFileSelected($event)">
-
-        <label for="proof-upload" class="tp-upload-label">
-          <!-- Image preview -->
-          <img
-            *ngIf="livraisonProofPreview"
-            [src]="livraisonProofPreview"
-            class="tp-upload-preview"
-            alt="Aperçu">
-
-          <!-- No file selected -->
-          <ng-container *ngIf="!livraisonProofFile">
-            <svg viewBox="0 0 24 24" fill="none" width="32" height="32" class="tp-upload-icon">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <span class="tp-upload-text">Cliquer pour ajouter une preuve</span>
-            <span class="tp-upload-hint">JPG, PNG, WEBP, PDF ou TXT — max 10 Mo</span>
-          </ng-container>
-
-          <!-- File selected (non-image) -->
-          <ng-container *ngIf="livraisonProofFile && !livraisonProofPreview">
-            <svg viewBox="0 0 24 24" fill="none" width="28" height="28" class="tp-upload-icon tp-upload-icon--file">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
-              <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <span class="tp-upload-text">{{ livraisonProofFile.name }}</span>
-            <span class="tp-upload-hint">Cliquer pour changer</span>
-          </ng-container>
-        </label>
+      <div class="quantity-section">
+        <label class="big-label">Preuve de livraison</label>
+        <input type="file"
+               class="form-control"
+               accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
+               (change)="onProofFileSelected($event)">
+        <small class="helper-text">Formats acceptés: JPG, PNG, WEBP, PDF, TXT (max 10 Mo)</small>
+        <small class="helper-text" *ngIf="livraisonProofFile">Fichier: {{ livraisonProofFile.name }}</small>
       </div>
 
-      <!-- Error -->
-      <div class="tp-modal__error" *ngIf="livraisonProofError">
-        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        {{ livraisonProofError }}
+      <div class="image-preview" *ngIf="livraisonProofPreview">
+        <img [src]="livraisonProofPreview" alt="Aperçu preuve">
+      </div>
+
+      <div *ngIf="livraisonProofError" class="oh-error">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ livraisonProofError }}
       </div>
     </div>
 
-    <div class="tp-modal__footer">
-      <button class="tp-btn tp-btn--secondary" (click)="closeLivraisonModal()">Annuler</button>
-      <button
-        class="tp-btn tp-btn--complete"
-        (click)="confirmCompleteLivraison()"
-        [disabled]="!livraisonProofFile || isCompletingLivraison">
-        <svg viewBox="0 0 24 24" fill="none" width="14" height="14" *ngIf="!isCompletingLivraison">
-          <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        {{ isCompletingLivraison ? 'Envoi en cours…' : 'Valider la livraison' }}
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeLivraisonModal()">Annuler</button>
+      <button class="btn-confirm"
+              (click)="confirmCompleteLivraison()"
+              [disabled]="!livraisonProofFile || isCompletingLivraison">
+        {{ isCompletingLivraison ? 'Upload...' : 'Valider la livraison' }}
       </button>
     </div>
   </div>
