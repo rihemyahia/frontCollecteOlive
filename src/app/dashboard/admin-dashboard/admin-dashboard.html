@@ -279,7 +279,7 @@
               </div>
             </div>
 
-            <!-- Resources - Fixed icon for bennes -->
+            <!-- Resources -->
             <div class="dashboard-card">
               <div class="card-header">
                 <div class="card-title">
@@ -318,7 +318,7 @@
               </div>
             </div>
 
-            <!-- Tournées -->
+            <!-- Tournées - FIXED with proper progress bars -->
             <div class="dashboard-card">
               <div class="card-header">
                 <div class="card-title">
@@ -331,31 +331,36 @@
               </div>
               <div class="card-body">
                 <div class="tournees-stats">
+                  <!-- Planifiées -->
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>Planifiées</span>
-                      <strong>{{ data.tourneesPlanifiees }}</strong>
+                      <strong>{{ data.tourneesPlanifiees || 0 }} / {{ data.totalTournees || 0 }}</strong>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill blue" [style.width.%]="percent(data.tourneesPlanifiees, data.totalTournees)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill blue" [style.width.%]="percent(data.tourneesPlanifiees || 0, data.totalTournees || 0)" [class.animate-fill]="metricsAnimated"></div>
                     </div>
                   </div>
+                  
+                  <!-- En cours -->
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>En cours</span>
-                      <strong>{{ data.tourneesEnCours }}</strong>
+                      <strong>{{ data.tourneesEnCours || 0 }} / {{ data.totalTournees || 0 }}</strong>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill amber" [style.width.%]="percent(data.tourneesEnCours, data.totalTournees)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill amber" [style.width.%]="percent(data.tourneesEnCours || 0, data.totalTournees || 0)" [class.animate-fill]="metricsAnimated"></div>
                     </div>
                   </div>
+                  
+                  <!-- Terminées - FIXED -->
                   <div class="tournee-item">
                     <div class="tournee-info">
                       <span>Terminées</span>
-                      <strong>{{ data.tourneesTerminees }}</strong>
+                      <strong>{{ data.tourneesTerminees || 0 }} / {{ data.totalTournees || 0 }}</strong>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill green" [style.width.%]="percent(data.tourneesTerminees, data.totalTournees)" [class.animate-fill]="metricsAnimated"></div>
+                      <div class="stat-fill green" [style.width.%]="percent(data.tourneesTerminees || 0, data.totalTournees || 0)" [class.animate-fill]="metricsAnimated"></div>
                     </div>
                   </div>
                 </div>

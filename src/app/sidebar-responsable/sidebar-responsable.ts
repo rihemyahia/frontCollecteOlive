@@ -45,7 +45,8 @@ export class SideBarResponsable implements OnInit {
       label: 'Tableau de bord',
       icon: 'dashboard',
       route: '/dashboard',
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR']
+
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRANSPORTEUR']
     },
     {
       id: 'utilisateurs',
@@ -105,6 +106,14 @@ export class SideBarResponsable implements OnInit {
       route: '/tournees',
       roles: ['ADMIN', 'RESPONSABLE']
     },
+    {
+      id: 'mes-tournees-transporteur',
+      label: 'Mes tournées',
+      icon: 'map-pin',
+      route: '/tournees',
+      roles: ['TRANSPORTEUR']
+    },
+    // Collectes
     {
       id: 'collectes',
       label: 'Collectes',
