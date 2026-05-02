@@ -337,22 +337,6 @@
   box-shadow: 0 0 0 3px rgba(168, 184, 75, 0.15);
 }
 
-select[multiple].form-control {
-  padding: 0.5rem;
-  min-height: 120px;
-}
-
-select[multiple].form-control option {
-  padding: 0.5rem;
-  border-radius: 8px;
-  margin: 2px 0;
-}
-
-select[multiple].form-control option:checked {
-  background: #A8B84B linear-gradient(0deg, #A8B84B 0%, #A8B84B 100%);
-  color: white;
-}
-
 /* ============================================================
    INFO CARD
    ============================================================ */
@@ -407,6 +391,18 @@ select[multiple].form-control option:checked {
   font-size: 0.85rem;
   color: #3A4A12;
   font-weight: 600;
+}
+
+.info-value--responsable {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  text-align: right;
+}
+
+.info-value--responsable i {
+  color: #A8B84B;
 }
 
 /* Status Badges */
@@ -466,6 +462,104 @@ select[multiple].form-control option:checked {
   margin-top: 0.25rem;
   font-size: 0.7rem;
   color: #DC2626;
+}
+
+/* ============================================================
+   WORKER SELECTION (DROPDOWN + CHIPS)
+   ============================================================ */
+.btn-add-worker {
+  background: linear-gradient(135deg, #5A6E1A, #A8B84B);
+  color: white;
+  border: none;
+  padding: 0.85rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.btn-add-worker:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(90, 110, 26, 0.3);
+}
+
+.btn-add-worker:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selected-workers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #F9FAF5;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 184, 75, 0.15);
+  min-height: 60px;
+}
+
+.worker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #FFFFFF;
+  border: 1px solid #A8B84B;
+  border-radius: 50px;
+  padding: 0.4rem 0.6rem 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #3A4A12;
+  transition: all 0.2s ease;
+}
+
+.worker-chip:hover {
+  background: #F0F4D8;
+  transform: translateY(-1px);
+}
+
+.worker-chip-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.worker-chip-info i {
+  color: #A8B84B;
+  font-size: 0.85rem;
+}
+
+.worker-specialite {
+  font-size: 0.7rem;
+  color: #7A6845;
+  background: #F5F0E0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  margin-left: 0.3rem;
+}
+
+.worker-chip-remove {
+  background: none;
+  border: none;
+  color: #8A2A1A;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.worker-chip-remove:hover {
+  background: #F5E0D8;
+  transform: scale(1.1);
 }
 
 /* ============================================================
@@ -579,5 +673,15 @@ select[multiple].form-control option:checked {
   
   .info-value {
     text-align: left;
+  }
+  
+  .btn-add-worker {
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .worker-chip {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem 0.3rem 0.8rem;
   }
 }
