@@ -1,0 +1,242 @@
+<div class="app-layout">
+  <app-sidebar
+    [isCollapsed]="isSidebarCollapsed"
+    (toggleSidebar)="toggleSidebar()"
+    [userRole]="userRole">
+  </app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+        <div class="amb-stripe"></div>
+      </div>
+
+      <div class="oh-card assign-card">
+        <div class="oh-card__glow" aria-hidden="true"></div>
+
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand">
+                <div class="oh-brand__icon">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                    <circle cx="32" cy="13" r="3.5" fill="#C8D880"/>
+                  </svg>
+                </div>
+                <div class="oh-brand__rings" aria-hidden="true">
+                  <span></span><span></span>
+                </div>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">
+                  <span class="eyebrow-dash"></span>
+                  COLLECTE &amp; LIVRAISON
+                  <span class="eyebrow-dash"></span>
+                </p>
+                <h2 class="oh-header__title">Assignation transporteur</h2>
+                <p class="header-subtitle">
+                  Choisissez un transporteur, puis assignez des tournées avec un <strong>créneau de livraison</strong>
+                  pour éviter les chevauchements.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="oh-header__rule" aria-hidden="true"></div>
+        </div>
+
+        <div class="oh-card__body">
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+          </div>
+
+          <div class="assign-toolbar info-card">
+            <label class="toolbar-label"><i class="bi bi-truck"></i> Transporteur</label>
+            <select class="form-control transporteur-select"
+                    [(ngModel)]="selectedTransporteurId"
+                    (ngModelChange)="onTransporteurChange()"
+                    [disabled]="isLoadingTransporteurs">
+              <option value="">— Sélectionner —</option>
+              <option *ngFor="let u of transporteurs" [value]="u.id">{{ transporteurLabel(u) }}</option>
+            </select>
+            <span class="toolbar-hint" *ngIf="isLoadingTransporteurs">Chargement…</span>
+          </div>
+
+          <div *ngIf="selectedTransporteurId && assignedLocked().length > 0 && userRole === 'RESPONSABLE'"
+               class="locked-banner oh-error oh-error--soft">
+            <strong>{{ assignedLocked().length }} tournée(s)</strong> assignée(s) par l’administration sur d’autres vergers —
+            elles restent chargées sur ce transporteur et ne peuvent pas être retirées ici.
+          </div>
+
+          <div *ngIf="!selectedTransporteurId" class="oh-state oh-state--muted">
+            <p>Sélectionnez un transporteur pour charger les tournées disponibles et assignées.</p>
+          </div>
+
+          <div *ngIf="selectedTransporteurId && isLoadingTournees" class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des tournées…</p>
+          </div>
+
+          <div class="assignment-kpis" *ngIf="selectedTransporteurId && !isLoadingTournees">
+            <div class="kpi-card kpi-card--filter">
+              <span class="kpi-label">Année</span>
+              <select class="form-control form-control--compact"
+                      [(ngModel)]="filterYear"
+                      (ngModelChange)="onFilterYearChange()"
+                      [disabled]="isSavingTournees">
+                <option *ngFor="let y of yearOptions" [ngValue]="y">
+                  {{ y === 0 ? 'Toutes les années' : y }}
+                </option>
+              </select>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Disponibles (filtre)</span>
+              <strong class="kpi-value">{{ disponiblesTotalElements }}</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Assignées</span>
+              <strong class="kpi-value">{{ assignedTournees.length }}</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Sélection</span>
+              <strong class="kpi-value">{{ selectedAvailableTourneeIds.size }}</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Livraison en cours</span>
+              <strong class="kpi-value">{{ transporteurHasActiveDelivery() ? 'Oui' : 'Non' }}</strong>
+            </div>
+          </div>
+
+          <div class="tournees-grid compact-grid" *ngIf="selectedTransporteurId && !isLoadingTournees">
+            <div class="tournees-panel tournees-panel--assigned">
+              <div class="panel-head">
+                <div>
+                  <h4>Tournées assignées</h4>
+                  <span class="panel-sub">{{ assignedFiltered.length }} tournée(s)</span>
+                </div>
+                <input class="form-control"
+                       [(ngModel)]="assignedSearch"
+                       (input)="onAssignedSearchChange()"
+                       placeholder="Rechercher (date planif., lieu, pressoir)..." />
+              </div>
+              <div class="panel-body">
+                <div *ngIf="assignedPaged.length === 0" class="empty-note">Aucune tournée assignée.</div>
+                <div *ngFor="let t of assignedPaged" class="tournee-row tournee-row--compact">
+                  <div class="tournee-main">
+                    <div class="tournee-title">
+                      <span class="tournee-planif">{{ planificationLabel(t) }}</span>
+                      <span [class]="getStatusBadgeClass(t?.statut)">{{ t?.statut }}</span>
+                      <span class="badge badge--muted" *ngIf="!canManageTournee(t)">Lecture seule</span>
+                    </div>
+                    <div class="tournee-meta tournee-meta--stack">
+                      <span><strong>Emplacement livraison :</strong> {{ placementLine(t) }}</span>
+                      <span><strong>Pressoir :</strong> {{ pressoirLine(t) }}</span>
+                      <span><strong>Créneau livraison :</strong> {{ formatLivraisonEstimee(t) }}</span>
+                    </div>
+                  </div>
+                  <button class="btn-mini btn-mini--danger"
+                          type="button"
+                          (click)="removeAssignedTournee(t)"
+                          [disabled]="isSavingTournees || !canRemoveAssignedTournee(t) || !canManageTournee(t)"
+                          [title]="!canManageTournee(t) ? 'Hors périmètre' : ''">
+                    Retirer
+                  </button>
+                </div>
+              </div>
+              <div class="panel-foot" *ngIf="assignedTotalPages > 1">
+                <button class="btn-mini" (click)="prevAssignedPage()" [disabled]="assignedPage === 1">Précédent</button>
+                <span class="page-indicator">{{ assignedPage }} / {{ assignedTotalPages }}</span>
+                <button class="btn-mini" (click)="nextAssignedPage()" [disabled]="assignedPage === assignedTotalPages">Suivant</button>
+              </div>
+            </div>
+
+            <div class="tournees-panel tournees-panel--available">
+              <div class="panel-head">
+                <div>
+                  <h4>Tournées disponibles</h4>
+                  <span class="panel-sub">{{ disponiblesTotalElements }} au total · page {{ disponiblesServerPage + 1 }} / {{ disponiblesTotalPages }}</span>
+                </div>
+                <input class="form-control"
+                       [(ngModel)]="disponiblesSearchText"
+                       (input)="onDisponiblesSearchInput()"
+                       placeholder="Rechercher (code, lieu livraison, texte)…" />
+              </div>
+              <div class="panel-actions">
+                <label class="toggle-all">
+                  <input type="checkbox"
+                         [checked]="areAllAvailableOnPageSelected()"
+                         (change)="toggleSelectAllAvailableOnPage($any($event.target).checked)"
+                         [disabled]="isSavingTournees || availableTournees.length === 0" />
+                  <span>Tout sélectionner (page)</span>
+                </label>
+                <button class="btn-mini" type="button" (click)="clearSelection()"
+                        [disabled]="isSavingTournees || selectedAvailableTourneeIds.size === 0">Vider</button>
+                <button class="btn-mini btn-mini--primary" type="button" (click)="assignSelectedTournees()"
+                        [disabled]="isSavingTournees || selectedAvailableTourneeIds.size === 0">
+                  {{ isSavingTournees ? 'Enregistrement…' : 'Assigner (' + selectedAvailableTourneeIds.size + ')' }}
+                </button>
+              </div>
+              <div class="panel-body">
+                <div *ngIf="availableTournees.length === 0" class="empty-note">Aucune tournée disponible.</div>
+                <label *ngFor="let t of availableTournees" class="tournee-row tournee-row--selectable tournee-row--compact">
+                  <input type="checkbox"
+                         [checked]="isAvailableSelected(t?.id || t?._id)"
+                         (change)="toggleAvailableSelection(t?.id || t?._id)"
+                         [disabled]="isSavingTournees || isTourneeConflictingWithAssigned(t)" />
+                  <div class="tournee-main">
+                    <div class="tournee-title">
+                      <span class="tournee-planif">{{ planificationLabel(t) }}</span>
+                      <span [class]="getStatusBadgeClass(t?.statut)">{{ t?.statut }}</span>
+                    </div>
+                    <div class="tournee-meta tournee-meta--stack">
+                      <span><strong>Emplacement livraison :</strong> {{ placementLine(t) }}</span>
+                      <span><strong>Pressoir :</strong> {{ pressoirLine(t) }}</span>
+                    </div>
+                  </div>
+                  <div class="tournee-warning" *ngIf="isTourneeConflictingWithAssigned(t)">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <small>Conflit avec une tournée déjà assignée (créneau ou ressource).</small>
+                  </div>
+                  <div class="delivery-estimate" *ngIf="isAvailableSelected(t?.id || t?._id)">
+                    <p class="delivery-estimate__title"><i class="bi bi-clock"></i> Créneau livraison <strong>(obligatoire)</strong></p>
+                    <div class="delivery-estimate__row">
+                      <label>De</label>
+                      <input type="datetime-local" class="form-control"
+                             [value]="ensureDeliveryEstimate(t?.id || t?._id).debut"
+                             (input)="onDeliveryFieldChange(t?.id || t?._id, 'debut', $any($event.target).value)" />
+                      <label>à</label>
+                      <input type="datetime-local" class="form-control"
+                             [value]="ensureDeliveryEstimate(t?.id || t?._id).fin"
+                             (input)="onDeliveryFieldChange(t?.id || t?._id, 'fin', $any($event.target).value)" />
+                    </div>
+                    <input type="text" class="form-control delivery-estimate__notes"
+                           placeholder="Consigne (optionnel)"
+                           [value]="ensureDeliveryEstimate(t?.id || t?._id).notes"
+                           (input)="onDeliveryFieldChange(t?.id || t?._id, 'notes', $any($event.target).value)" />
+                  </div>
+                </label>
+              </div>
+              <div class="panel-foot" *ngIf="disponiblesTotalPages > 1">
+                <button class="btn-mini" (click)="prevDisponiblesServerPage()" [disabled]="disponiblesServerPage === 0 || isLoadingTournees">Précédent</button>
+                <span class="page-indicator">{{ disponiblesServerPage + 1 }} / {{ disponiblesTotalPages }}</span>
+                <button class="btn-mini" (click)="nextDisponiblesServerPage()" [disabled]="disponiblesServerPage >= disponiblesTotalPages - 1 || isLoadingTournees">Suivant</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

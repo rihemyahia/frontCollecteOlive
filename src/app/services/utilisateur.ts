@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { AuthService } from './auth';
 // src/app/services/utilisateur.ts
 
 export interface Pressoir {
@@ -79,7 +80,10 @@ export class UtilisateurService {
   private transporteurApiUrl = 'http://localhost:8080/api/transporteur';
   private adminTransporteurApiUrl = 'http://localhost:8080/api/admin/transporteurs';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
@@ -214,7 +218,32 @@ export class UtilisateurService {
   }
 
   // ========== TRAVAILLEURS ==========
-getTravailleursPourResponsable(): Observable<Utilisateur[]> {
+  /**
+   * Transporteurs pour l’écran d’assignation : ADMIN → GET /api/admin/transporteurs,
+   * RESPONSABLE → GET /api/responsable/transporteurs.
+   */
+  getTransporteursPourAssignation(): Observable<Utilisateur[]> {
+    let role = (this.authService.getUserRole() || '').toUpperCase().trim();
+    if (!role && typeof window !== 'undefined' && localStorage) {
+      try {
+        const raw = localStorage.getItem('currentUser');
+        if (raw) {
+          const u = JSON.parse(raw) as { role?: string | { name?: string } };
+          const r = u?.role;
+          role = (typeof r === 'string' ? r : r?.name || '').toString().toUpperCase().trim();
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    const url =
+      role === 'ADMIN'
+        ? this.adminTransporteurApiUrl
+        : 'http://localhost:8080/api/responsable/transporteurs';
+    return this.http.get<Utilisateur[]>(url, { headers: this.getHeaders() });
+  }
+
+  getTravailleursPourResponsable(): Observable<Utilisateur[]> {
   const token = localStorage.getItem('token');
   const headers = new HttpHeaders({
     'Content-Type': 'application/json',
@@ -352,10 +381,23 @@ getTravailleursPourResponsable(): Observable<Utilisateur[]> {
    * Tournées sans transporteur, paginées côté API (page/size).
    * Pour l’écran d’assignation, charger toutes les pages ou augmenter size.
    */
-  getAvailableTourneesForTransporteurAdmin(page = 0, size = 100): Observable<PagedTourneesResponse> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('size', String(size));
+  /**
+   * @param year année sur dateDebut (défaut côté API : année courante si omis). Passer 0 pour toutes les années.
+   * @param q recherche (code, lieu livraison, adresse, observations)
+   */
+  getAvailableTourneesForTransporteurAdmin(
+    page = 0,
+    size = 25,
+    year?: number,
+    q?: string
+  ): Observable<PagedTourneesResponse> {
+    let params = new HttpParams().set('page', String(page)).set('size', String(size));
+    if (year !== undefined && year !== null) {
+      params = params.set('year', String(year));
+    }
+    if (q != null && q.trim() !== '') {
+      params = params.set('q', q.trim());
+    }
     return this.http.get<PagedTourneesResponse>(
       `${this.adminTransporteurApiUrl}/tournees-disponibles`,
       { headers: this.getHeaders(), params }

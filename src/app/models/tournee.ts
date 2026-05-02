@@ -3,6 +3,8 @@ export interface Tournee {
   code: string;
   statut: 'PLANIFIEE' | 'EN_COURS' | 'TERMINEE' | 'EN_LIVRAISON' | 'LIVREE' | 'ANNULEE';
   vergerId: string;
+  /** Responsable terrain du verger (assignation transporteur). */
+  vergerResponsableId?: string;
   vergerTypeOlive?: string;
   vergerAgriculteurNom?: string;
   vergerSuperficie?: number;
@@ -23,6 +25,8 @@ export interface Tournee {
   observations?: string;
   livraisonDestinationNom?: string;
   livraisonDestinationAdresse?: string;
+  pressoirNom?: string;
+  pressoirAdresse?: string;
   livraisonEstimeDebut?: Date | string;
   livraisonEstimeFin?: Date | string;
   livraisonNotes?: string;

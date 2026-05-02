@@ -242,16 +242,18 @@
   border-radius: 12px;
   margin-bottom: 1.5rem;
   display: flex;
-  align-items: center;
   gap: 0.5rem;
 }
 
 .oh-success {
+  align-items: center;
   background: #D4EDDA;
   color: #155724;
 }
 
 .oh-error {
+  align-items: flex-start;
+  white-space: pre-line;
   background: #F8D7DA;
   color: #721C24;
 }

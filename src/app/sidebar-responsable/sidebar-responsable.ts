@@ -142,6 +142,13 @@ export class SideBarResponsable implements OnInit {
       roles: ['ADMIN', 'RESPONSABLE']
     },
     {
+      id: 'assignation-transporteur',
+      label: 'Assignation transporteur',
+      icon: 'truck',
+      route: '/assignation-transporteur',
+      roles: ['ADMIN', 'RESPONSABLE']
+    },
+    {
       id: 'mes-tournees-transporteur',
       label: 'Mes tournées',
       icon: 'map-pin',
@@ -417,6 +424,9 @@ export class SideBarResponsable implements OnInit {
       // User - Profile
       user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
       oil: 'M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12zm-2 13a2 2 0 0 0 2 2',
+
+      truck:
+        'M3 14h11v5h2v-6l3 3v4h2v-5l-4-4H14V9H3v5zm5 6h8v2H8v-2zm10 0h2v2h-2v-2z',
     };
     return icons[iconName] || icons['dashboard'];
   }

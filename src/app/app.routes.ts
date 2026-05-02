@@ -37,6 +37,7 @@ import { IaPredictionDetailComponent } from './ia-prediction-detail/ia-predictio
 import { MaladieDetectionComponent } from './maladie-detection/maladie-detection';
 import { TransporteurTourneesComponent } from './tournee/transporteur-tournees/transporteur-tournees';
 import { TourneeEditComponent } from './tournee/edit-tournee/edit-tournee';
+import { AssignationTransporteurComponent } from './tournee/assignation-transporteur/assignation-transporteur';
 import { PressoirDashboardComponent } from './pressoir/dashboard/pressoir-dashboard';
 import { PressoirTourneesLivreesComponent } from './pressoir/tournees-livrees/tournees-livrees';
 import { PressoirExtractionsComponent } from './pressoir/extractions/extractions';
@@ -159,6 +160,12 @@ export const routes: Routes = [
     component: TourneeDetailComponent,
     canActivate: [AuthGuard, roleGuard],
     data: { role: ['ADMIN', 'RESPONSABLE', 'TRANSPORTEUR'] }
+  },
+  {
+    path: 'assignation-transporteur',
+    component: AssignationTransporteurComponent,
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: ['ADMIN', 'RESPONSABLE'] }
   },
   {
   path: 'transporteur/tournees',
