@@ -222,7 +222,7 @@ export class AssignationTransporteurComponent implements OnInit {
         if (!Array.isArray(list)) return [];
         return list.filter((t: any) => {
           const s = (t?.statut || '').toString();
-          return s !== 'LIVREE' && s !== 'ANNULEE';
+          return s !==  'ANNULEE';
         });
       })
     );
