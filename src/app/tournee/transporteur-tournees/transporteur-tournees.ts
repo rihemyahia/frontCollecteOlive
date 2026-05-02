@@ -107,22 +107,35 @@ export class TransporteurTourneesComponent implements OnInit, OnDestroy {
       }
     });
   }
+private enrichTournee(t: any): any {
+  // Extract from vergerSnapshot if available
+  const vs = t.vergerSnapshot || {};
+  const agriculteur = vs.agriculteur || {};
+  const responsable = vs.responsable || {};
 
-  private enrichTournee(t: any): any {
-    return {
-      ...t,
-      formattedDateDebut: this.formatDateTime(t.dateDebut),
-      formattedDateFin:   this.formatDateTime(t.dateFin),
-      livraisonWindowStr: this.formatDateTime(t.livraisonDebut || t.dateFin),
-      destination: t.livraisonDestinationNom || t.vergerTypeOlive
-                   ? `Point de livraison — ${t.vergerTypeOlive || ''}` : 'À confirmer',
-      adresse: t.livraisonDestinationAdresse || t.verger?.geolocalisation?.adresseIndicative || 'Adresse à confirmer',
-      mapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-        t.livraisonDestinationAdresse || t.verger?.geolocalisation?.adresseIndicative || ''
-      )}`
-    };
-  }
+  return {
+    ...t,
+    formattedDateDebut: this.formatDateTime(t.dateDebut),
+    formattedDateFin:   this.formatDateTime(t.dateFin),
+    livraisonWindowStr: this.formatDateTime(t.livraisonDebut || t.dateFin),
 
+    // ✅ Extract from vergerSnapshot
+    vergerTypeOlive: vs.typeOlive || 'N/A',
+    vergerAgriculteurNom: agriculteur.prenom && agriculteur.nom
+      ? `${agriculteur.prenom} ${agriculteur.nom}`
+      : 'Non assigné',
+    vergerResponsableNom: responsable.prenom && responsable.nom
+      ? `${responsable.prenom} ${responsable.nom}`
+      : 'Non assigné',
+
+    destination: t.livraisonDestinationNom || (vs.typeOlive
+      ? `Point de livraison — ${vs.typeOlive}` : 'À confirmer'),
+    adresse: t.livraisonDestinationAdresse || vs.geolocalisation?.adresseIndicative || 'Adresse à confirmer',
+    mapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+      t.livraisonDestinationAdresse || vs.geolocalisation?.adresseIndicative || ''
+    )}`
+  };
+}
   // ── Filters ───────────────────────────────────────────────
   applyFilters(): void {
     let list = [...this.tournees];

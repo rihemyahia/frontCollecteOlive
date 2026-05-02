@@ -22,23 +22,27 @@ export class TourneeListComponent implements OnInit {
   isSidebarCollapsed = false;
   userRole = '';
   selectedAnnee: string = '';
-availableAnnees: number[] = [];
-showAllYears = false;
-
+  availableAnnees: number[] = [];
+  showAllYears = false;
   isMobile = false;
-  // Default to table: avoids expensive grouped computation during initial render.
-  viewMode: 'table' | 'cards' | 'grouped' = 'table';
+viewMode: 'table' | 'cards' | 'grouped' = 'grouped';
 
   // Data
   tournees: any[] = [];
   filteredTournees: any[] = [];
   groupedByAgriculteur: AgriculteurGroup[] = [];
   pagedTournees: any[] = [];
+  paginatedTournees: any[] = [];
+groupedTotalPages = 1;
+groupedCurrentPage = 1;
+groupedItemsPerPage = 5; // Number of agriculteur groups per page
+pagedGroupedByAgriculteur: AgriculteurGroup[] = []; // ✅ ADD THIS LINE
 
   // Pagination
-  paginatedTournees: any[] = [];
   itemsPerPage = 10;
   totalPages = 1;
+  currentPage = 1;
+  readonly pageSize = 20;
 
   // Filters
   selectedStatut = '';
@@ -48,10 +52,6 @@ showAllYears = false;
   isLoading = false;
   successMessage = '';
   errorMessage = '';
-
-  // Pagination
-  currentPage = 1;
-  readonly pageSize = 20;
 
   // Modal
   showCompleteModal = false;
@@ -86,17 +86,6 @@ showAllYears = false;
     private cdr: ChangeDetectorRef,
     private authService: AuthService
   ) {}
-extractAvailableYears(): void {
-  const years = new Set<number>();
-  this.tournees.forEach(t => {
-    if (t.dateDebut) {
-      const year = new Date(t.dateDebut).getFullYear();
-      if (!isNaN(year)) years.add(year);
-    }
-  });
-  this.availableAnnees = Array.from(years).sort((a, b) => b - a); // newest first
-  this.cdr.markForCheck();
-}
 
   get isTransporteur(): boolean {
     return this.userRole === 'TRANSPORTEUR';
@@ -129,57 +118,97 @@ extractAvailableYears(): void {
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
-loadTournees(): void {
-  this.isLoading = true;
 
-  const loadObservable = this.userRole === 'TRANSPORTEUR'
-    ? this.utilisateurService.getMesTourneesTransporteur()
-    : this.tourneeService.getAll();
+  loadTournees(): void {
+    this.isLoading = true;
 
-  loadObservable.subscribe({
-    next: (data: any) => {
-      console.log('Tournées reçues:', data);
-      const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
-      this.tournees = tourneeArray.map((t: any) => ({
-        ...t,
-        displayVergerTypeOlive: t.vergerTypeOlive || t.verger?.typeOlive || 'N/A',
-        displayVergerAgriculteurNom: t.vergerAgriculteurNom || this.extractAgriculteurName(t.verger?.agriculteur),
-        displayQuantiteCollectee: t.quantiteCollecteeKg && t.quantiteCollecteeKg > 0 ? t.quantiteCollecteeKg.toFixed(1) : '0',
-        displayTotalCollecte: t.totalCollecteVergerKg ? t.totalCollecteVergerKg.toFixed(1) : '0',
-        displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
-        displayLivraisonStatus: this.computeLivraisonStatus(t),
-        displayLivraisonWindow: this.computeLivraisonWindow(t),
-        displayDeliveryDestination: this.computeDeliveryDestination(t),
-        displayDeliveryAddress: this.computeDeliveryAddress(t),
-        hasDedicatedDeliveryVehicle: this.hasDedicatedDeliveryVehicle(t),
-        formattedDateDebut: this.formatDateTime(t.dateDebut),
-        formattedDateFin: this.formatDateTime(t.dateFin),
-        formattedDate: this.formatDate(t.dateDebut)
-      }));
+    const loadObservable = this.userRole === 'TRANSPORTEUR'
+      ? this.utilisateurService.getMesTourneesTransporteur()
+      : this.tourneeService.getAll();
 
-      // ✅ Extract years AFTER data is loaded
-      this.extractAvailableYears();
+    loadObservable.subscribe({
+      next: (data: any) => {
+        console.log('Tournées reçues:', data);
+        const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
 
-      this.applyFilters();
-      this.isLoading = false;
-      this.cdr.markForCheck();
-    },
-    error: (err: any) => {
-      this.errorMessage = 'Erreur lors du chargement des tournées';
-      this.isLoading = false;
-      this.cdr.markForCheck();
-      console.error(err);
-    }
-  });
-}
+        this.tournees = tourneeArray.map((t: any) => {
+          // Get verger data from snapshot or fallback to direct fields
+          const vergerData = t.vergerSnapshot || t.verger || {};
 
-  private extractAgriculteurName(agriculteur: any): string {
-    if (!agriculteur) return 'N/A';
-    if (typeof agriculteur === 'object') {
-      const fullName = `${agriculteur.prenom || ''} ${agriculteur.nom || ''}`.trim();
-      return fullName || 'N/A';
-    }
-    return 'N/A';
+          // Extract agriculteur name
+          let agriculteurNom = t.vergerAgriculteurNom;
+          if (!agriculteurNom && vergerData.agriculteur) {
+            if (typeof vergerData.agriculteur === 'object') {
+              agriculteurNom = `${vergerData.agriculteur.prenom || ''} ${vergerData.agriculteur.nom || ''}`.trim();
+            } else if (typeof vergerData.agriculteur === 'string') {
+              agriculteurNom = vergerData.agriculteur;
+            }
+          }
+
+          // Get type olive
+          let typeOlive = t.vergerTypeOlive;
+          if (!typeOlive && vergerData.typeOlive) {
+            typeOlive = vergerData.typeOlive;
+          }
+
+          // Get responsable id
+          let responsableId = t.vergerResponsableId;
+          if (!responsableId && vergerData.responsable) {
+            if (typeof vergerData.responsable === 'object') {
+              responsableId = vergerData.responsable.id || vergerData.responsable._id;
+            } else if (typeof vergerData.responsable === 'string') {
+              responsableId = vergerData.responsable;
+            }
+          }
+
+          return {
+            ...t,
+            // Display fields with fallbacks
+            displayVergerTypeOlive: typeOlive || 'N/A',
+            displayVergerAgriculteurNom: agriculteurNom || 'Non assigné',
+            displayQuantiteCollectee: t.quantiteCollecteeKg && t.quantiteCollecteeKg > 0 ? t.quantiteCollecteeKg.toFixed(1) : '0',
+            displayTotalCollecte: t.totalCollecteVergerKg ? t.totalCollecteVergerKg.toFixed(1) : '0',
+            displayEfficaciteValue: t.efficacite ? t.efficacite.toFixed(1) : 'N/A',
+            displayLivraisonStatus: this.computeLivraisonStatus(t),
+            displayLivraisonWindow: this.computeLivraisonWindow(t),
+            displayDeliveryDestination: this.computeDeliveryDestination(t),
+            displayDeliveryAddress: this.computeDeliveryAddress(t),
+            hasDedicatedDeliveryVehicle: this.hasDedicatedDeliveryVehicle(t),
+            formattedDateDebut: this.formatDateTime(t.dateDebut),
+            formattedDateFin: this.formatDateTime(t.dateFin),
+            formattedDate: this.formatDate(t.dateDebut),
+            // Store raw data for grouping
+            rawVergerTypeOlive: typeOlive,
+            rawVergerAgriculteurNom: agriculteurNom,
+            rawVergerId: t.vergerId || vergerData.id || vergerData._id,
+            rawResponsableId: responsableId
+          };
+        });
+
+        this.extractAvailableYears();
+        this.applyFilters();
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.errorMessage = 'Erreur lors du chargement des tournées';
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        console.error(err);
+      }
+    });
+  }
+
+  extractAvailableYears(): void {
+    const years = new Set<number>();
+    this.tournees.forEach(t => {
+      if (t.dateDebut) {
+        const year = new Date(t.dateDebut).getFullYear();
+        if (!isNaN(year)) years.add(year);
+      }
+    });
+    this.availableAnnees = Array.from(years).sort((a, b) => b - a); // newest first
+    this.cdr.markForCheck();
   }
 
   private computeLivraisonStatus(tournee: any): string {
@@ -246,126 +275,116 @@ loadTournees(): void {
   getEfficaciteValue(t: any): string {
     return t.displayEfficaciteValue || 'N/A';
   }
+  // ==================== GROUPED VIEW PAGINATION ====================
+updateGroupedPagination(): void {
+  console.log('📄 Grouped Pagination - Total agriculteurs:', this.groupedByAgriculteur.length);
+  console.log('📄 Items per page:', this.groupedItemsPerPage);
+  console.log('📄 Current page:', this.groupedCurrentPage);
+
+  this.groupedTotalPages = Math.ceil(this.groupedByAgriculteur.length / this.groupedItemsPerPage) || 1;
+  const start = (this.groupedCurrentPage - 1) * this.groupedItemsPerPage;
+  this.pagedGroupedByAgriculteur = this.groupedByAgriculteur.slice(start, start + this.groupedItemsPerPage);
+
+  console.log('📄 Paged agriculteurs count:', this.pagedGroupedByAgriculteur.length);
+  console.log('📄 Total pages:', this.groupedTotalPages);
+}
+groupedPreviousPage(): void {
+  if (this.groupedCurrentPage > 1) {
+    this.groupedCurrentPage--;
+    this.updateGroupedPagination();
+    this.cdr.markForCheck();
+  }
+}
+
+groupedNextPage(): void {
+  if (this.groupedCurrentPage < this.groupedTotalPages) {
+    this.groupedCurrentPage++;
+    this.updateGroupedPagination();
+    this.cdr.markForCheck();
+  }
+}
 
   // ==================== GROUPING LOGIC ====================
-  /**
-   * Groupe les tournées par Agriculteur → Verger
-   * Structure hiérarchique claire
-   */
- // Replace your groupByAgriculteurAndVerger() method with this:
+  groupByAgriculteurAndVerger() {
+    const agriculteurMap = new Map<string, AgriculteurGroup>();
 
-groupByAgriculteurAndVerger() {
-  const agriculteurMap = new Map<string, AgriculteurGroup>();
+    this.filteredTournees.forEach(tournee => {
+      // Use the pre-extracted display fields
+      let agriculteurId = tournee.rawVergerAgriculteurNom || 'non-assigne';
+      let agriculteurNom = tournee.displayVergerAgriculteurNom || 'Non assigné';
+      let vergerId = tournee.rawVergerId || 'sans-verger';
+      let vergerNom = tournee.displayVergerTypeOlive || 'Verger inconnu';
 
-  this.filteredTournees.forEach(tournee => {
-    // IMPORTANT: Get agriculteur from the verger object
-    // Your tournee might have verger object populated or just verger ID
-    let agriculteurId = 'non-assigne';
-    let agriculteurNom = 'Non assigné';
-    let vergerId = 'sans-verger';
-    let vergerNom = 'Verger inconnu';
-
-    // Check if verger is populated (object) or just an ID
-    if (tournee.verger) {
-      if (typeof tournee.verger === 'object') {
-        // Verger is populated
-        vergerId = tournee.verger._id || tournee.verger.id;
-        vergerNom = tournee.verger.typeOlive || 'Verger inconnu';
-
-        // Get agriculteur from verger
-        if (tournee.verger.agriculteur) {
-          if (typeof tournee.verger.agriculteur === 'object') {
-            agriculteurId = tournee.verger.agriculteur._id || tournee.verger.agriculteur.id;
-            agriculteurNom = tournee.verger.agriculteur.nom || 'Nom inconnu';
-          } else {
-            agriculteurId = tournee.verger.agriculteur;
-            agriculteurNom = `Agriculteur ${agriculteurId.substring(0, 8)}`;
-          }
-        }
-      } else {
-        // Verger is just an ID, need to look it up
-        vergerId = tournee.verger;
-        vergerNom = `Verger ${vergerId.substring(0, 8)}`;
+      // Create or get agriculteur
+      if (!agriculteurMap.has(agriculteurId)) {
+        agriculteurMap.set(agriculteurId, {
+          id: agriculteurId,
+          nom: agriculteurNom,
+          initials: this.getInitials(agriculteurNom),
+          responsables: [],
+          vergers: [],
+          expanded: true,
+          totalTournees: 0,
+          totalQuantite: 0,
+          totalEfficacite: 0
+        });
       }
-    }
 
-    // Also check direct fields as fallback
-    if (tournee.vergerTypeOlive) {
-      vergerNom = tournee.vergerTypeOlive;
-    }
-    if (tournee.vergerAgriculteurNom) {
-      agriculteurNom = tournee.vergerAgriculteurNom;
-    }
-    if (tournee.vergerAgriculteurId) {
-      agriculteurId = tournee.vergerAgriculteurId;
-    }
+      const agriculteur = agriculteurMap.get(agriculteurId)!;
 
-    // Create or get agriculteur
-    if (!agriculteurMap.has(agriculteurId)) {
-      agriculteurMap.set(agriculteurId, {
-        id: agriculteurId,
-        nom: agriculteurNom,
-        initials: this.getInitials(agriculteurNom),
-        vergers: [],
-        expanded: true,
-        totalTournees: 0,
-        totalQuantite: 0,
-        totalEfficacite: 0
-      });
-    }
+      // Find or create verger
+      let verger = agriculteur.vergers.find(v => v.id === vergerId);
+      if (!verger) {
+        verger = {
+          id: vergerId,
+          nom: vergerNom,
+          responsableId: tournee.rawResponsableId,
+          responsableNom: null,
+          tournees: [],
+          expanded: true,
+          totalQuantite: 0,
+          totalTournees: 0,
+          totalEfficacite: 0
+        };
+        agriculteur.vergers.push(verger);
+      }
 
-    const agriculteur = agriculteurMap.get(agriculteurId)!;
+      // Add tournee
+      verger.tournees.push(tournee);
+      verger.totalQuantite += tournee.quantiteCollecteeKg || 0;
+      verger.totalTournees++;
+      if (tournee.efficacite) {
+        verger.totalEfficacite += tournee.efficacite;
+      }
 
-    // Find or create verger
-    let verger = agriculteur.vergers.find(v => v.id === vergerId);
-    if (!verger) {
-      verger = {
-        id: vergerId,
-        nom: vergerNom,
-        tournees: [],
-        expanded: true,
-        totalQuantite: 0,
-        totalTournees: 0,
-        totalEfficacite: 0
-      };
-      agriculteur.vergers.push(verger);
-    }
-
-    // Add tournee
-    verger.tournees.push(tournee);
-    verger.totalQuantite += tournee.quantiteCollecteeKg || 0;
-    verger.totalTournees++;
-    if (tournee.efficacite) {
-      verger.totalEfficacite += tournee.efficacite;
-    }
-
-    agriculteur.totalQuantite += tournee.quantiteCollecteeKg || 0;
-    agriculteur.totalTournees++;
-    if (tournee.efficacite) {
-      agriculteur.totalEfficacite += tournee.efficacite;
-    }
-  });
-
-  // Calculate averages and sort
-  agriculteurMap.forEach(agriculteur => {
-    agriculteur.moyenneEfficacite = agriculteur.totalTournees > 0
-      ? agriculteur.totalEfficacite / agriculteur.totalTournees
-      : 0;
-
-    agriculteur.vergers.forEach(verger => {
-      verger.moyenneEfficacite = verger.totalTournees > 0
-        ? verger.totalEfficacite / verger.totalTournees
-        : 0;
+      agriculteur.totalQuantite += tournee.quantiteCollecteeKg || 0;
+      agriculteur.totalTournees++;
+      if (tournee.efficacite) {
+        agriculteur.totalEfficacite += tournee.efficacite;
+      }
     });
 
-    agriculteur.vergers.sort((a, b) => a.nom.localeCompare(b.nom));
-  });
+    // Calculate averages and sort
+    agriculteurMap.forEach(agriculteur => {
+      agriculteur.moyenneEfficacite = agriculteur.totalTournees > 0
+        ? agriculteur.totalEfficacite / agriculteur.totalTournees
+        : 0;
 
-  this.groupedByAgriculteur = Array.from(agriculteurMap.values())
-    .sort((a, b) => a.nom.localeCompare(b.nom));
+      agriculteur.vergers.forEach(verger => {
+        verger.moyenneEfficacite = verger.totalTournees > 0
+          ? verger.totalEfficacite / verger.totalTournees
+          : 0;
+      });
 
-  this.updateGlobalStats();
-}
+      agriculteur.vergers.sort((a, b) => a.nom.localeCompare(b.nom));
+    });
+
+    this.groupedByAgriculteur = Array.from(agriculteurMap.values())
+      .sort((a, b) => a.nom.localeCompare(b.nom));
+  this.updateGroupedPagination();
+
+    this.updateGlobalStats();
+  }
 
   updateGlobalStats() {
     this.totalTournees = this.filteredTournees.length;
@@ -428,32 +447,29 @@ groupByAgriculteurAndVerger() {
   applyFilters() {
     let filtered = [...this.tournees];
 
-  // Sort by date descending (newest first)
-  filtered = filtered.sort((a, b) => {
-    const dateA = new Date(a.dateDebut).getTime();
-    const dateB = new Date(b.dateDebut).getTime();
-    return dateB - dateA; // Descending order
-  });
-
-  // Status filter
-  if (this.selectedStatut) {
-    filtered = filtered.filter(t => t.statut === this.selectedStatut);
-  }
-
-  // Year filter
-  if (this.selectedAnnee && this.selectedAnnee !== '') {
-    const year = parseInt(this.selectedAnnee, 10);
-    filtered = filtered.filter(t => {
-      if (!t.dateDebut) return false;
-      const tourneeYear = new Date(t.dateDebut).getFullYear();
-      return tourneeYear === year;
+    // Sort by date descending (newest first)
+    filtered = filtered.sort((a, b) => {
+      const dateA = new Date(a.dateDebut).getTime();
+      const dateB = new Date(b.dateDebut).getTime();
+      return dateB - dateA; // Descending order
     });
-  }
 
+    // Year filter
+    if (this.selectedAnnee && this.selectedAnnee !== '') {
+      const year = parseInt(this.selectedAnnee, 10);
+      filtered = filtered.filter(t => {
+        if (!t.dateDebut) return false;
+        const tourneeYear = new Date(t.dateDebut).getFullYear();
+        return tourneeYear === year;
+      });
+    }
+
+    // Status filter
     if (this.selectedStatut) {
       filtered = filtered.filter(t => t.statut === this.selectedStatut);
     }
 
+    // Search term filter
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(t =>
@@ -496,6 +512,9 @@ groupByAgriculteurAndVerger() {
   resetFilters(): void {
     this.searchTerm = '';
     this.selectedStatut = '';
+    this.selectedAnnee = '';
+      this.groupedCurrentPage = 1; // ✅ ADD THIS LINE
+
     this.applyFilters();
   }
 
@@ -849,10 +868,11 @@ groupByAgriculteurAndVerger() {
   }
 }
 
-// ==================== INTERFACES ====================
 interface VergerGroup {
   id: string;
   nom: string;
+  responsableId?: string;
+  responsableNom?: string | null;
   tournees: any[];
   expanded: boolean;
   totalQuantite: number;
@@ -865,6 +885,7 @@ interface AgriculteurGroup {
   id: string;
   nom: string;
   initials: string;
+  responsables?: any[];
   vergers: VergerGroup[];
   expanded: boolean;
   totalTournees: number;
