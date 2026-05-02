@@ -184,7 +184,6 @@
                             <th>Date Début</th>
                             <th>Date Fin</th>
                             <th>Quantité</th>
-                            <th>Efficacité</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
@@ -199,10 +198,7 @@
                             <td>{{ t.formattedDateDebut || (t.dateDebut | date:'dd/MM/yyyy HH:mm') }}</td>
                             <td>{{ t.formattedDateFin || (t.dateFin | date:'dd/MM/yyyy HH:mm') }}</td>
                             <td>
-                              <div class="quantity-cell">
-                                <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
-                              </div>
-                            </td>
+
                             <td>
                               <div class="efficiency-cell" *ngIf="t.efficacite">
                                 <div class="progress-bar small">
@@ -273,6 +269,7 @@
                         {{ t.statut | statutTournee }}
                       </span>
                     </td>
+
 
                     <td>{{ t.formattedDateDebut }}</td>
                     <td>{{ t.formattedDateFin }}</td>
