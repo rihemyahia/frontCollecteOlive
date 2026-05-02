@@ -247,7 +247,9 @@ export class AssignationTransporteurComponent implements OnInit {
       }
     });
   }
-
+trackByTourneeId(index: number, t: any): string {
+  return t?.id || t?._id || index.toString();
+}
   private asDate(d: any): Date | null {
     if (!d) return null;
     const date = new Date(d);

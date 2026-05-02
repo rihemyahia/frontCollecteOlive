@@ -131,13 +131,17 @@
                        (input)="onAssignedSearchChange()"
                        placeholder="Rechercher (date planif., lieu, pressoir)..." />
               </div>
-              <div class="panel-body">
+      <div class="panel-body">
   <div *ngIf="availableTournees.length === 0" class="empty-note">Aucune tournée disponible.</div>
-  <div *ngFor="let t of availableTournees" class="tournee-row tournee-row--selectable tournee-row--compact">
+
+  <div *ngFor="let t of availableTournees; trackBy: trackByTourneeId"
+       class="tournee-row tournee-row--selectable tournee-row--compact">
+
     <input type="checkbox"
            [checked]="isAvailableSelected(t?.id || t?._id)"
            (change)="toggleAvailableSelection(t?.id || t?._id)"
            [disabled]="isSavingTournees || isTourneeConflictingWithAssigned(t)" />
+
     <div class="tournee-main">
       <div class="tournee-title">
         <span class="tournee-planif">{{ planificationLabel(t) }}</span>
@@ -153,28 +157,35 @@
         <span *ngIf="t?.tracteurNom"><strong>🚜 Tracteur :</strong> {{ t?.tracteurNom }} ({{ t?.tracteurImmatriculation }})</span>
       </div>
     </div>
+
     <div class="tournee-warning" *ngIf="isTourneeConflictingWithAssigned(t)">
       <i class="bi bi-exclamation-triangle-fill"></i>
       <small>Conflit avec une tournée déjà assignée (créneau ou ressource).</small>
     </div>
+
     <div class="delivery-estimate" *ngIf="isAvailableSelected(t?.id || t?._id)">
-      <p class="delivery-estimate__title"><i class="bi bi-clock"></i> Créneau livraison <strong>(obligatoire)</strong></p>
+      <p class="delivery-estimate__title">
+        <i class="bi bi-clock"></i> Créneau livraison <strong>(obligatoire)</strong>
+      </p>
       <div class="delivery-estimate__row">
         <label>De</label>
-        <input type="datetime-local" class="form-control"
-               [value]="ensureDeliveryEstimate(t?.id || t?._id).debut"
+        <input type="datetime-local"
+               class="form-control"
+               [value]="deliveryEstimates[t?.id || t?._id]?.debut || ''"
                (input)="onDeliveryFieldChange(t?.id || t?._id, 'debut', $any($event.target).value)" />
         <label>à</label>
-        <input type="datetime-local" class="form-control"
-               [value]="ensureDeliveryEstimate(t?.id || t?._id).fin"
+        <input type="datetime-local"
+               class="form-control"
+               [value]="deliveryEstimates[t?.id || t?._id]?.fin || ''"
                (input)="onDeliveryFieldChange(t?.id || t?._id, 'fin', $any($event.target).value)" />
       </div>
-      <input type="text" class="form-control delivery-estimate__notes"
+      <input type="text"
+             class="form-control delivery-estimate__notes"
              placeholder="Consigne (optionnel)"
-             [value]="ensureDeliveryEstimate(t?.id || t?._id).notes"
+             [value]="deliveryEstimates[t?.id || t?._id]?.notes || ''"
              (input)="onDeliveryFieldChange(t?.id || t?._id, 'notes', $any($event.target).value)" />
     </div>
-  </div>  <!-- ✅ Changed from </label> to </div> -->
+  </div>
 </div>
               <div class="panel-foot" *ngIf="assignedTotalPages > 1">
                 <button class="btn-mini" (click)="prevAssignedPage()" [disabled]="assignedPage === 1">Précédent</button>
