@@ -420,6 +420,12 @@ export class AssignationTransporteurComponent implements OnInit {
     return (statut ?? '').toString().trim().toUpperCase();
   }
 
+  private tourneeCode(t: any, fallback?: string): string {
+    const code = (t?.code || '').toString().trim();
+    if (code) return code;
+    return fallback || (t?.id || t?._id || 'ID inconnu');
+  }
+
   /** Statuts bloqués seulement pour les tournées nouvellement cochées dans « disponibles ». */
   private buildNewSelectionStatutError(newIds: string[]): string | null {
     const blocked = new Set(['EN_LIVRAISON', 'LIVREE', 'ANNULEE']);
@@ -433,15 +439,16 @@ export class AssignationTransporteurComponent implements OnInit {
       }
       const st = this.normalizeTourneeStatut(t.statut);
       if (!blocked.has(st)) continue;
-      const label = this.planificationLabel(t);
+      const code = this.tourneeCode(t, pid);
+      const planif = this.planificationLabel(t);
       if (st === 'EN_LIVRAISON') {
         lines.push(
-          `• ${label} : EN_LIVRAISON — cette tournée est déjà en cours de livraison ; impossible de l’ajouter comme nouvelle assignation.`
+          `• ${code} (${planif}) : EN_LIVRAISON — cette tournée est déjà en cours de livraison ; impossible de l’ajouter comme nouvelle assignation.`
         );
       } else if (st === 'LIVREE') {
-        lines.push(`• ${label} : LIVRÉE — une tournée déjà livrée ne peut pas être assignée.`);
+        lines.push(`• ${code} (${planif}) : LIVRÉE — une tournée déjà livrée ne peut pas être assignée.`);
       } else if (st === 'ANNULEE') {
-        lines.push(`• ${label} : ANNULÉE — une tournée annulée ne peut pas être assignée.`);
+        lines.push(`• ${code} (${planif}) : ANNULÉE — une tournée annulée ne peut pas être assignée.`);
       }
     }
     if (lines.length === 0) return null;
@@ -467,15 +474,20 @@ export class AssignationTransporteurComponent implements OnInit {
   }
 
   private findLivraisonOverlapMessage(payloadIds: string[]): string | null {
-    const rows: Array<{ code: string; start: Date; end: Date }> = [];
+    const rows: Array<{ code: string; label: string; start: Date; end: Date }> = [];
     for (const pid of payloadIds) {
       const w = this.resolveLivraisonWindowForPayload(pid);
-        if (!w) {
+      if (!w) {
         const t = this.findTourneeByIdInPanels(pid);
-        return `Impossible de vérifier les chevauchements : créneau ou dates manquants pour ${t ? this.planificationLabel(t) : pid}.`;
+        const code = t ? this.tourneeCode(t, pid) : pid;
+        return `Impossible de vérifier les chevauchements : créneau ou dates manquants pour la tournée ${code}.`;
       }
       const t = this.findTourneeByIdInPanels(pid);
-      rows.push({ code: (t ? this.planificationLabel(t) : pid) as string, ...w });
+      rows.push({
+        code: t ? this.tourneeCode(t, pid) : pid,
+        label: t ? this.planificationLabel(t) : 'Planification inconnue',
+        ...w
+      });
     }
     for (let i = 0; i < rows.length; i++) {
       for (let j = i + 1; j < rows.length; j++) {
@@ -483,7 +495,10 @@ export class AssignationTransporteurComponent implements OnInit {
         const b = rows[j];
         if (a.start < b.end && b.start < a.end) {
           return (
-            `Chevauchement des créneaux de livraison pour ce transporteur : ${a.code} (${this.formatTourneeDate(a.start)} → ${this.formatTourneeDate(a.end)}) et ${b.code} (${this.formatTourneeDate(b.start)} → ${this.formatTourneeDate(b.end)}). Modifiez les horaires du créneau.`
+            `Chevauchement détecté entre les tournées ${a.code} et ${b.code}. `
+            + `${a.code} (${a.label}) : ${this.formatTourneeDate(a.start)} → ${this.formatTourneeDate(a.end)} ; `
+            + `${b.code} (${b.label}) : ${this.formatTourneeDate(b.start)} → ${this.formatTourneeDate(b.end)}. `
+            + `Modifiez les horaires du créneau.`
           );
         }
       }
@@ -675,6 +690,13 @@ export class AssignationTransporteurComponent implements OnInit {
     });
   }
 
+  selectedTransporteurName(): string {
+    const id = this.selectedTransporteurId;
+    if (!id) return '—';
+    const u = this.transporteurs.find((x) => (x.id || '') === id);
+    return u ? this.transporteurLabel(u) : id;
+  }
+
   private tourneeYear(t: any): number {
     const d = this.asDate(t?.dateDebut) || this.asDate(t?.dateCreation);
     return d ? d.getFullYear() : 0;
@@ -715,7 +737,8 @@ export class AssignationTransporteurComponent implements OnInit {
         this.placementLine(t).toLowerCase().includes(term) ||
         this.pressoirLine(t).toLowerCase().includes(term) ||
         this.planificationLabel(t).toLowerCase().includes(term) ||
-        (t?.responsablePressoirNom || '').toLowerCase().includes(term)
+        (t?.responsablePressoirNom || '').toLowerCase().includes(term) ||
+        this.tourneeCode(t).toLowerCase().includes(term)
     );
   }
 

@@ -28,10 +28,8 @@
               <thead>
                 <tr>
                   <th>Code tournee</th>
-                  <th>Collecte</th>
-                  <th>Verger / olive</th>
+                
                   <th>Quantite kg</th>
-                  <th>Transporteur</th>
                   <th>Livraison</th>
                   <th>Destination</th>
                   <th>Action</th>
@@ -40,10 +38,7 @@
               <tbody>
                 <tr *ngFor="let t of tournees">
                   <td><strong>{{ t.code || t.id }}</strong></td>
-                  <td>{{ t.collecteCode || '-' }}</td>
-                  <td>{{ t.vergerTypeOlive || '-' }}</td>
                   <td>{{ t.quantiteCollecteeKg || 0 | number:'1.0-2' }}</td>
-                  <td>{{ t.transporteurNom || '-' }}</td>
                   <td>{{ formatDate(t.livraisonCompletedAt) }}</td>
                   <td>{{ t.livraisonDestinationNom || t.livraisonDestinationAdresse || '-' }}</td>
                   <td>

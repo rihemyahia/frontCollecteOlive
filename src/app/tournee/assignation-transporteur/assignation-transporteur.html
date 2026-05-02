@@ -74,6 +74,12 @@
             <span class="toolbar-hint" *ngIf="isLoadingTransporteurs">Chargement…</span>
           </div>
 
+          <div class="ux-steps" *ngIf="selectedTransporteurId">
+            <div class="ux-step"><span>1</span> Choisir l’année et rechercher</div>
+            <div class="ux-step"><span>2</span> Cocher les tournées disponibles + créneau</div>
+            <div class="ux-step"><span>3</span> Cliquer sur <strong>Assigner</strong></div>
+          </div>
+
           <div *ngIf="selectedTransporteurId && assignedLocked().length > 0 && userRole === 'RESPONSABLE'"
                class="locked-banner oh-error oh-error--soft">
             <strong>{{ assignedLocked().length }} tournée(s)</strong> assignée(s) par l’administration sur d’autres vergers —
@@ -129,13 +135,14 @@
                 <input class="form-control"
                        [(ngModel)]="assignedSearch"
                        (input)="onAssignedSearchChange()"
-                       placeholder="Rechercher (date planif., lieu, pressoir)..." />
+                       placeholder="Rechercher (code, date, lieu, pressoir)..." />
               </div>
               <div class="panel-body">
                 <div *ngIf="assignedPaged.length === 0" class="empty-note">Aucune tournée assignée.</div>
                 <div *ngFor="let t of assignedPaged" class="tournee-row tournee-row--compact">
                   <div class="tournee-main">
                     <div class="tournee-title">
+                      <span class="tournee-code">{{ t?.code || (t?.id || t?._id) }}</span>
                       <span class="tournee-planif">{{ planificationLabel(t) }}</span>
                       <span [class]="getStatusBadgeClass(t?.statut)">{{ t?.statut }}</span>
                       <span class="badge badge--muted" *ngIf="!canManageTournee(t)">Lecture seule</span>
@@ -166,12 +173,15 @@
               <div class="panel-head">
                 <div>
                   <h4>Tournées disponibles</h4>
-                  <span class="panel-sub">{{ disponiblesTotalElements }} au total · page {{ disponiblesServerPage + 1 }} / {{ disponiblesTotalPages }}</span>
+                  <span class="panel-sub">
+                    {{ disponiblesTotalElements }} au total · page {{ disponiblesServerPage + 1 }} / {{ disponiblesTotalPages }}
+                    · transporteur : {{ selectedTransporteurName() }}
+                  </span>
                 </div>
                 <input class="form-control"
                        [(ngModel)]="disponiblesSearchText"
                        (input)="onDisponiblesSearchInput()"
-                       placeholder="Rechercher (code, lieu livraison, texte)…" />
+                       placeholder="Rechercher (code, lieu livraison, adresse)…" />
               </div>
               <div class="panel-actions">
                 <label class="toggle-all">
@@ -197,6 +207,7 @@
                          [disabled]="isSavingTournees || isTourneeConflictingWithAssigned(t)" />
                   <div class="tournee-main">
                     <div class="tournee-title">
+                      <span class="tournee-code">{{ t?.code || (t?.id || t?._id) }}</span>
                       <span class="tournee-planif">{{ planificationLabel(t) }}</span>
                       <span [class]="getStatusBadgeClass(t?.statut)">{{ t?.statut }}</span>
                     </div>
