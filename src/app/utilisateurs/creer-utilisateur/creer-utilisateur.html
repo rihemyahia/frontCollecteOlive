@@ -1,87 +1,57 @@
 <!-- src/app/admin/creer-utilisateur/creer-utilisateur.html -->
 <div class="app-layout">
-
-  <!-- Sidebar Component -->
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed"
     (toggleSidebar)="toggleSidebar()"
     [userRole]="userRole">
   </app-sidebar>
 
-  <!-- Main Content -->
-  <main class="main-content"
-        [class.sidebar-collapsed]="isSidebarCollapsed"
-        [class.sidebar-open]="!isSidebarCollapsed">
-
-    <!-- Mobile Menu Toggle Button -->
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
     <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
-      <svg viewBox="0 0 24 24" fill="none">
+      <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
         <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
 
     <div class="oh-scene">
-
-      <!-- Ambient soft orbs -->
       <div class="oh-ambient" aria-hidden="true">
         <div class="amb-orb amb-orb--1"></div>
         <div class="amb-orb amb-orb--2"></div>
         <div class="amb-orb amb-orb--3"></div>
-        <div class="amb-stripe"></div>
       </div>
 
-      <!-- Main Premium Card -->
       <div class="oh-card">
-
-        <!-- Glow border -->
-        <div class="oh-card__glow" aria-hidden="true"></div>
-
-        <!-- Card Header -->
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                    <path d="M8 40C11 32 16 27 24 25" stroke="#DFE9B0" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                </div>
-                <div class="oh-brand__rings" aria-hidden="true">
-                  <span></span><span></span>
-                </div>
+              <div class="oh-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                </svg>
               </div>
               <div class="oh-header__text">
-                <p class="oh-header__eyebrow">
-                  <span class="eyebrow-dash"></span>
-                  ADMINISTRATION
-                  <span class="eyebrow-dash"></span>
-                </p>
-                <h2 class="oh-header__title">Créer un utilisateur</h2>
+                <p class="oh-header__eyebrow">ADMINISTRATION</p>
+                <h2 class="oh-header__title">Créer un <span class="highlight">utilisateur</span></h2>
                 <p class="header-subtitle">Créez des comptes Admin, Responsable, Transporteur, Agriculteur ou Travailleur</p>
               </div>
             </div>
           </div>
-          <div class="oh-header__rule" aria-hidden="true"></div>
         </div>
 
-        <!-- Card Body -->
         <div class="oh-card__body">
-
-          <!-- Message de succès -->
+          <!-- Success Message -->
           <div *ngIf="successMessage" class="oh-success">
-            <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage }}
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
           </div>
 
-          <!-- Message d'erreur -->
+          <!-- Error Message -->
           <div *ngIf="errorMessage" class="oh-error">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage }}
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
           </div>
 
           <form (ngSubmit)="onSubmit()" class="activation-form">
-            <!-- ========== CHAMPS COMMUNS POUR TOUS LES UTILISATEURS ========== -->
+            <!-- ========== COMMON FIELDS ========== -->
             <div class="form-row">
-              <!-- Nom -->
               <div class="form-group">
                 <label class="form-label">Nom <span class="required">*</span></label>
                 <input type="text" class="form-control" [(ngModel)]="utilisateur.nom" name="nom" required
@@ -89,7 +59,6 @@
                 <div class="invalid-feedback">Nom requis</div>
               </div>
 
-              <!-- Prénom -->
               <div class="form-group">
                 <label class="form-label">Prénom <span class="required">*</span></label>
                 <input type="text" class="form-control" [(ngModel)]="utilisateur.prenom" name="prenom" required
@@ -97,7 +66,6 @@
                 <div class="invalid-feedback">Prénom requis</div>
               </div>
 
-              <!-- Email -->
               <div class="form-group">
                 <label class="form-label">Email <span class="required">*</span></label>
                 <input type="email" class="form-control" [(ngModel)]="utilisateur.email" name="email" required
@@ -105,133 +73,123 @@
                 <div class="invalid-feedback">Email requis</div>
               </div>
 
-              <!-- Téléphone -->
               <div class="form-group">
                 <label class="form-label">Téléphone</label>
                 <input type="tel" class="form-control" [(ngModel)]="utilisateur.telephone" name="telephone">
               </div>
 
-              <!-- Adresse -->
               <div class="form-group">
                 <label class="form-label">Adresse</label>
                 <input type="text" class="form-control" [(ngModel)]="utilisateur.adresse" name="adresse">
               </div>
 
-              <!-- Rôle -->
               <div class="form-group">
                 <label class="form-label">Rôle <span class="required">*</span></label>
                 <select class="form-select" [(ngModel)]="utilisateur.role" name="role" required
                         [class.is-invalid]="submitted && !utilisateur.role">
                   <option value="">Sélectionner...</option>
+                  <option value="ADMIN">Admin</option>
                   <option value="RESPONSABLE">Responsable</option>
                   <option value="TRANSPORTEUR">Transporteur</option>
                   <option value="AGRICULTEUR">Agriculteur</option>
                   <option value="TRAVAILLEUR">Travailleur</option>
-                                    <option value="RESPONSABLE_PRESSOIR">Responsable Pressoir</option>
-
+                  <option value="RESPONSABLE_PRESSOIR">Responsable Pressoir</option>
                 </select>
                 <div class="invalid-feedback">Rôle requis</div>
               </div>
             </div>
-<!-- ========== CHAMPS SPÉCIFIQUES POUR RESPONSABLE PRESSOIR ========== -->
-<div class="form-section" *ngIf="utilisateur.role === 'RESPONSABLE_PRESSOIR'" style="margin-top: 1.5rem;">
-  <h3 class="section-title" style="font-size: 1rem; font-weight: 600; color: #5A6E1A; margin-bottom: 1rem;">
-    <i class="bi bi-building"></i> Informations du pressoir
-  </h3>
 
-  <!-- Nom du pressoir -->
-  <div class="form-group">
-    <label class="form-label">Nom du pressoir <span class="required">*</span></label>
-    <input type="text" class="form-control" [(ngModel)]="pressoirNom" name="pressoirNom"
-           placeholder="Ex: Pressoir Zitouna"
-           [class.is-invalid]="submitted && utilisateur.role === 'RESPONSABLE_PRESSOIR' && !pressoirNom">
-    <div class="invalid-feedback">Nom du pressoir requis</div>
-  </div>
-
-  <!-- MAP - Localisation du pressoir -->
-  <div class="form-group">
-    <label class="form-label">Localisation du pressoir <span class="required">*</span></label>
-    <app-verger-map
-      [editable]="true"
-      (locationSelected)="onPressoirLocationSelected($event)">
-    </app-verger-map>
-    <div class="hint-text" style="font-size: 0.75rem; color: #6c757d; margin-top: 0.5rem;">
-      Cliquez sur la carte pour sélectionner l'emplacement du pressoir
-    </div>
-  </div>
-
-  <!-- Adresse du pressoir -->
-  <div class="form-group">
-    <label class="form-label">Adresse du pressoir <span class="required">*</span></label>
-    <input type="text" class="form-control" [(ngModel)]="pressoirAdresse" name="pressoirAdresse"
-           placeholder="Adresse complète"
-           [class.is-invalid]="submitted && utilisateur.role === 'RESPONSABLE_PRESSOIR' && !pressoirAdresse">
-    <div class="invalid-feedback">Adresse du pressoir requise</div>
-  </div>
-
-  <div class="form-row">
-    <!-- Téléphone du pressoir -->
-    <div class="form-group">
-      <label class="form-label">Téléphone</label>
-      <input type="tel" class="form-control" [(ngModel)]="pressoirTelephone" name="pressoirTelephone"
-             placeholder="Téléphone du pressoir">
-    </div>
-
-    <!-- Email du pressoir -->
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" [(ngModel)]="pressoirEmail" name="pressoirEmail"
-             placeholder="contact@pressoir.com">
-    </div>
-  </div>
-
-  <div class="form-row">
-    <!-- Capacité journalière -->
-    <div class="form-group">
-      <label class="form-label">Capacité journalière</label>
-      <input type="text" class="form-control" [(ngModel)]="pressoirCapaciteJournaliere" name="pressoirCapaciteJournaliere"
-             placeholder="Ex: 5000 kg/jour">
-    </div>
-  </div>
-
-  <!-- Horaires - Time range selector -->
-  <div class="form-group">
-    <label class="form-label">Horaires d'ouverture</label>
-    <div class="time-range-container" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 120px;">
-        <label style="font-size: 0.75rem; color: #7A6845;">Début</label>
-        <input type="time" class="form-control" [(ngModel)]="pressoirHoraireDebut" name="pressoirHoraireDebut"
-               placeholder="08:00" style="background: white;">
-      </div>
-      <div style="font-size: 1.2rem; color: #A8B84B;">→</div>
-      <div style="flex: 1; min-width: 120px;">
-        <label style="font-size: 0.75rem; color: #7A6845;">Fin</label>
-        <input type="time" class="form-control" [(ngModel)]="pressoirHoraireFin" name="pressoirHoraireFin"
-               placeholder="18:00" style="background: white;">
-      </div>
-    </div>
-    <div class="hint-text" style="font-size: 0.7rem; color: #6c757d; margin-top: 0.25rem;">
-      Format: HH:MM (ex: 08:00 - 18:00)
-    </div>
-  </div>
-
-  <!-- Info note -->
-  <div class="activation-info" style="margin-top: 1rem; display: flex; align-items: center; gap: 0.75rem; background: #F5F0E0; padding: 0.75rem; border-radius: 12px;">
-    <i class="bi bi-info-circle-fill" style="color: #A8B84B; font-size: 1rem;"></i>
-    <p style="margin: 0; font-size: 0.8rem; color: #7A6845;">Le responsable de pressoir gère les livraisons d'olives et les tournées.</p>
-  </div>
-</div>git
-            <!-- ========== CHAMPS SPÉCIFIQUES POUR RESPONSABLE ========== -->
-            <div class="form-section" *ngIf="utilisateur.role === 'RESPONSABLE'" style="margin-top: 1.5rem;">
-              <h3 class="section-title" style="font-size: 1rem; font-weight: 600; color: #5A6E1A; margin-bottom: 1rem;">
-                <i class="bi bi-briefcase"></i> Informations professionnelles
+            <!-- ========== RESPONSABLE PRESSOIR FIELDS ========== -->
+            <div class="form-section" *ngIf="utilisateur.role === 'RESPONSABLE_PRESSOIR'">
+              <h3 class="section-title">
+                <i class="bi bi-building"></i> Informations du pressoir
               </h3>
 
+              <div class="form-group">
+                <label class="form-label">Nom du pressoir <span class="required">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="pressoirNom" name="pressoirNom"
+                       placeholder="Ex: Pressoir Zitouna"
+                       [class.is-invalid]="submitted && utilisateur.role === 'RESPONSABLE_PRESSOIR' && !pressoirNom">
+                <div class="invalid-feedback">Nom du pressoir requis</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Localisation du pressoir <span class="required">*</span></label>
+                <app-verger-map
+                  [editable]="true"
+                  (locationSelected)="onPressoirLocationSelected($event)">
+                </app-verger-map>
+                <div class="hint-text">
+                  Cliquez sur la carte pour sélectionner l'emplacement du pressoir
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Adresse du pressoir <span class="required">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="pressoirAdresse" name="pressoirAdresse"
+                       placeholder="Adresse complète"
+                       [class.is-invalid]="submitted && utilisateur.role === 'RESPONSABLE_PRESSOIR' && !pressoirAdresse">
+                <div class="invalid-feedback">Adresse du pressoir requise</div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Téléphone</label>
+                  <input type="tel" class="form-control" [(ngModel)]="pressoirTelephone" name="pressoirTelephone"
+                         placeholder="Téléphone du pressoir">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" [(ngModel)]="pressoirEmail" name="pressoirEmail"
+                         placeholder="contact@pressoir.com">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Capacité journalière</label>
+                  <input type="text" class="form-control" [(ngModel)]="pressoirCapaciteJournaliere" name="pressoirCapaciteJournaliere"
+                         placeholder="Ex: 5000 kg/jour">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Horaires d'ouverture</label>
+                <div class="time-range-container">
+                  <div style="flex: 1;">
+                    <label class="form-label" style="font-size: 0.7rem;">Début</label>
+                    <input type="time" class="form-control" [(ngModel)]="pressoirHoraireDebut" name="pressoirHoraireDebut">
+                  </div>
+                  <span style="color: #A8B84B; font-size: 1.2rem;">→</span>
+                  <div style="flex: 1;">
+                    <label class="form-label" style="font-size: 0.7rem;">Fin</label>
+                    <input type="time" class="form-control" [(ngModel)]="pressoirHoraireFin" name="pressoirHoraireFin">
+                  </div>
+                </div>
+                <div class="hint-text">Format: HH:MM (ex: 08:00 - 18:00)</div>
+              </div>
+
+              <div class="activation-info">
+                <i class="bi bi-info-circle-fill"></i>
+                <p>Le responsable de pressoir gère les livraisons d'olives et les tournées.</p>
+              </div>
             </div>
 
-            <!-- ========== CHAMPS SPÉCIFIQUES POUR TRANSPORTEUR ========== -->
-            <div class="form-section" *ngIf="utilisateur.role === 'TRANSPORTEUR'" style="margin-top: 1.5rem;">
-              <h3 class="section-title" style="font-size: 1rem; font-weight: 600; color: #5A6E1A; margin-bottom: 1rem;">
+            <!-- ========== RESPONSABLE FIELDS ========== -->
+            <div class="form-section" *ngIf="utilisateur.role === 'RESPONSABLE'">
+              <h3 class="section-title">
+                <i class="bi bi-briefcase"></i> Informations professionnelles
+              </h3>
+              <div class="activation-info">
+                <i class="bi bi-info-circle-fill"></i>
+                <p>Le responsable de zone gère les vergers et les tournées de collecte.</p>
+              </div>
+            </div>
+
+            <!-- ========== TRANSPORTEUR FIELDS ========== -->
+            <div class="form-section" *ngIf="utilisateur.role === 'TRANSPORTEUR'">
+              <h3 class="section-title">
                 <i class="bi bi-truck"></i> Informations transporteur
               </h3>
               <div class="form-row">
@@ -259,15 +217,12 @@
               </div>
             </div>
 
-
-
-            <!-- ========== CHAMPS SPÉCIFIQUES POUR TRAVAILLEUR ========== -->
-            <div class="form-section" *ngIf="utilisateur.role === 'TRAVAILLEUR'" style="margin-top: 1.5rem;">
-              <h3 class="section-title" style="font-size: 1rem; font-weight: 600; color: #5A6E1A; margin-bottom: 1rem;">
+            <!-- ========== TRAVAILLEUR FIELDS ========== -->
+            <div class="form-section" *ngIf="utilisateur.role === 'TRAVAILLEUR'">
+              <h3 class="section-title">
                 <i class="bi bi-person-badge"></i> Informations travailleur
               </h3>
 
-              <!-- CIN -->
               <div class="form-group">
                 <label class="form-label">CIN <span class="required">*</span></label>
                 <input type="text" class="form-control" [(ngModel)]="cin" name="cin"
@@ -277,13 +232,11 @@
               </div>
 
               <div class="form-row">
-                <!-- Date d'embauche -->
                 <div class="form-group">
                   <label class="form-label">Date d'embauche <span class="required">*</span></label>
                   <input type="date" class="form-control" [(ngModel)]="dateEmbauche" name="dateEmbauche">
                 </div>
 
-                <!-- Salaire -->
                 <div class="form-group">
                   <label class="form-label">Salaire (DT/jour) <span class="required">*</span></label>
                   <input type="number" class="form-control" [(ngModel)]="salaire" name="salaire"
@@ -293,7 +246,6 @@
                 </div>
               </div>
 
-              <!-- Statut employé -->
               <div class="form-group">
                 <label class="form-label">Statut <span class="required">*</span></label>
                 <select class="form-select" [(ngModel)]="statutEmploye" name="statutEmploye">
@@ -302,14 +254,12 @@
                 </select>
               </div>
 
-              <!-- Spécialités -->
               <div class="form-group">
                 <label class="form-label">Spécialités <span class="required">*</span></label>
-                <div class="specialites-checkboxes" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem;">
-                  <label *ngFor="let spec of specialites" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                    <input type="checkbox" [value]="spec" (change)="onSpecialiteChange($event, spec)"
-                           style="width: 18px; height: 18px; cursor: pointer;">
-                    <span style="text-transform: capitalize;">{{ spec }}</span>
+                <div class="specialites-checkboxes">
+                  <label *ngFor="let spec of specialites">
+                    <input type="checkbox" [value]="spec" (change)="onSpecialiteChange($event, spec)">
+                    <span>{{ spec | titlecase }}</span>
                   </label>
                 </div>
                 <div *ngIf="submitted && utilisateur.role === 'TRAVAILLEUR' && selectedSpecialites.length === 0"
@@ -317,36 +267,26 @@
                   Au moins une spécialité requise
                 </div>
               </div>
-
-              <!-- Info note -->
-
             </div>
 
-            <!-- ========== SECTION MOT DE PASSE ========== -->
-
-
-            <!-- ========== BOUTONS D'ACTION ========== -->
-            <div class="form-actions" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid rgba(168, 184, 75, 0.2);">
-              <button type="button" class="btn-secondary" (click)="navigateToUtilisateurs()"
-                      style="background: #F5F0E0; color: #5A5A48; padding: 0.75rem 1.5rem; border-radius: 50px; border: none; font-weight: 600; cursor: pointer;">
+            <!-- ========== ACTION BUTTONS ========== -->
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="navigateToUtilisateurs()">
                 <i class="bi bi-x-lg"></i> Annuler
               </button>
-              <button type="submit" class="btn-primary" [disabled]="isLoading || !generatedPassword"
-                      style="background: linear-gradient(135deg, #5A6E1A, #A8B84B); color: white; padding: 0.75rem 1.5rem; border-radius: 50px; border: none; font-weight: 600; cursor: pointer;">
-                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                <i class="bi bi-person-plus-fill me-2"></i>
+              <button type="submit" class="btn-primary" [disabled]="isLoading">
+                <span *ngIf="isLoading" class="spinner-border-sm"></span>
+                <i class="bi bi-person-plus-fill"></i>
                 {{ isLoading ? 'Création...' : 'Créer l\'utilisateur' }}
               </button>
             </div>
           </form>
 
-          <!-- Info note -->
-          <div class="activation-info" style="margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem; background: #F5F0E0; padding: 1rem; border-radius: 12px;">
-            <i class="bi bi-info-circle-fill" style="color: #A8B84B; font-size: 1.2rem;"></i>
-            <p style="margin: 0; font-size: 0.85rem; color: #7A6845;">Un mot de passe sera généré pour ce compte. L'utilisateur devra le changer à sa première connexion.</p>
+          <!-- Info Note -->
+          <div class="activation-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <p>Un mot de passe sera généré pour ce compte. L'utilisateur devra le changer à sa première connexion.</p>
           </div>
-
-
         </div>
       </div>
     </div>
