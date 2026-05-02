@@ -176,16 +176,41 @@
                 <input type="datetime-local" [(ngModel)]="dateFinStr" name="dateFin" required class="form-control" (change)="onDateFinChange($event)">
               </div>
 
-              <!-- Travailleurs -->
+              <!-- Travailleurs - DROPDOWN LIST -->
               <div class="form-group full-width">
                 <label>Travailleurs assignés <span class="required">*</span></label>
-                <select multiple [(ngModel)]="formData.travailleurIds" name="travailleurIds" required class="form-control" size="4">
-                  <option *ngFor="let w of travailleurs" [value]="w.id">
-                    {{ w.prenom }} {{ w.nom }} - {{ getSpecialiteLabel(w.specialites) }}
-                  </option>
-                </select>
+                
+                <!-- Dropdown to select worker -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                  <select class="form-control" style="flex: 1;" [(ngModel)]="selectedTravailleurId" name="selectedTravailleur">
+                    <option value="">-- Sélectionner un travailleur --</option>
+                    <option *ngFor="let w of travailleurs" [value]="w.id" [disabled]="isTravailleurSelected(w.id)">
+                      {{ w.prenom }} {{ w.nom }} - {{ getSpecialiteLabel(w.specialites) }}
+                    </option>
+                  </select>
+                  <button type="button" class="btn-add-worker" (click)="addTravailleur()" [disabled]="!selectedTravailleurId">
+                    <i class="bi bi-plus-lg"></i> Ajouter
+                  </button>
+                </div>
+
+                <!-- Selected workers list as chips -->
+                <div *ngIf="formData.travailleurIds.length > 0" class="selected-workers-list">
+                  <div *ngFor="let workerId of formData.travailleurIds" class="worker-chip">
+                    <span class="worker-chip-info">
+                      <i [class]="'bi ' + getSpecialiteIcon(getWorkerSpecialites(workerId))"></i>
+                      {{ getWorkerName(workerId) }}
+                      <span class="worker-specialite">{{ getSpecialiteLabel(getWorkerSpecialites(workerId)) }}</span>
+                    </span>
+                    <button type="button" class="worker-chip-remove" (click)="removeTravailleur(workerId)">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </div>
+                <div *ngIf="formData.travailleurIds.length === 0" class="field-warning">
+                  <i class="bi bi-exclamation-triangle-fill"></i> Veuillez ajouter au moins un travailleur
+                </div>
                 <div class="field-hint">
-                  <i class="bi bi-info-circle-fill"></i> Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs travailleurs
+                  <i class="bi bi-info-circle-fill"></i> Sélectionnez un travailleur et cliquez sur "Ajouter"
                 </div>
               </div>
 

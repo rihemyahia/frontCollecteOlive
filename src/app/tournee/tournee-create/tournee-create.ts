@@ -21,7 +21,7 @@ import { VergerMapComponent } from '../../shared/verger-map/verger-map';
 })
 export class TourneeCreateComponent implements OnInit {
   isSidebarCollapsed = false;
-  isMobile = false;  // ← ADD THIS
+  isMobile = false;
   userRole = 'ADMIN';
   isSubmitting = false;
   errorMessage = '';
@@ -48,6 +48,7 @@ export class TourneeCreateComponent implements OnInit {
   travailleurs: any[] = [];
   responsablesPressoir: ResponsablePressoirDisponible[] = [];
   selectedVerger: any = null;
+  selectedTravailleurId: string = '';
 
   dateDebutStr: string = '';
   dateFinStr: string = '';
@@ -64,13 +65,13 @@ export class TourneeCreateComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.checkMobile();  // ← ADD THIS
+    this.checkMobile();
     this.loadData();
     this.initDates();
   }
 
-  @HostListener('window:resize')  // ← ADD THIS
-  checkMobile(): void {  // ← ADD THIS
+  @HostListener('window:resize')
+  checkMobile(): void {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile && this.isSidebarCollapsed) {
       this.isSidebarCollapsed = false;
@@ -123,16 +124,40 @@ export class TourneeCreateComponent implements OnInit {
     return icons[specialite] || 'bi-person-badge-fill';
   }
 
-  getSpecialiteColor(specialites: string[]): string {
-    const specialite = specialites?.[0] || '';
-    const colors: { [key: string]: string } = {
-      'cueillette': '#43e97b',
-      'tamisage': '#f093fb',
-      'secouage': '#4facfe',
-      'ramassage': '#fa709a',
-      'tri': '#ffd93d'
-    };
-    return colors[specialite] || '#A8B84B';
+  getWorkerName(workerId: string): string {
+    const worker = this.travailleurs.find(w => w.id === workerId);
+    if (worker) {
+      return `${worker.prenom} ${worker.nom}`;
+    }
+    return 'Travailleur';
+  }
+
+  getWorkerSpecialites(workerId: string): string[] {
+    const worker = this.travailleurs.find(w => w.id === workerId);
+    return worker?.specialites || [];
+  }
+
+  addTravailleur(): void {
+    if (!this.selectedTravailleurId) return;
+    
+    if (!this.formData.travailleurIds.includes(this.selectedTravailleurId)) {
+      this.formData.travailleurIds.push(this.selectedTravailleurId);
+      this.cdr.markForCheck();
+    }
+    
+    this.selectedTravailleurId = '';
+  }
+
+  removeTravailleur(workerId: string): void {
+    const index = this.formData.travailleurIds.indexOf(workerId);
+    if (index !== -1) {
+      this.formData.travailleurIds.splice(index, 1);
+      this.cdr.markForCheck();
+    }
+  }
+
+  isTravailleurSelected(workerId: string): boolean {
+    return this.formData.travailleurIds.includes(workerId);
   }
 
   loadTravailleurs() {
@@ -156,7 +181,6 @@ export class TourneeCreateComponent implements OnInit {
     });
   }
 
-  // FIXED: Accept event, not event.target.value
   onVergerChange(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const vergerId = selectElement.value;
@@ -301,24 +325,10 @@ export class TourneeCreateComponent implements OnInit {
     });
   }
 
-  toggleTravailleur(id: string): void {
-    const index = this.formData.travailleurIds.indexOf(id);
-    if (index === -1) {
-      this.formData.travailleurIds.push(id);
-    } else {
-      this.formData.travailleurIds.splice(index, 1);
-    }
-    this.cdr.markForCheck();
-  }
-
   formatExperience(experience: number): string {
     if (!experience) return 'Débutant';
     if (experience === 1) return '1 an d\'expérience';
     return `${experience} ans d'expérience`;
-  }
-
-  isTravailleurSelected(id: string): boolean {
-    return this.formData.travailleurIds.includes(id);
   }
 
   onSubmit() {
@@ -338,7 +348,7 @@ export class TourneeCreateComponent implements OnInit {
       return;
     }
     if (!this.formData.travailleurIds || this.formData.travailleurIds.length === 0) {
-      this.showError('Veuillez sélectionner au moins un travailleur');
+      this.showError('Veuillez ajouter au moins un travailleur');
       return;
     }
     if (this.formData.dateDebut >= this.formData.dateFin) {
