@@ -184,7 +184,6 @@
                             <th>Date Début</th>
                             <th>Date Fin</th>
                             <th>Quantité</th>
-                            <th>Efficacité</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
@@ -199,10 +198,7 @@
                             <td>{{ t.formattedDateDebut || (t.dateDebut | date:'dd/MM/yyyy HH:mm') }}</td>
                             <td>{{ t.formattedDateFin || (t.dateFin | date:'dd/MM/yyyy HH:mm') }}</td>
                             <td>
-                              <div class="quantity-cell">
-                                <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
-                              </div>
-                            </td>
+
                             <td>
                               <div class="efficiency-cell" *ngIf="t.efficacite">
                                 <div class="progress-bar small">
@@ -259,12 +255,9 @@
                   <tr>
                     <th>Code</th>
                     <th>Statut</th>
-                    <th>Verger</th>
-                    <th>Agriculteur</th>
                     <th>Date Début</th>
                     <th>Date Fin</th>
                     <th>Quantité</th>
-                    <th>Efficacité</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -276,9 +269,8 @@
                         {{ t.statut | statutTournee }}
                       </span>
                     </td>
-                    <td>{{ t.vergerTypeOlive || 'N/A' }}</td>
-                    <td>{{ t.vergerAgriculteurNom || 'N/A' }}</td>
-                    
+
+
                     <td>{{ t.formattedDateDebut }}</td>
                     <td>{{ t.formattedDateFin }}</td>
                     <td>
@@ -286,15 +278,7 @@
                         <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
                       </div>
                     </td>
-                    <td>
-                      <div class="efficiency-cell" *ngIf="t.efficacite">
-                        <div class="progress-bar small">
-                          <div class="progress-fill" [style.width.%]="t.efficacite"></div>
-                        </div>
-                        <span>{{ t.efficacite | number:'1.0-0' }}%</span>
-                      </div>
-                      <span *ngIf="!t.efficacite">N/A</span>
-                    </td>
+
                     <td class="actions-cell">
                       <div class="action-buttons">
                         <button class="btn-icon btn-view-t" (click)="viewDetails(t.id || t._id)" title="Voir détails">

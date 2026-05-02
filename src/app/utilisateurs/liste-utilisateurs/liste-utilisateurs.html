@@ -1,3 +1,4 @@
+<!-- src/app/admin/liste-utilisateurs/liste-utilisateurs.html -->
 <div class="app-layout">
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed"
@@ -17,33 +18,22 @@
         <div class="amb-orb amb-orb--1"></div>
         <div class="amb-orb amb-orb--2"></div>
         <div class="amb-orb amb-orb--3"></div>
-        <div class="amb-stripe"></div>
       </div>
 
       <div class="oh-card">
-        <div class="oh-card__glow" aria-hidden="true"></div>
-
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand">
-                <div class="oh-brand__icon">
-                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
-                    <circle cx="32" cy="13" r="3.5" fill="#C8D880"/>
-                  </svg>
-                </div>
-                <div class="oh-brand__rings" aria-hidden="true">
-                  <span></span><span></span>
-                </div>
+              <div class="oh-brand__icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M8 40C8 40 14 18 32 13C32 13 35 27 24 34C17 38 8 40 8 40Z" fill="#A8B84B" opacity="0.9"/>
+                  <circle cx="32" cy="13" r="3.5" fill="#C8D880"/>
+                </svg>
               </div>
               <div class="oh-header__text">
-                <p class="oh-header__eyebrow">
-                  <span class="eyebrow-dash"></span>
-                  GESTION DES UTILISATEURS
-                  <span class="eyebrow-dash"></span>
-                </p>
-                <h2 class="oh-header__title">Liste des Utilisateurs</h2>
+                <p class="oh-header__eyebrow">ADMINISTRATION</p>
+                <h2 class="oh-header__title">Liste des <span class="highlight">Utilisateurs</span></h2>
+                <p class="header-subtitle">Gérez les comptes utilisateurs de la plateforme</p>
               </div>
             </div>
 
@@ -54,28 +44,35 @@
               </div>
 
               <button class="oh-btn-primary" (click)="navigateToCreateUser()">
-                <span class="oh-btn-primary__icon">
-                  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </span>
-                <span>Ajouter</span>
+                <i class="bi bi-plus-lg"></i>
+                Ajouter
               </button>
             </div>
           </div>
-          <div class="oh-header__rule" aria-hidden="true"></div>
         </div>
 
         <!-- EDIT FORM -->
         <div *ngIf="showEditForm && editUtilisateur" class="oh-card__body">
           <form (ngSubmit)="updateUtilisateur()" class="add-user-form">
             <div class="form-row">
-              <div class="form-group"><label>Nom *</label><input type="text" [(ngModel)]="editUtilisateur.nom" name="nom" required></div>
-              <div class="form-group"><label>Prénom *</label><input type="text" [(ngModel)]="editUtilisateur.prenom" name="prenom" required></div>
+              <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" [(ngModel)]="editUtilisateur.nom" name="nom" required>
+              </div>
+              <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" [(ngModel)]="editUtilisateur.prenom" name="prenom" required>
+              </div>
             </div>
             <div class="form-row">
-              <div class="form-group"><label>Email *</label><input type="email" [(ngModel)]="editUtilisateur.email" name="email" required></div>
-              <div class="form-group"><label>Téléphone</label><input type="tel" [(ngModel)]="editUtilisateur.telephone" name="telephone"></div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" [(ngModel)]="editUtilisateur.email" name="email" required>
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" [(ngModel)]="editUtilisateur.telephone" name="telephone">
+              </div>
             </div>
             <div class="form-group">
               <label>Adresse</label>
@@ -104,72 +101,67 @@
           </form>
         </div>
 
-        <!-- BARRE DE RECHERCHE -->
-        <div class="oh-search-bar" *ngIf="!showEditForm">
-          <div class="search-container">
-            <i class="bi bi-search search-icon"></i>
-            <input
-              type="text"
-              class="search-input"
-              placeholder="Rechercher par nom, prénom, email ou téléphone..."
-              [(ngModel)]="searchTerm"
-              (input)="onSearchChange()">
-            <button *ngIf="searchTerm" class="search-clear-btn" (click)="clearSearch()">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- FILTRES PAR RÔLE -->
-        <div class="oh-role-filters" *ngIf="!showEditForm">
-          <div class="role-filters-container">
-            <div class="role-filters-label">
-              <i class="bi bi-funnel-fill"></i>
-              <span>Filtrer par rôle :</span>
-            </div>
-            <div class="role-filters-buttons">
-              <button *ngFor="let role of filterRoles"
-                      class="role-filter-btn"
-                      [class.active]="selectedRole === role.value"
-                      (click)="changeRoleFilter(role.value)">
-                <i [class]="'bi ' + role.icon"></i>
-                <span>{{ role.label }}</span>
+        <!-- SEARCH BAR -->
+        <div class="oh-card__body" *ngIf="!showEditForm">
+          <div class="oh-search-bar">
+            <div class="search-container">
+              <i class="bi bi-search search-icon"></i>
+              <input
+                type="text"
+                class="search-input"
+                placeholder="Rechercher par nom, prénom, email ou téléphone..."
+                [(ngModel)]="searchTerm"
+                (input)="onSearchChange()">
+              <button *ngIf="searchTerm" class="search-clear-btn" (click)="clearSearch()">
+                <i class="bi bi-x-lg"></i>
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- TABS -->
-        <div class="oh-tabs" *ngIf="!showEditForm">
-          <div class="tab" [class.active]="activeTab === 'actifs'" (click)="changeTab('actifs')">
-            <i class="bi bi-check-circle-fill"></i> Actifs
-            <span class="badge">{{ utilisateursActifs.length }}</span>
+          <!-- ROLE FILTERS (including RESPONSABLE_PRESSOIR) -->
+          <div class="oh-role-filters">
+            <div class="role-filters-container">
+              <div class="role-filters-label">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Filtrer par rôle :</span>
+              </div>
+              <div class="role-filters-buttons">
+                <button *ngFor="let role of filterRoles"
+                        class="role-filter-btn"
+                        [class.active]="selectedRole === role.value"
+                        (click)="changeRoleFilter(role.value)">
+                  <i [class]="'bi ' + role.icon"></i>
+                  <span>{{ role.label }}</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="tab" [class.active]="activeTab === 'desactives'" (click)="changeTab('desactives')">
-            <i class="bi bi-slash-circle"></i> Désactivés
-            <span class="badge">{{ utilisateursDesactives.length }}</span>
-          </div>
-          <div class="tab" [class.active]="activeTab === 'tous'" (click)="changeTab('tous')">
-            <i class="bi bi-people-fill"></i> Tous
-            <span class="badge">{{ utilisateurs.length }}</span>
-          </div>
-        </div>
 
-        <!-- LIST -->
-        <div class="oh-card__body">
-          <div *ngIf="!isLoading && filteredUtilisateurs.length > 0 && !showEditForm" class="oh-grid">
+          <!-- TABS -->
+          <div class="oh-tabs">
+            <div class="tab" [class.active]="activeTab === 'actifs'" (click)="changeTab('actifs')">
+              <i class="bi bi-check-circle-fill"></i> Actifs
+              <span class="badge">{{ utilisateursActifs.length }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab === 'desactives'" (click)="changeTab('desactives')">
+              <i class="bi bi-slash-circle"></i> Désactivés
+              <span class="badge">{{ utilisateursDesactives.length }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab === 'tous'" (click)="changeTab('tous')">
+              <i class="bi bi-people-fill"></i> Tous
+              <span class="badge">{{ utilisateurs.length }}</span>
+            </div>
+          </div>
+
+          <!-- USER GRID -->
+          <div *ngIf="!isLoading && filteredUtilisateurs.length > 0" class="oh-grid">
             <div *ngFor="let u of filteredUtilisateurs; let i = index"
                  class="oh-worker"
                  [style.animation-delay]="(i * 0.06) + 's'">
 
               <div class="oh-worker__top">
-
-                <!-- Avatar: photo if available, else gradient initials -->
                 <div class="oh-avatar" [style.background]="u.photoProfile ? 'transparent' : getAvatarColor(u.role)">
-                  <img *ngIf="u.photoProfile"
-                       [src]="u.photoProfile"
-                       alt="Photo de {{ u.prenom }}"
-                       class="oh-avatar__photo">
+                  <img *ngIf="u.photoProfile" [src]="u.photoProfile" alt="Photo" class="oh-avatar__photo">
                   <span *ngIf="!u.photoProfile" class="oh-avatar__initials">
                     {{ (u.prenom || '').charAt(0) }}{{ (u.nom || '').charAt(0) }}
                   </span>
@@ -179,7 +171,7 @@
                   <strong class="oh-worker__name">{{ u.nom }} {{ u.prenom }}</strong>
                   <span class="oh-worker__role">
                     <i [class]="'bi ' + getRoleIcon(u.role)"></i>
-                    {{ u.role }}
+                    {{ getRoleLabel(u.role) }}
                   </span>
                 </div>
 
@@ -207,40 +199,24 @@
               </div>
 
               <div class="oh-worker__actions">
-                <button (click)="router.navigate(['/utilisateurs/modifier', u.id])">
-                  <i class="bi bi-pencil-fill"></i>
-                  Modifier
+                <button class="oh-action-btn oh-action-btn--edit" (click)="goToModifierUtilisateur(u.id)">
+                  <i class="bi bi-pencil-fill"></i> Modifier
                 </button>
-                 <!-- NOUVEAU: Bouton Supprimer -->
-  <button class="oh-action-btn oh-action-btn--delete"
-          (click)="supprimerUtilisateur(u.id)"
-          title="Supprimer définitivement">
-    <i class="bi bi-trash-fill"></i>
-    Supprimer
-  </button>
-
-                <button *ngIf="u.compteActif"
-                        class="oh-action-btn oh-action-btn--desactiver"
-                        (click)="desactiverCompte(u.id!)"
-                        title="Désactiver le compte">
-                  <i class="bi bi-lock-fill"></i>
-                  Désactiver
+                <button class="oh-action-btn oh-action-btn--delete" (click)="supprimerUtilisateur(u.id)" title="Supprimer">
+                  <i class="bi bi-trash-fill"></i> Supprimer
                 </button>
-
-                <button *ngIf="!u.compteActif"
-                  class="oh-action-btn oh-action-btn--reactiver"
-                  (click)="reactiverCompte(u.id!)"
-                  title="Réactiver le compte">
-                  <i class="bi bi-unlock-fill"></i>
-                  Réactiver
+                <button *ngIf="u.compteActif" class="oh-action-btn oh-action-btn--desactiver" (click)="desactiverCompte(u.id!)" title="Désactiver">
+                  <i class="bi bi-lock-fill"></i> Désactiver
                 </button>
-
+                <button *ngIf="!u.compteActif" class="oh-action-btn oh-action-btn--reactiver" (click)="reactiverCompte(u.id!)" title="Réactiver">
+                  <i class="bi bi-unlock-fill"></i> Réactiver
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Loading -->
-          <div *ngIf="isLoading && !showEditForm" class="oh-state oh-state--loading">
+          <div *ngIf="isLoading" class="oh-state oh-state--loading">
             <div class="oh-spinner">
               <div class="oh-spinner__ring oh-spinner__ring--outer"></div>
               <div class="oh-spinner__ring oh-spinner__ring--inner"></div>
@@ -249,17 +225,24 @@
           </div>
 
           <!-- Empty -->
-          <div *ngIf="!isLoading && filteredUtilisateurs.length === 0 && !showEditForm" class="oh-state">
+          <div *ngIf="!isLoading && filteredUtilisateurs.length === 0" class="oh-state">
             <i class="bi bi-people" style="font-size: 3.5rem; color: #A8B84B; opacity: 0.6;"></i>
             <p class="oh-state__title">Aucun utilisateur trouvé</p>
             <p class="oh-state__desc" *ngIf="searchTerm">Aucun résultat pour "{{ searchTerm }}"</p>
-            <p class="oh-state__desc" *ngIf="!searchTerm && selectedRole !== 'tous'">Aucun utilisateur avec le rôle "{{ getRoleLabel(selectedRole) }}"</p>
+            <p class="oh-state__desc" *ngIf="!searchTerm && selectedRole !== 'tous'">Aucun utilisateur avec le rôle sélectionné</p>
             <p class="oh-state__desc" *ngIf="!searchTerm && selectedRole === 'tous'">Commencez par ajouter un nouvel utilisateur.</p>
           </div>
 
-          <div *ngIf="errorMessage && !showEditForm" class="oh-error">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
             <span>{{ errorMessage }}</span>
+          </div>
+
+          <!-- Success Message -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{{ successMessage }}</span>
           </div>
         </div>
       </div>
