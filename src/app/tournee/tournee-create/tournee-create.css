@@ -393,6 +393,18 @@
   font-weight: 600;
 }
 
+.info-value--responsable {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  text-align: right;
+}
+
+.info-value--responsable i {
+  color: #A8B84B;
+}
+
 /* Status Badges */
 .status-badge {
   display: inline-block;

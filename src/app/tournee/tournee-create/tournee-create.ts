@@ -137,6 +137,26 @@ export class TourneeCreateComponent implements OnInit {
     return worker?.specialites || [];
   }
 
+  getVergerResponsableLabel(verger: any): string {
+    if (!verger) return 'Non assigne';
+
+    const nestedName = `${verger.responsable?.prenom || ''} ${verger.responsable?.nom || ''}`.trim();
+    const responsableName = verger.responsableNom || verger.responsableName || nestedName;
+    const responsableEmail = verger.responsableEmail || verger.responsable?.email;
+    const responsableFonction = verger.responsableFonction || verger.responsable?.fonction;
+
+    if (!responsableName && !responsableEmail && !responsableFonction) {
+      return 'Non assigne';
+    }
+
+    return [responsableName, responsableFonction, responsableEmail].filter(Boolean).join(' - ');
+  }
+
+  getVergerOptionLabel(verger: any): string {
+    const responsable = this.getVergerResponsableLabel(verger);
+    return `${verger.typeOlive} - ${verger.superficie} ha (${verger.nbArbre} arbres) - Responsable: ${responsable}`;
+  }
+
   addTravailleur(): void {
     if (!this.selectedTravailleurId) return;
     

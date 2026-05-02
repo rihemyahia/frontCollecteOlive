@@ -55,7 +55,7 @@
                 <select [(ngModel)]="formData.vergerId" name="vergerId" required (change)="onVergerChange($event)" class="form-control">
                   <option value="">Sélectionnez un verger</option>
                   <option *ngFor="let v of vergers" [value]="v.id">
-                    {{ v.typeOlive }} - {{ v.superficie }} ha ({{ v.nbArbre }} arbres)
+                    {{ getVergerOptionLabel(v) }}
                   </option>
                 </select>
               </div>
@@ -76,6 +76,13 @@
                     <div class="info-row">
                       <span class="info-label">Agriculteur</span>
                       <span class="info-value">{{ selectedVerger.agriculteurNom || 'Non assigné' }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Responsable</span>
+                      <span class="info-value info-value--responsable">
+                        <i class="bi bi-person-badge-fill"></i>
+                        {{ getVergerResponsableLabel(selectedVerger) }}
+                      </span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Superficie</span>
