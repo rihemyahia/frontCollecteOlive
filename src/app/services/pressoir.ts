@@ -70,6 +70,7 @@ export interface PressoirProfile {
   telephone?: string;
   adresse?: string;
   disponible: boolean;
+  photoProfile?: string;  // ← ADD THIS LINE
   pressoir?: {
     id?: string;
     nom?: string;

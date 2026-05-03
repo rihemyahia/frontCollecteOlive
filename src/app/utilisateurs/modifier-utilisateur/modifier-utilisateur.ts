@@ -16,7 +16,6 @@ import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsabl
 })
 export class ModifierUtilisateur implements OnInit {
 
-  // Sidebar properties
   isSidebarCollapsed = false;
   isMobile = false;
   userRole = '';
@@ -38,6 +37,9 @@ export class ModifierUtilisateur implements OnInit {
   errorMessage = '';
   successMessage = '';
   id: string = '';
+  
+  // Phone validation error
+  phoneError = '';
 
   showPasswordForm = false;
   passwordData = {
@@ -46,22 +48,22 @@ export class ModifierUtilisateur implements OnInit {
   };
   isChangingPassword = false;
 
-  // ========== TRANSPORTEUR: TOURNEES ASSIGNMENT ==========
+  // Roles with RESPONSABLE_PRESSOIR
+  roles = ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR', 'TRANSPORTEUR', 'RESPONSABLE_PRESSOIR'];
+
+  // Tournees assignment properties
   showTourneesPanel = false;
   isLoadingTournees = false;
   isSavingTournees = false;
   availableTournees: any[] = [];
   assignedTournees: any[] = [];
   selectedAvailableTourneeIds: Set<string> = new Set();
-  /** Créneau livraison estimé (optionnel), par id tournée — permet plusieurs livraisons le même jour. */
   deliveryEstimates: Record<string, { debut: string; fin: string; notes: string }> = {};
   availableSearch = '';
   assignedSearch = '';
   availablePage = 1;
   assignedPage = 1;
   readonly tourneesPageSize = 10;
-
-  roles = ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRAVAILLEUR', 'TRANSPORTEUR'];
 
   constructor(
     private route: ActivatedRoute,
@@ -76,8 +78,6 @@ export class ModifierUtilisateur implements OnInit {
 
     this.route.params.subscribe(params => {
       this.id = params['id'];
-      console.log('ID from route:', this.id);
-
       if (this.id && this.id !== 'undefined') {
         this.loadUtilisateur();
       } else {
@@ -86,6 +86,54 @@ export class ModifierUtilisateur implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ==================== TUNISIAN PHONE NUMBER VALIDATION ====================
+  
+  validateTunisianPhoneNumber(phone: string): boolean {
+    if (!phone) return true;
+    const cleaned = phone.replace(/[\s\-\.]/g, '');
+    const localPattern = /^[24579][0-9]{7}$/;
+    const internationalPattern = /^\+216[24579][0-9]{7}$/;
+    const doubleZeroPattern = /^00216[24579][0-9]{7}$/;
+    
+    if (localPattern.test(cleaned)) return true;
+    if (internationalPattern.test(cleaned)) return true;
+    if (doubleZeroPattern.test(cleaned)) return true;
+    return false;
+  }
+  
+  formatTunisianPhoneNumber(phone: string): string {
+    if (!phone) return phone;
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 8) {
+      return `${digits.substring(0, 2)} ${digits.substring(2, 5)} ${digits.substring(5, 8)}`;
+    }
+    if (digits.length === 11 && digits.startsWith('216')) {
+      const localDigits = digits.substring(3);
+      if (localDigits.length === 8) {
+        return `+216 ${localDigits.substring(0, 2)} ${localDigits.substring(2, 5)} ${localDigits.substring(5, 8)}`;
+      }
+    }
+    if (digits.length === 12 && digits.startsWith('00216')) {
+      const localDigits = digits.substring(5);
+      if (localDigits.length === 8) {
+        return `+216 ${localDigits.substring(0, 2)} ${localDigits.substring(2, 5)} ${localDigits.substring(5, 8)}`;
+      }
+    }
+    return phone;
+  }
+
+  validatePhone(): void {
+    const phone = this.utilisateur.telephone;
+    if (phone && !this.validateTunisianPhoneNumber(phone)) {
+      this.phoneError = 'Numéro de téléphone tunisien invalide. Formats acceptés: 12345678, 12 345 678, +216 12 345 678';
+    } else {
+      this.phoneError = '';
+      if (phone && this.validateTunisianPhoneNumber(phone)) {
+        this.utilisateur.telephone = this.formatTunisianPhoneNumber(phone);
+      }
+    }
   }
 
   @HostListener('window:resize')
@@ -114,7 +162,6 @@ export class ModifierUtilisateur implements OnInit {
 
     this.utilisateurService.getById(this.id).subscribe({
       next: (data) => {
-        console.log('✅ User loaded successfully:', data);
         this.utilisateur = { ...this.utilisateur, ...data };
         if ((this.utilisateur.role || '').toUpperCase() === 'TRANSPORTEUR') {
           this.showTourneesPanel = true;
@@ -126,125 +173,115 @@ export class ModifierUtilisateur implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('❌ Error loading user:', err);
         this.errorMessage = 'Erreur lors du chargement: ' + (err.error?.message || err.message || 'Erreur inconnue');
         this.isLoading = false;
         this.cdr.detectChanges();
       }
     });
   }
-onSubmit(): void {
-  if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
-    this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
-    this.cdr.detectChanges();
-    return;
-  }
 
-  this.isSaving = true;
-  this.errorMessage = '';
-  this.successMessage = '';
-
-  // 1. D'abord, mettre à jour les informations de l'utilisateur
-  this.utilisateurService.update(this.id, this.utilisateur).subscribe({
-    next: () => {
-      // 2. Si un nouveau mot de passe a été saisi, le changer aussi
-      if (this.passwordData.nouveauMotDePasse && this.passwordData.nouveauMotDePasse.trim() !== '') {
-        // Vérifier que les mots de passe correspondent
-        if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
-          this.errorMessage = 'Les mots de passe ne correspondent pas';
-          this.isSaving = false;
-          this.cdr.detectChanges();
-          return;
-        }
-        if (this.passwordData.nouveauMotDePasse.length < 6) {
-          this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
-          this.isSaving = false;
-          this.cdr.detectChanges();
-          return;
-        }
-
-        // Changer le mot de passe
-        this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
-          .subscribe({
-            next: () => {
-              this.successMessage = 'Utilisateur et mot de passe modifiés avec succès !';
-              this.isSaving = false;
-              this.showPasswordForm = false;
-              this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
-              this.cdr.detectChanges();
-              setTimeout(() => {
-                this.router.navigate(['/utilisateurs']);
-              }, 1500);
-            },
-            error: (err) => {
-              this.errorMessage = 'Erreur lors du changement de mot de passe: ' + (err.error?.message || 'Erreur inconnue');
-              this.isSaving = false;
-              this.cdr.detectChanges();
-            }
-          });
-      } else {
-        this.successMessage = 'Utilisateur modifié avec succès !';
-        this.isSaving = false;
-        this.cdr.detectChanges();
-        setTimeout(() => {
-          this.router.navigate(['/utilisateurs']);
-        }, 1500);
-      }
-    },
-    error: (err) => {
-      this.errorMessage = err.error?.message || 'Erreur lors de la modification';
-      this.isSaving = false;
-      this.cdr.detectChanges();
+  onSubmit(): void {
+    // Validate phone number
+    this.validatePhone();
+    
+    if (this.phoneError) {
+      this.errorMessage = 'Veuillez corriger l\'erreur de numéro de téléphone avant d\'enregistrer.';
+      return;
     }
-  });
-}
-changePassword(): void {
-  console.log('🔑=== DÉBUT changePassword() ===');
-  console.log('📝 ID utilisateur:', this.id);
-  console.log('📝 Nouveau mot de passe:', this.passwordData.nouveauMotDePasse);
-  console.log('📝 Confirmation:', this.passwordData.confirmMotDePasse);
+    
+    if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
+      this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      this.cdr.detectChanges();
+      return;
+    }
 
-  if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
-    console.log('❌ Erreur: mots de passe non correspondants');
-    this.errorMessage = 'Les mots de passe ne correspondent pas';
-    this.cdr.detectChanges();
-    return;
-  }
-  if (this.passwordData.nouveauMotDePasse.length < 6) {
-    console.log('❌ Erreur: mot de passe trop court');
-    this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
-    this.cdr.detectChanges();
-    return;
-  }
+    this.isSaving = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  this.isChangingPassword = true;
-  this.errorMessage = '';
+    this.utilisateurService.update(this.id, this.utilisateur).subscribe({
+      next: () => {
+        if (this.passwordData.nouveauMotDePasse && this.passwordData.nouveauMotDePasse.trim() !== '') {
+          if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
+            this.errorMessage = 'Les mots de passe ne correspondent pas';
+            this.isSaving = false;
+            this.cdr.detectChanges();
+            return;
+          }
+          if (this.passwordData.nouveauMotDePasse.length < 6) {
+            this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+            this.isSaving = false;
+            this.cdr.detectChanges();
+            return;
+          }
 
-  console.log('📤 Appel du service changerMotDePasseAdmin...');
-  console.log('🔗 URL appelée:', `${this.utilisateurService['apiUrl']}/admin/changer-mot-de-passe/${this.id}`);
-
-  this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
-    .subscribe({
-      next: (response) => {
-        console.log('✅ Succès! Réponse:', response);
-        this.successMessage = 'Mot de passe changé avec succès !';
-        this.isChangingPassword = false;
-        this.showPasswordForm = false;
-        this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
-        this.cdr.detectChanges();
-        setTimeout(() => this.successMessage = '', 3000);
+          this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
+            .subscribe({
+              next: () => {
+                this.successMessage = 'Utilisateur et mot de passe modifiés avec succès !';
+                this.isSaving = false;
+                this.showPasswordForm = false;
+                this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
+                this.cdr.detectChanges();
+                setTimeout(() => {
+                  this.router.navigate(['/utilisateurs']);
+                }, 1500);
+              },
+              error: (err) => {
+                this.errorMessage = 'Erreur lors du changement de mot de passe: ' + (err.error?.message || 'Erreur inconnue');
+                this.isSaving = false;
+                this.cdr.detectChanges();
+              }
+            });
+        } else {
+          this.successMessage = 'Utilisateur modifié avec succès !';
+          this.isSaving = false;
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.router.navigate(['/utilisateurs']);
+          }, 1500);
+        }
       },
       error: (err) => {
-        console.error('❌ Erreur complète:', err);
-        console.error('❌ Statut:', err.status);
-        console.error('❌ Message:', err.message);
-        console.error('❌ Corps erreur:', err.error);
-        this.errorMessage = err.error?.message || err.error?.error || 'Erreur lors du changement de mot de passe';
-        this.isChangingPassword = false;
+        this.errorMessage = err.error?.message || 'Erreur lors de la modification';
+        this.isSaving = false;
         this.cdr.detectChanges();
       }
     });
-}
+  }
+
+  changePassword(): void {
+    if (this.passwordData.nouveauMotDePasse !== this.passwordData.confirmMotDePasse) {
+      this.errorMessage = 'Les mots de passe ne correspondent pas';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (this.passwordData.nouveauMotDePasse.length < 6) {
+      this.errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isChangingPassword = true;
+    this.errorMessage = '';
+
+    this.utilisateurService.changerMotDePasseAdmin(this.id, this.passwordData.nouveauMotDePasse)
+      .subscribe({
+        next: (response) => {
+          this.successMessage = 'Mot de passe changé avec succès !';
+          this.isChangingPassword = false;
+          this.showPasswordForm = false;
+          this.passwordData = { nouveauMotDePasse: '', confirmMotDePasse: '' };
+          this.cdr.detectChanges();
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.message || err.error?.error || 'Erreur lors du changement de mot de passe';
+          this.isChangingPassword = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
 
   cancelPasswordChange(): void {
     this.showPasswordForm = false;
@@ -259,7 +296,6 @@ changePassword(): void {
 
   // ==================== TRANSPORTEUR TOURNEES UI ====================
 
-  /** Met en tête PLANIFIEE / EN_COURS pour l’assignation ; puis TERMINEE (prêtes pour livraison). */
   private sortDisponiblesForAdmin(list: any[]): any[] {
     const rank: Record<string, number> = { PLANIFIEE: 0, EN_COURS: 1, TERMINEE: 2 };
     return [...list].sort((a, b) => {
@@ -274,10 +310,6 @@ changePassword(): void {
     });
   }
 
-  /**
-   * L’API pagine (page/size). Une seule page (ex. 20) montrait surtout d’anciennes TERMINEE
-   * triées par date, masquant PLANIFIEE / EN_COURS sur les pages suivantes.
-   */
   private loadAllTourneesDisponiblesAdmin(): Observable<any[]> {
     const pageSize = 100;
     return this.utilisateurService.getAvailableTourneesForTransporteurAdmin(0, pageSize, 0).pipe(
@@ -313,7 +345,6 @@ changePassword(): void {
     this.isLoadingTournees = true;
     this.errorMessage = '';
     this.selectedAvailableTourneeIds.clear();
-    // Failsafe: never keep spinner forever if one request hangs.
     const loadingGuard = setTimeout(() => {
       if (this.isLoadingTournees) {
         this.isLoadingTournees = false;
@@ -351,8 +382,7 @@ changePassword(): void {
         clearTimeout(loadingGuard);
         this.availableTournees = [];
         this.assignedTournees = [];
-        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement des tournées (disponibles ou assignées)';
-        console.error('[FRONTEND ERROR] refreshTourneesPanels:', err);
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur chargement des tournées';
         this.cdr.detectChanges();
       }
     });
@@ -415,7 +445,6 @@ changePassword(): void {
     return ids.every((id: string) => this.selectedAvailableTourneeIds.has(id));
   }
 
-  // ======= Conflict helpers ========
   private asDate(d: any): Date | null {
     if (!d) return null;
     const date = new Date(d);
@@ -431,7 +460,6 @@ changePassword(): void {
     return A1 < B2 && B1 < A2;
   }
 
-  /** Fenêtre utilisée pour conflit livraison transporteur (créneau estimé si renseigné, sinon période tournée). */
   private deliveryWindowStart(t: any): Date | null {
     const le = this.asDate(t?.livraisonEstimeDebut);
     const lf = this.asDate(t?.livraisonEstimeFin);
@@ -473,7 +501,6 @@ changePassword(): void {
     return (statut ?? '').toString().trim().toUpperCase();
   }
 
-  /** Statuts interdits uniquement pour une tournée qu’on ajoute depuis « disponibles » (pas pour celles déjà assignées). */
   private buildNewSelectionStatutError(newIds: string[]): string | null {
     const blocked = new Set(['EN_LIVRAISON', 'LIVREE', 'ANNULEE']);
     const allTournees = [...this.availableTournees, ...this.assignedTournees];
@@ -499,7 +526,6 @@ changePassword(): void {
     return 'Impossible d’assigner la sélection :\n' + lines.join('\n');
   }
 
-  /** Créneau saisi > créneau déjà enregistré > période de collecte — pour détection locale des chevauchements. */
   private resolveLivraisonWindowForPayload(pid: string): { start: Date; end: Date } | null {
     const est = this.deliveryEstimates[pid];
     if (est?.debut?.trim() && est?.fin?.trim()) {
@@ -567,12 +593,10 @@ changePassword(): void {
     return false;
   }
 
-  /** True if the transporteur has at least one tour in active delivery (for KPI / hints only). */
   transporteurHasActiveDelivery(): boolean {
     return (this.assignedTournees || []).some(a => (a?.statut || '').toString().toUpperCase() === 'EN_LIVRAISON');
   }
 
-  /** Block unassigning while a delivery is in progress for that tour. */
   canRemoveAssignedTournee(t: any): boolean {
     const s = (t?.statut || '').toString().toUpperCase();
     return s !== 'EN_LIVRAISON';
@@ -595,7 +619,6 @@ changePassword(): void {
     this.successMessage = '';
     this.errorMessage = '';
 
-    // Merge: keep already assigned + newly selected
     const existingIds = new Set(this.assignedTournees.map(t => t?.id || t?._id).filter(Boolean));
     ids.forEach(x => existingIds.add(x));
     const payload = Array.from(existingIds);
@@ -611,7 +634,7 @@ changePassword(): void {
     for (const pid of ids) {
       const est = this.deliveryEstimates[pid];
       if (!est?.debut?.trim() || !est?.fin?.trim()) {
-        this.errorMessage = 'Chaque tournée nouvellement sélectionnée doit avoir un créneau de livraison (début et fin). Ces horaires servent à détecter les chevauchements pour le transporteur.';
+        this.errorMessage = 'Chaque tournée nouvellement sélectionnée doit avoir un créneau de livraison (début et fin).';
         this.isSavingTournees = false;
         this.cdr.detectChanges();
         return;
@@ -619,7 +642,7 @@ changePassword(): void {
       const d0 = new Date(est.debut);
       const d1 = new Date(est.fin);
       if (isNaN(d0.getTime()) || isNaN(d1.getTime()) || d1 <= d0) {
-        this.errorMessage = 'Créneau de livraison invalide : la fin doit être après le début pour chaque tournée sélectionnée.';
+        this.errorMessage = 'Créneau de livraison invalide : la fin doit être après le début.';
         this.isSavingTournees = false;
         this.cdr.detectChanges();
         return;
@@ -633,9 +656,6 @@ changePassword(): void {
       this.cdr.detectChanges();
       return;
     }
-    
-    console.log('[DEBUG] Selected IDs for assignment:', ids);
-    console.log('[DEBUG] Final payload:', payload);
 
     const livraisonEstimations = payload
       .map((pid: string) => {
@@ -662,7 +682,6 @@ changePassword(): void {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('[DEBUG] Backend assignment error:', err);
         this.isSavingTournees = false;
         this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors de l’assignation';
         this.cdr.detectChanges();
@@ -675,7 +694,7 @@ changePassword(): void {
     const removeId = t?.id || t?._id;
     if (!removeId) return;
     if (!this.canRemoveAssignedTournee(t)) {
-      this.errorMessage = 'Impossible de retirer une tournée pendant la livraison. Terminez la livraison côté transporteur d’abord.';
+      this.errorMessage = 'Impossible de retirer une tournée pendant la livraison.';
       this.cdr.detectChanges();
       return;
     }
@@ -710,7 +729,6 @@ changePassword(): void {
     return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
-  /** Affichage créneau livraison estimé (tournée déjà assignée). */
   formatLivraisonEstimee(t: any): string {
     const d0 = t?.livraisonEstimeDebut;
     const d1 = t?.livraisonEstimeFin;

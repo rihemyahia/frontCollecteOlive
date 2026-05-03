@@ -42,31 +42,6 @@
         <!-- ===== BODY ===== -->
         <div class="oh-card__body">
 
-          <!-- Stats cards -->
-          <div class="stats-grid" *ngIf="!isLoading">
-            <div class="stat-card">
-              <div class="stat-icon">📦</div>
-              <div class="stat-info">
-                <span class="stat-value">{{ countEnAttente }}</span>
-                <span class="stat-label">À livrer</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">🚚</div>
-              <div class="stat-info">
-                <span class="stat-value">{{ countEnLivraison }}</span>
-                <span class="stat-label">En livraison</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">✅</div>
-              <div class="stat-info">
-                <span class="stat-value">{{ countLivrees }}</span>
-                <span class="stat-label">Livrées</span>
-              </div>
-            </div>
-          </div>
-
           <!-- ── Search & Filters ── -->
           <div class="oh-search-filters" *ngIf="!isLoading && tournees.length > 0">
             <div class="oh-search-bar">

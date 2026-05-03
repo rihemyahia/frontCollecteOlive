@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { AfterViewInit, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
 import { CollecteHuile, PressoirService } from '../../services/pressoir';
@@ -11,15 +11,20 @@ import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsabl
   templateUrl: './collectes-huile.html',
   styleUrls: ['../pressoir.css']
 })
-export class PressoirCollectesHuileComponent implements OnInit {
+export class PressoirCollectesHuileComponent implements OnInit, AfterViewInit {
   isSidebarCollapsed = false;
   userRole = 'RESPONSABLE_PRESSOIR';
   isLoading = false;
   errorMessage = '';
   collectes: CollecteHuile[] = [];
   expandedIds = new Set<string>();
+  private wasMobile = false;
 
-  constructor(private pressoirService: PressoirService, private authService: AuthService) {}
+  constructor(
+    private pressoirService: PressoirService,
+    private authService: AuthService,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole() || 'RESPONSABLE_PRESSOIR';
@@ -27,13 +32,26 @@ export class PressoirCollectesHuileComponent implements OnInit {
     this.checkMobile();
   }
 
-  @HostListener('window:resize')
-  checkMobile(): void {
-    if (window.innerWidth < 768) this.isSidebarCollapsed = true;
+  ngAfterViewInit(): void {
+    this.refreshLayout();
   }
 
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  @HostListener('window:resize')
+  checkMobile(): void {
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      this.isSidebarCollapsed = true;
+    } else if (this.wasMobile) {
+      this.isSidebarCollapsed = false;
+    }
+
+    this.wasMobile = isMobile;
+  }
+
+  toggleSidebar(collapsed?: boolean): void {
+    this.isSidebarCollapsed = typeof collapsed === 'boolean' ? collapsed : !this.isSidebarCollapsed;
+    this.refreshLayout();
   }
 
   loadCollectes(): void {
@@ -43,6 +61,7 @@ export class PressoirCollectesHuileComponent implements OnInit {
       next: data => {
         this.collectes = data || [];
         this.isLoading = false;
+        this.refreshLayout();
       },
       error: err => {
         this.errorMessage = err?.error?.error || err?.error?.message || 'Erreur lors du chargement des collectes huile';
@@ -53,6 +72,7 @@ export class PressoirCollectesHuileComponent implements OnInit {
 
   toggleExpanded(id: string): void {
     this.expandedIds.has(id) ? this.expandedIds.delete(id) : this.expandedIds.add(id);
+    this.refreshLayout();
   }
 
   isExpanded(id: string): boolean {
@@ -65,5 +85,13 @@ export class PressoirCollectesHuileComponent implements OnInit {
 
   maxOil(): number {
     return Math.max(...this.collectes.map(c => c.totalHuileExtraiteL || 0), 1);
+  }
+
+  private refreshLayout(): void {
+    if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return;
+
+    this.ngZone.runOutsideAngular(() => {
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    });
   }
 }

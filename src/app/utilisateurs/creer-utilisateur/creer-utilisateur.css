@@ -550,3 +550,26 @@
     transform: rotate(360deg);
   }
 }
+/* Field error styles */
+.field-error {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #F8D7DA;
+  border-left: 3px solid #8A2A1A;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #721C24;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-error i {
+  font-size: 0.85rem;
+}
+
+.hint-text {
+  font-size: 0.7rem;
+  color: #7A6845;
+  margin-top: 0.25rem;
+}

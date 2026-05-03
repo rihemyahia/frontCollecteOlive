@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { AfterViewInit, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
@@ -12,7 +12,7 @@ import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsabl
   templateUrl: './extractions.html',
   styleUrls: ['../pressoir.css']
 })
-export class PressoirExtractionsComponent implements OnInit {
+export class PressoirExtractionsComponent implements OnInit, AfterViewInit {
   isSidebarCollapsed = false;
   userRole = 'RESPONSABLE_PRESSOIR';
   isLoading = false;
@@ -24,8 +24,13 @@ export class PressoirExtractionsComponent implements OnInit {
   selectedExtraction: ExtractionHuile | null = null;
   qualites: QualiteHuile[] = ['EXTRA_VIERGE', 'VIERGE', 'COURANTE', 'LAMPANTE'];
   extractionForm = { quantiteHuileExtraiteL: null as number | null, qualiteHuile: 'EXTRA_VIERGE' as QualiteHuile, observations: '' };
+  private wasMobile = false;
 
-  constructor(private pressoirService: PressoirService, private authService: AuthService) {}
+  constructor(
+    private pressoirService: PressoirService,
+    private authService: AuthService,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit(): void {
     this.userRole = this.authService.getUserRole() || 'RESPONSABLE_PRESSOIR';
@@ -33,13 +38,26 @@ export class PressoirExtractionsComponent implements OnInit {
     this.checkMobile();
   }
 
-  @HostListener('window:resize')
-  checkMobile(): void {
-    if (window.innerWidth < 768) this.isSidebarCollapsed = true;
+  ngAfterViewInit(): void {
+    this.refreshLayout();
   }
 
-  toggleSidebar(): void {
-    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  @HostListener('window:resize')
+  checkMobile(): void {
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      this.isSidebarCollapsed = true;
+    } else if (this.wasMobile) {
+      this.isSidebarCollapsed = false;
+    }
+
+    this.wasMobile = isMobile;
+  }
+
+  toggleSidebar(collapsed?: boolean): void {
+    this.isSidebarCollapsed = typeof collapsed === 'boolean' ? collapsed : !this.isSidebarCollapsed;
+    this.refreshLayout();
   }
 
   loadExtractions(): void {
@@ -49,6 +67,7 @@ export class PressoirExtractionsComponent implements OnInit {
       next: data => {
         this.extractions = data || [];
         this.isLoading = false;
+        this.refreshLayout();
       },
       error: err => {
         this.errorMessage = this.getError(err, 'Erreur lors du chargement des extractions');
@@ -86,6 +105,7 @@ export class PressoirExtractionsComponent implements OnInit {
         this.extractions = this.extractions.map(e => e.id === updated.id ? updated : e);
         this.successMessage = 'Extraction enregistree avec succes';
         this.closeModal();
+        this.refreshLayout();
       },
       error: err => {
         this.errorMessage = this.getError(err, 'Erreur lors de l extraction');
@@ -99,6 +119,7 @@ export class PressoirExtractionsComponent implements OnInit {
       next: updated => {
         this.extractions = this.extractions.map(e => e.id === updated.id ? updated : e);
         this.successMessage = 'Extraction validee avec succes';
+        this.refreshLayout();
       },
       error: err => this.errorMessage = this.getError(err, 'Erreur lors de la validation')
     });
@@ -121,5 +142,13 @@ export class PressoirExtractionsComponent implements OnInit {
 
   private getError(err: any, fallback: string): string {
     return err?.error?.error || err?.error?.message || err?.message || fallback;
+  }
+
+  private refreshLayout(): void {
+    if (typeof window === 'undefined' || typeof requestAnimationFrame === 'undefined') return;
+
+    this.ngZone.runOutsideAngular(() => {
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    });
   }
 }

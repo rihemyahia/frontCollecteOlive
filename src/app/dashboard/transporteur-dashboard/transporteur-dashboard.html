@@ -1,3 +1,4 @@
+<!-- src/app/dashboard/transporteur-dashboard/transporteur-dashboard.html -->
 <div class="app-layout">
   <app-sidebar
     [isCollapsed]="isSidebarCollapsed()"
@@ -6,7 +7,7 @@
   </app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed()">
-    <div *ngIf="loading" class="loading-screen">
+    <div *ngIf="loading()" class="loading-screen">
       <div class="olive-loader">
         <div class="olive-leaf"></div>
         <div class="olive-dot"></div>
@@ -17,12 +18,12 @@
       <p class="loading-sub">Vos données se préparent</p>
     </div>
 
-    <div *ngIf="error && !loading" class="oh-error">
+    <div *ngIf="error() && !loading()" class="oh-error">
       <i class="bi bi-exclamation-triangle-fill"></i>
-      <span>{{ error }}</span>
+      <span>{{ error() }}</span>
     </div>
 
-    <div *ngIf="!loading" class="dashboard-wrapper">
+    <div *ngIf="!loading()" class="dashboard-wrapper">
       <div class="oh-card">
         <div class="oh-card__header">
           <div class="oh-header__inner">
@@ -41,7 +42,7 @@
                 <i class="bi bi-calendar-heart"></i>
                 <span>Saison {{ currentSeason() }}</span>
               </div>
-              <div class="user-chip">
+              <div class="user-chip" (click)="navigate('/profile')">
                 <div class="uc-avatar">{{ initials() }}</div>
                 <span>{{ displayName() }}</span>
               </div>
@@ -50,6 +51,7 @@
         </div>
 
         <div class="oh-card__body">
+          <!-- Alert Banner -->
           <div class="alert-banner" (click)="navigate('/transporteur/tournees')">
             <i class="bi bi-truck"></i>
             <div class="alert-content">
@@ -61,17 +63,18 @@
             </div>
           </div>
 
+          <!-- Hero Metrics with real data -->
           <div class="hero-metrics">
             <div class="metric-card">
               <div class="metric-card__icon" style="background: linear-gradient(135deg, #2D6A4F, #40916C)">
                 <i class="bi bi-truck-front"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value">3</div>
-                <div class="metric-label">Missions du jour</div>
+                <div class="metric-value">{{ totalMissions() }}</div>
+                <div class="metric-label">Missions totales</div>
                 <div class="metric-trend up">
                   <i class="bi bi-arrow-up"></i>
-                  <span>Prêt à partir</span>
+                  <span>{{ missionsEnCours() }} en cours</span>
                 </div>
               </div>
             </div>
@@ -81,11 +84,11 @@
                 <i class="bi bi-clock-history"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value">2</div>
-                <div class="metric-label">En attente</div>
+                <div class="metric-value">{{ missionsALivrer() }}</div>
+                <div class="metric-label">À livrer</div>
                 <div class="metric-trend up">
                   <i class="bi bi-arrow-up"></i>
-                  <span>À démarrer</span>
+                  <span>Prêtes à partir</span>
                 </div>
               </div>
             </div>
@@ -95,7 +98,7 @@
                 <i class="bi bi-truck"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value">1</div>
+                <div class="metric-value">{{ missionsEnLivraison() }}</div>
                 <div class="metric-label">En livraison</div>
                 <div class="metric-trend up">
                   <i class="bi bi-arrow-up"></i>
@@ -119,7 +122,9 @@
             </div>
           </div>
 
+          <!-- Dashboard Grid -->
           <div class="dashboard-grid">
+            <!-- Mes missions card with fixed progress bars -->
             <div class="dashboard-card">
               <div class="card-header">
                 <div class="card-title">
@@ -129,13 +134,40 @@
               </div>
               <div class="card-body">
                 <div class="stats-list">
-                  <div class="stat-item" *ngFor="let item of missionStats">
+                  <!-- À livrer - progress based on missionsALivrer / totalMissions -->
+                  <div class="stat-item">
                     <div class="stat-header">
-                      <span class="stat-name">{{ item.label }}</span>
-                      <span class="stat-count">{{ item.value }}</span>
+                      <span class="stat-name">À livrer</span>
+                      <span class="stat-count">{{ missionsALivrer() }} / {{ totalMissions() }}</span>
                     </div>
                     <div class="stat-bar">
-                      <div class="stat-fill green" [style.width.%]="100"></div>
+                      <div class="stat-fill amber" 
+                           [style.width]="percent(missionsALivrer(), totalMissions()) + '%'">
+                      </div>
+                    </div>
+                  </div>
+                  <!-- En livraison - progress based on missionsEnLivraison / totalMissions -->
+                  <div class="stat-item">
+                    <div class="stat-header">
+                      <span class="stat-name">En livraison</span>
+                      <span class="stat-count">{{ missionsEnLivraison() }} / {{ totalMissions() }}</span>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill blue" 
+                           [style.width]="percent(missionsEnLivraison(), totalMissions()) + '%'">
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Livrées - progress based on missionsLivrees / totalMissions -->
+                  <div class="stat-item">
+                    <div class="stat-header">
+                      <span class="stat-name">Livrées</span>
+                      <span class="stat-count">{{ missionsLivrees() }} / {{ totalMissions() }}</span>
+                    </div>
+                    <div class="stat-bar">
+                      <div class="stat-fill green" 
+                           [style.width]="percent(missionsLivrees(), totalMissions()) + '%'">
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -146,6 +178,7 @@
               </div>
             </div>
 
+            <!-- Météo locale card -->
             <div class="dashboard-card">
               <div class="card-header">
                 <div class="card-title">
@@ -166,6 +199,7 @@
               </div>
             </div>
 
+            <!-- Raccourcis card -->
             <div class="dashboard-card">
               <div class="card-header">
                 <div class="card-title">

@@ -1,8 +1,10 @@
+// src/app/dashboard/transporteur-dashboard/transporteur-dashboard.ts
 import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
 import { AuthService } from '../../services/auth';
+import { UtilisateurService } from '../../services/utilisateur';
 
 interface DashboardUser {
   prenom?: string;
@@ -31,31 +33,49 @@ export class TransporteurDashboardComponent implements OnInit {
 
   readonly isSidebarCollapsed = signal(false);
   readonly user = signal<DashboardUser | null>(null);
-  readonly loading = false;
-  readonly error = '';
+  readonly loading = signal(true);
+  readonly error = signal('');
+  
+  // Mission data
+  readonly tournees = signal<any[]>([]);
+  
+  readonly totalMissions = computed(() => this.tournees().length);
+  
+  readonly missionsALivrer = computed(() => {
+    return this.tournees().filter(t => t.statut === 'RECOLTEE' || t.statut === 'TERMINEE' || t.statut === 'A_LIVRER').length;
+  });
+  
+  readonly missionsEnLivraison = computed(() => {
+    return this.tournees().filter(t => t.statut === 'EN_LIVRAISON').length;
+  });
+  
+  readonly missionsLivrees = computed(() => {
+    return this.tournees().filter(t => t.statut === 'LIVREE').length;
+  });
+  
+  readonly missionsEnCours = computed(() => {
+    return this.tournees().filter(t => t.statut === 'EN_COURS').length;
+  });
+
   readonly currentSeason = computed(() => {
     const today = new Date();
     return `${this.getSeasonLabel(today)} ${today.getFullYear()}`;
   });
 
   readonly userRole = computed(() => this.user()?.role?.toUpperCase() || 'TRANSPORTEUR');
+  
   readonly displayName = computed(() => {
     const user = this.user();
     const fullName = `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim();
     return fullName || 'Transporteur';
   });
+  
   readonly initials = computed(() => {
     const user = this.user();
     const first = user?.prenom?.charAt(0) ?? 'T';
     const last = user?.nom?.charAt(0) ?? 'R';
     return `${first}${last}`.toUpperCase();
   });
-
-  readonly missionStats = [
-    { label: 'À livrer', value: '2' },
-    { label: 'En livraison', value: '1' },
-    { label: 'Livrées', value: '2' }
-  ];
 
   readonly areaValue = signal('Détection en cours...');
   readonly temperatureValue = signal('--°C');
@@ -75,29 +95,41 @@ export class TransporteurDashboardComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private utilisateurService: UtilisateurService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadUser();
+    this.loadTournees();
     this.loadLocalWeather();
+  }
+
+  percent(value: number, total: number): number {
+    if (total === 0) return 0;
+    return Math.min(100, Math.round((value / total) * 100));
+  }
+
+  private loadTournees(): void {
+    this.utilisateurService.getMesTourneesTransporteur().subscribe({
+      next: (data: any) => {
+        const tourneeArray = Array.isArray(data) ? data : (data?.tournees || data?.content || []);
+        this.tournees.set(tourneeArray);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading tournees:', err);
+        this.error.set('Erreur lors du chargement des tournées');
+        this.loading.set(false);
+      }
+    });
   }
 
   private getSeasonLabel(date: Date): string {
     const month = date.getMonth() + 1;
-
-    if (month >= 3 && month <= 5) {
-      return 'Printemps';
-    }
-
-    if (month >= 6 && month <= 8) {
-      return 'Été';
-    }
-
-    if (month >= 9 && month <= 11) {
-      return 'Automne';
-    }
-
+    if (month >= 3 && month <= 5) return 'Printemps';
+    if (month >= 6 && month <= 8) return 'Été';
+    if (month >= 9 && month <= 11) return 'Automne';
     return 'Hiver';
   }
 
@@ -162,44 +194,21 @@ export class TransporteurDashboardComponent implements OnInit {
       if (cloudCover >= 70) {
         return 'Nuageux';
       }
-
       return 'Temps sec';
     }
 
-    if (code === 0) {
-      return 'Ciel clair';
-    }
-
-    if (code >= 1 && code <= 3) {
-      return 'Partiellement nuageux';
-    }
-
-    if (code === 45 || code === 48) {
-      return 'Brouillard';
-    }
-
-    if (code >= 51 && code <= 67) {
-      return 'Pluie';
-    }
-
-    if (code >= 71 && code <= 77) {
-      return 'Neige';
-    }
-
-    if (code >= 80 && code <= 82) {
-      return 'Averses';
-    }
-
-    if (code >= 95) {
-      return 'Orage';
-    }
-
+    if (code === 0) return 'Ciel clair';
+    if (code >= 1 && code <= 3) return 'Partiellement nuageux';
+    if (code === 45 || code === 48) return 'Brouillard';
+    if (code >= 51 && code <= 67) return 'Pluie';
+    if (code >= 71 && code <= 77) return 'Neige';
+    if (code >= 80 && code <= 82) return 'Averses';
+    if (code >= 95) return 'Orage';
     return 'Variable';
   }
 
   loadUser(): void {
     const stored = localStorage.getItem('currentUser');
-
     if (stored) {
       try {
         this.user.set(JSON.parse(stored));

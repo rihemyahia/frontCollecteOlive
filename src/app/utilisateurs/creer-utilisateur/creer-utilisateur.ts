@@ -5,12 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UtilisateurService, Utilisateur } from '../../services/utilisateur';
 import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsable';
-import { VergerMapComponent } from '../../shared/verger-map/verger-map';  // ← ADD THIS
+import { VergerMapComponent } from '../../shared/verger-map/verger-map';
 
 @Component({
   selector: 'app-creer-utilisateur',
   standalone: true,
-  imports: [CommonModule, FormsModule, SideBarResponsable, VergerMapComponent],  // ← ADD VergerMapComponent
+  imports: [CommonModule, FormsModule, SideBarResponsable, VergerMapComponent],
   templateUrl: './creer-utilisateur.html',
   styleUrls: ['./creer-utilisateur.css']
 })
@@ -30,15 +30,11 @@ export class CreerUtilisateur {
     estActif: true
   };
 
-  // Champs communs
-
   // Champs transporteur
   permis: string = '';
   tarifKm: number | null = null;
   anneesExperience: number | null = null;
   disponibleTransport: boolean = true;
-
-  // Champs agriculteur
 
   // Champs travailleur
   cin: string = '';
@@ -57,9 +53,8 @@ export class CreerUtilisateur {
   pressoirLatitude: number | null = null;
   pressoirLongitude: number | null = null;
   pressoirAdresseIndicative: string = '';
-// Add these with the other pressoir properties (around line 60-70)
-pressoirHoraireDebut: string = '';
-pressoirHoraireFin: string = '';
+  pressoirHoraireDebut: string = '';
+  pressoirHoraireFin: string = '';
   specialites: string[] = ['cueillette', 'tamisage', 'secouage', 'ramassage', 'tri'];
   statuts: string[] = ['SAISONNIER', 'PERMANENT'];
 
@@ -67,6 +62,10 @@ pressoirHoraireFin: string = '';
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+  
+  // Phone validation errors
+  phoneError = '';
+  pressoirPhoneError = '';
 
   roles = [
     { value: 'ADMIN', label: 'Admin' },
@@ -85,9 +84,68 @@ pressoirHoraireFin: string = '';
     this.checkMobile();
     this.generatePassword();
 
-    // Date d'embauche par défaut = aujourd'hui
     const today = new Date().toISOString().split('T')[0];
     this.dateEmbauche = today;
+  }
+
+  // ==================== TUNISIAN PHONE NUMBER VALIDATION ====================
+  
+  validateTunisianPhoneNumber(phone: string): boolean {
+    if (!phone) return true;
+    const cleaned = phone.replace(/[\s\-\.]/g, '');
+    const localPattern = /^[24579][0-9]{7}$/;
+    const internationalPattern = /^\+216[24579][0-9]{7}$/;
+    const doubleZeroPattern = /^00216[24579][0-9]{7}$/;
+    
+    if (localPattern.test(cleaned)) return true;
+    if (internationalPattern.test(cleaned)) return true;
+    if (doubleZeroPattern.test(cleaned)) return true;
+    return false;
+  }
+  
+  formatTunisianPhoneNumber(phone: string): string {
+    if (!phone) return phone;
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 8) {
+      return `${digits.substring(0, 2)} ${digits.substring(2, 5)} ${digits.substring(5, 8)}`;
+    }
+    if (digits.length === 11 && digits.startsWith('216')) {
+      const localDigits = digits.substring(3);
+      if (localDigits.length === 8) {
+        return `+216 ${localDigits.substring(0, 2)} ${localDigits.substring(2, 5)} ${localDigits.substring(5, 8)}`;
+      }
+    }
+    if (digits.length === 12 && digits.startsWith('00216')) {
+      const localDigits = digits.substring(5);
+      if (localDigits.length === 8) {
+        return `+216 ${localDigits.substring(0, 2)} ${localDigits.substring(2, 5)} ${localDigits.substring(5, 8)}`;
+      }
+    }
+    return phone;
+  }
+
+  validatePhone(): void {
+    const phone = this.utilisateur.telephone;
+    if (phone && !this.validateTunisianPhoneNumber(phone)) {
+      this.phoneError = 'Numéro de téléphone tunisien invalide. Formats acceptés: 12345678, 12 345 678, +216 12 345 678';
+    } else {
+      this.phoneError = '';
+      if (phone && this.validateTunisianPhoneNumber(phone)) {
+        this.utilisateur.telephone = this.formatTunisianPhoneNumber(phone);
+      }
+    }
+  }
+
+  validatePressoirPhone(): void {
+    const phone = this.pressoirTelephone;
+    if (phone && !this.validateTunisianPhoneNumber(phone)) {
+      this.pressoirPhoneError = 'Numéro de téléphone tunisien invalide. Formats acceptés: 12345678, 12 345 678, +216 12 345 678';
+    } else {
+      this.pressoirPhoneError = '';
+      if (phone && this.validateTunisianPhoneNumber(phone)) {
+        this.pressoirTelephone = this.formatTunisianPhoneNumber(phone);
+      }
+    }
   }
 
   // ====================== GESTION DE LA CARTE POUR PRESSOIR ======================
@@ -96,7 +154,6 @@ pressoirHoraireFin: string = '';
     this.pressoirLongitude = event.lng;
     this.pressoirAdresseIndicative = event.address || '';
 
-    // Auto-fill the pressoir address if not already filled
     if (!this.pressoirAdresse && event.address) {
       this.pressoirAdresse = event.address;
     }
@@ -166,7 +223,6 @@ pressoirHoraireFin: string = '';
     this.utilisateur.estActif = true;
     this.utilisateur.compteActif = true;
     this.utilisateur.motDePasse = this.generatedPassword;
-    // FORCER LE RÔLE EN MAJUSCULE
     this.utilisateur.role = this.utilisateur.role.toUpperCase();
 
     switch (this.utilisateur.role) {
@@ -174,29 +230,27 @@ pressoirHoraireFin: string = '';
         this.utilisateur.datePrisePoste = new Date();
         break;
       case 'RESPONSABLE_PRESSOIR':
-  this.utilisateur.pressoir = {
-    nom: this.pressoirNom,
-    adresse: this.pressoirAdresse,
-    telephone: this.pressoirTelephone || undefined,
-    email: this.pressoirEmail || undefined,
-    capaciteJournaliere: this.pressoirCapaciteJournaliere || undefined,
-    // Option 1: Use separate debut/fin if backend has them
-    horaireDebut: this.pressoirHoraireDebut || undefined,
-    horaireFin: this.pressoirHoraireFin || undefined,
-    // Option 2: Or combine them into horaires string
-    horaires: (this.pressoirHoraireDebut && this.pressoirHoraireFin)
-      ? `${this.pressoirHoraireDebut} - ${this.pressoirHoraireFin}`
-      : undefined,
-    actif: true,
-    geolocalisation: (this.pressoirLatitude && this.pressoirLongitude) ? {
-      latitude: this.pressoirLatitude,
-      longitude: this.pressoirLongitude,
-      adresseIndicative: this.pressoirAdresseIndicative || undefined
-    } : undefined
-  };
-  this.utilisateur.disponible = true;
-  this.utilisateur.dateAffectation = new Date();
-  break;
+        this.utilisateur.pressoir = {
+          nom: this.pressoirNom,
+          adresse: this.pressoirAdresse,
+          telephone: this.pressoirTelephone || undefined,
+          email: this.pressoirEmail || undefined,
+          capaciteJournaliere: this.pressoirCapaciteJournaliere || undefined,
+          horaireDebut: this.pressoirHoraireDebut || undefined,
+          horaireFin: this.pressoirHoraireFin || undefined,
+          horaires: (this.pressoirHoraireDebut && this.pressoirHoraireFin)
+            ? `${this.pressoirHoraireDebut} - ${this.pressoirHoraireFin}`
+            : undefined,
+          actif: true,
+          geolocalisation: (this.pressoirLatitude && this.pressoirLongitude) ? {
+            latitude: this.pressoirLatitude,
+            longitude: this.pressoirLongitude,
+            adresseIndicative: this.pressoirAdresseIndicative || undefined
+          } : undefined
+        };
+        this.utilisateur.disponible = true;
+        this.utilisateur.dateAffectation = new Date();
+        break;
       case 'TRANSPORTEUR':
         this.utilisateur.permis = this.permis;
         this.utilisateur.tarifKm = this.tarifKm || undefined;
@@ -211,24 +265,6 @@ pressoirHoraireFin: string = '';
         this.utilisateur.statutEmploye = this.statutEmploye;
         this.utilisateur.collectesAssignees = [];
         break;
-
-    case 'RESPONSABLE_PRESSOIR':
-  this.utilisateur.pressoir = {
-    nom: this.pressoirNom,
-    adresse: this.pressoirAdresse,
-    telephone: this.pressoirTelephone || undefined,
-    email: this.pressoirEmail || undefined,
-    capaciteJournaliere: this.pressoirCapaciteJournaliere || undefined,
-    horaireDebut: this.pressoirHoraireDebut || undefined,
-    horaireFin: this.pressoirHoraireFin || undefined,
-    actif: true,
-    geolocalisation: (this.pressoirLatitude && this.pressoirLongitude) ? {
-      latitude: this.pressoirLatitude,
-      longitude: this.pressoirLongitude,
-      adresseIndicative: this.pressoirAdresseIndicative || undefined
-    } : undefined
-  };
-  break;
       default:
         break;
     }
@@ -239,7 +275,15 @@ pressoirHoraireFin: string = '';
   }
 
   onSubmit(): void {
-    // Validation commune
+    // Validate phone numbers
+    this.validatePhone();
+    this.validatePressoirPhone();
+    
+    if (this.phoneError || this.pressoirPhoneError) {
+      this.errorMessage = 'Veuillez corriger les erreurs de numéro de téléphone avant de créer l\'utilisateur.';
+      return;
+    }
+    
     if (!this.utilisateur.nom || !this.utilisateur.prenom || !this.utilisateur.email) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
       return;
@@ -251,7 +295,6 @@ pressoirHoraireFin: string = '';
       return;
     }
 
-    // Validation TRANSPORTEUR
     if (this.utilisateur.role === 'TRANSPORTEUR') {
       if (!this.permis) {
         this.errorMessage = 'Le permis est requis pour un transporteur';
@@ -263,7 +306,6 @@ pressoirHoraireFin: string = '';
       }
     }
 
-    // Validation RESPONSABLE_PRESSOIR
     if (this.utilisateur.role === 'RESPONSABLE_PRESSOIR') {
       if (!this.pressoirNom) {
         this.errorMessage = 'Le nom du pressoir est requis';
@@ -275,7 +317,6 @@ pressoirHoraireFin: string = '';
       }
     }
 
-    // Validation TRAVAILLEUR
     if (this.utilisateur.role === 'TRAVAILLEUR') {
       if (!this.cin) {
         this.errorMessage = 'Le CIN est requis pour un travailleur';
