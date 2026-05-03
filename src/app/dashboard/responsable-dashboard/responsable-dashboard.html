@@ -41,7 +41,7 @@
                 <i class="bi bi-calendar-heart"></i>
                 <span>Saison {{ currentSeason }}</span>
               </div>
-              <div class="user-chip">
+              <div class="user-chip" (click)="navigate('/profile')">
                 <div class="uc-avatar">{{ user?.prenom?.charAt(0) }}{{ user?.nom?.charAt(0) }}</div>
                 <span>{{ user?.prenom }} {{ user?.nom }}</span>
               </div>
@@ -70,7 +70,7 @@
                 <i class="bi bi-tree"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesVergers }}</div>
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesVergers || 0 }}</div>
                 <div class="metric-label">Vergers sous gestion</div>
               </div>
             </div>
@@ -80,7 +80,7 @@
                 <i class="bi bi-truck"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesTournees }}</div>
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesTournees || 0 }}</div>
                 <div class="metric-label">Tournées totales</div>
               </div>
             </div>
@@ -100,7 +100,7 @@
                 <i class="bi bi-exclamation-triangle"></i>
               </div>
               <div class="metric-card__content">
-                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesAlertes }}</div>
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ data.totalMesAlertes || 0 }}</div>
                 <div class="metric-label">Alertes totales</div>
               </div>
             </div>
@@ -125,14 +125,14 @@
                   <div class="resource-card">
                     <i class="bi bi-basket-fill resource-icon"></i>
                     <div class="resource-info">
-                      <div class="resource-total">{{ data.bennesDisponibles }}</div>
+                      <div class="resource-total">{{ data.bennesDisponibles || 0 }}</div>
                       <div class="resource-name">Bennes à olives disponibles</div>
                     </div>
                   </div>
                   <div class="resource-card">
                     <i class="bi bi-truck resource-icon"></i>
                     <div class="resource-info">
-                      <div class="resource-total">{{ data.tracteursDisponibles }}</div>
+                      <div class="resource-total">{{ data.tracteursDisponibles || 0 }}</div>
                       <div class="resource-name">Tracteurs disponibles</div>
                     </div>
                   </div>
@@ -140,14 +140,14 @@
                 <div class="resource-card full-width" style="margin-top: 1rem;">
                   <i class="bi bi-people resource-icon"></i>
                   <div class="resource-info">
-                    <div class="resource-total">{{ data.totalTravailleurs }}</div>
+                    <div class="resource-total">{{ data.totalTravailleurs || 0 }}</div>
                     <div class="resource-name">Travailleurs enregistrés</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Alerts Card - Fixed: removed traitees -->
+            <!-- Alerts Card -->
             <div class="dashboard-card">
               <div class="card-header">
                 <div class="card-title">
@@ -164,74 +164,85 @@
                     <i class="bi bi-exclamation-octagon-fill"></i>
                     <div class="alert-info">
                       <span class="alert-label">Critiques</span>
-                      <span class="alert-count">{{ data.mesAlertesCritiques }}</span>
+                      <span class="alert-count">{{ data.mesAlertesCritiques || 0 }}</span>
                     </div>
                   </div>
                   <div class="alert-stat warning">
                     <i class="bi bi-clock-history"></i>
                     <div class="alert-info">
                       <span class="alert-label">En attente</span>
-                      <span class="alert-count">{{ data.mesAlertesEnAttente }}</span>
+                      <span class="alert-count">{{ data.mesAlertesEnAttente || 0 }}</span>
                     </div>
                   </div>
                   <div class="alert-stat info">
                     <i class="bi bi-arrow-repeat"></i>
                     <div class="alert-info">
                       <span class="alert-label">En cours</span>
-                      <span class="alert-count">{{ data.mesAlertesEnCours }}</span>
+                      <span class="alert-count">{{ data.mesAlertesEnCours || 0 }}</span>
                     </div>
                   </div>
                 </div>
                 <div class="alerts-total">
-                  Total: <strong>{{ data.totalMesAlertes }}</strong> alertes
+                  Total: <strong>{{ data.totalMesAlertes || 0 }}</strong> alertes
                 </div>
               </div>
             </div>
 
-            <!-- Tournées Card -->
-            <div class="dashboard-card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="bi bi-truck-front"></i>
-                  <span>Mes tournées</span>
-                </div>
-                <button class="card-btn" (click)="navigate('/tournees')">
-                  Voir <i class="bi bi-chevron-right"></i>
-                </button>
-              </div>
-              <div class="card-body">
-                <div class="tournees-stats">
-                  <div class="tournee-item">
-                    <div class="tournee-info">
-                      <span>Planifiées</span>
-                      <strong>{{ data.mesTourneesPlanifiees }}</strong>
-                    </div>
-                    <div class="stat-bar">
-                      <div class="stat-fill blue" [style.width.%]="percent(data.mesTourneesPlanifiees, data.totalMesTournees)" [class.animate-fill]="metricsAnimated"></div>
-                    </div>
-                  </div>
-                  <div class="tournee-item">
-                    <div class="tournee-info">
-                      <span>En cours</span>
-                      <strong>{{ data.mesTourneesEnCours }}</strong>
-                    </div>
-                    <div class="stat-bar">
-                      <div class="stat-fill amber" [style.width.%]="percent(data.mesTourneesEnCours, data.totalMesTournees)" [class.animate-fill]="metricsAnimated"></div>
-                    </div>
-                  </div>
-                  <div class="tournee-item">
-                    <div class="tournee-info">
-                      <span>Terminées</span>
-                      <strong>{{ data.mesTourneesTerminees }}</strong>
-                    </div>
-                    <div class="stat-bar">
-                      <div class="stat-fill green" [style.width.%]="percent(data.mesTourneesTerminees, data.totalMesTournees)" [class.animate-fill]="metricsAnimated"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            <!-- Tournées Card - FIXED with better percentage calculation -->
+<div class="dashboard-card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="bi bi-truck-front"></i>
+      <span>Mes tournées</span>
+    </div>
+    <button class="card-btn" (click)="navigate('/tournees')">
+      Voir <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+  <div class="card-body">
+    <div class="tournees-stats">
+      <!-- Planifiées -->
+      <div class="tournee-item">
+        <div class="tournee-info">
+          <span>Planifiées</span>
+          <strong>{{ (data.mesTourneesPlanifiees || 0) }} / {{ (data.totalMesTournees || 0) }}</strong>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-fill blue" 
+               [style.width]="getPlanifieesPercent() + '%'"
+               [class.animate-fill]="metricsAnimated">
+          </div>
+        </div>
+      </div>
+      <!-- En cours -->
+      <div class="tournee-item">
+        <div class="tournee-info">
+          <span>En cours</span>
+          <strong>{{ (data.mesTourneesEnCours || 0) }} / {{ (data.totalMesTournees || 0) }}</strong>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-fill amber" 
+               [style.width]="getEnCoursPercent() + '%'"
+               [class.animate-fill]="metricsAnimated">
+          </div>
+        </div>
+      </div>
+      <!-- Terminées -->
+      <div class="tournee-item">
+        <div class="tournee-info">
+          <span>Terminées</span>
+          <strong>{{ (data.mesTourneesTerminees || 0) }} / {{ (data.totalMesTournees || 0) }}</strong>
+        </div>
+        <div class="stat-bar">
+          <div class="stat-fill green" 
+               [style.width]="getTermineesPercent() + '%'"
+               [class.animate-fill]="metricsAnimated">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
             <!-- Vergers Table -->
             <div class="dashboard-card full-width">
               <div class="card-header">
@@ -272,7 +283,7 @@
                             <div class="maturite-track">
                               <div class="maturite-fill" [style.width.%]="v.maturiteActuelle" [style.background]="maturiteColor(v.maturiteActuelle)"></div>
                             </div>
-                            <span class="maturite-pct">{{ v.maturiteActuelle }}%</span>
+                            <span class="maturite-pct">{{ v.maturiteActuelle || 0 }}%</span>
                           </div>
                         </td>
                         <td>{{ v.nbArbre | number }}</td>

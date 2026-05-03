@@ -46,7 +46,7 @@ export class SideBarResponsable implements OnInit {
       icon: 'dashboard',
       route: '/dashboard',
 
-      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRANSPORTEUR']
+      roles: ['ADMIN', 'RESPONSABLE', 'AGRICULTEUR', 'TRANSPORTEUR', 'TRAVAILLEUR']
     },
     {
       id: 'pressoir-dashboard',

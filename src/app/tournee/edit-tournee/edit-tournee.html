@@ -6,10 +6,7 @@
     [userRole]="userRole">
   </app-sidebar>
 
-  <main class="main-content"
-        [class.sidebar-collapsed]="isSidebarCollapsed"
-        [class.sidebar-open]="!isSidebarCollapsed">
-
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
     <button class="mobile-menu-toggle" (click)="toggleSidebar()" *ngIf="isMobile">
       <svg viewBox="0 0 24 24" fill="none">
         <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -17,6 +14,12 @@
     </button>
 
     <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
       <div class="oh-card">
         <div class="oh-card__header">
           <div class="oh-header__inner">
@@ -26,7 +29,7 @@
               </div>
               <div class="oh-header__text">
                 <p class="oh-header__eyebrow">GESTION DES TOURNÉES</p>
-                <h2 class="oh-header__title">Modifier la tournée</h2>
+                <h2 class="oh-header__title">Modifier la <span class="highlight">tournée</span></h2>
                 <p class="header-subtitle">Mettez à jour les informations de la tournée</p>
               </div>
             </div>
@@ -53,57 +56,133 @@
 
           <form *ngIf="!isLoading && tournee" (ngSubmit)="onSubmit()" class="oh-form">
 
-            <!-- Add these sections inside your form, after the date fields -->
+            <!-- Code et Statut -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-info-circle"></i>
+                Informations générales
+              </h3>
+              <div class="form-row form-row--2col">
+                <div class="form-group">
+                  <label class="form-label">Code tournée</label>
+                  <input type="text" class="form-control" [value]="tournee.code" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Statut</label>
+                  <div>
+                    <span class="statut-badge" [ngClass]="'statut-' + (tournee.statut | lowercase)">
+                      {{ tournee.statut }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-<!-- Section: Ressources -->
-<div class="form-section">
-  <h3 class="section-title">
-    <i class="bi bi-tools"></i>
-    Ressources
-  </h3>
-  <div class="form-row">
-    <div class="form-group">
-      <label class="form-label">Benne</label>
-      <select class="form-control" [ngModel]="editData.benneId" name="benneId" (change)="onBenneChange($event)">
-        <option value="">Sélectionner une benne</option>
-        <option *ngFor="let b of bennes" [value]="b.id">
-          {{ b.nom }} - Capacité: {{ b.capaciteKg }} kg
-        </option>
-      </select>
-    </div>
+            <!-- Section: Verger -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-tree-fill"></i>
+                Verger
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Verger</label>
+                  <input type="text" class="form-control" [value]="tournee.vergerTypeOlive || 'N/A'" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Agriculteur</label>
+                  <input type="text" class="form-control" [value]="tournee.vergerAgriculteurNom || 'N/A'" disabled>
+                </div>
+              </div>
+            </div>
 
-    <div class="form-group">
-      <label class="form-label">Tracteur</label>
-      <select class="form-control" [ngModel]="editData.tracteurId" name="tracteurId" (change)="onTracteurChange($event)">
-        <option value="">Sélectionner un tracteur</option>
-        <option *ngFor="let t of tracteurs" [value]="t.id">
-          {{ t.nom }} - {{ t.immatriculation }}
-        </option>
-      </select>
-    </div>
+            <!-- Section: Ressources -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-tools"></i>
+                Ressources
+              </h3>
+              <div class="form-row form-row--2col">
+                <div class="form-group">
+                  <label class="form-label">Benne</label>
+                  <select class="form-control" [(ngModel)]="editData.benneId" name="benneId" (change)="onBenneChange($event)">
+                    <option value="">Sélectionner une benne</option>
+                    <option *ngFor="let b of bennes" [value]="b.id">
+                      {{ b.nom }} - Capacité: {{ b.capaciteKg }} kg
+                    </option>
+                  </select>
+                </div>
 
-    <div class="form-group">
-      <label class="form-label">Travailleurs</label>
-      <select multiple class="form-control" [ngModel]="editData.travailleurIds" name="travailleurIds" (change)="onTravailleurChange($event)">
-        <option *ngFor="let w of travailleurs" [value]="w.id">
-          {{ w.prenom }} {{ w.nom }} - {{ w.specialites?.join(', ') || 'Aucune spécialité' }}
-        </option>
-      </select>
-      <small class="form-text text-muted">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs travailleurs</small>
-    </div>
-  </div>
-</div>
+                <div class="form-group">
+                  <label class="form-label">Tracteur</label>
+                  <select class="form-control" [(ngModel)]="editData.tracteurId" name="tracteurId" (change)="onTracteurChange($event)">
+                    <option value="">Sélectionner un tracteur</option>
+                    <option *ngFor="let t of tracteurs" [value]="t.id">
+                      {{ t.nom }} - {{ t.immatriculation }}
+                    </option>
+                  </select>
+                </div>
+              </div>
 
-    <div class="form-group">
-      <label class="form-label">Responsable pressoir</label>
-      <select class="form-control" [ngModel]="editData.responsablePressoirId" name="responsablePressoirId" (change)="onResponsablePressoirChange($event)">
-        <option value="">Selectionner un responsable pressoir</option>
-        <option *ngFor="let r of responsablesPressoir" [value]="r.id">
-          {{ getResponsablePressoirLabel(r) }}
-        </option>
-      </select>
-      <small class="form-text text-muted">Responsable qui receptionnera les olives apres livraison.</small>
-    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Responsable pressoir</label>
+                  <select class="form-control" [(ngModel)]="editData.responsablePressoirId" name="responsablePressoirId" (change)="onResponsablePressoirChange($event)">
+                    <option value="">Sélectionner un responsable pressoir</option>
+                    <option *ngFor="let r of responsablesPressoir" [value]="r.id">
+                      {{ getResponsablePressoirLabel(r) }}
+                    </option>
+                  </select>
+                  <small class="form-text">Responsable qui réceptionnera les olives après livraison.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: Travailleurs - DROPDOWN WITH CHIPS -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <i class="bi bi-people"></i>
+                Travailleurs assignés
+              </h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Travailleurs <span class="required">*</span></label>
+                  
+                  <!-- Dropdown to select worker -->
+                  <div class="worker-select-row">
+                    <select class="form-control worker-select" [(ngModel)]="selectedTravailleurId" name="selectedTravailleur">
+                      <option value="">-- Sélectionner un travailleur --</option>
+                      <option *ngFor="let w of travailleurs" [value]="w.id" [disabled]="isTravailleurSelected(w.id)">
+                        {{ w.prenom }} {{ w.nom }} - {{ getSpecialiteLabel(w.specialites) }}
+                      </option>
+                    </select>
+                    <button type="button" class="btn-add-worker" (click)="addTravailleur()" [disabled]="!selectedTravailleurId">
+                      <i class="bi bi-plus-lg"></i> Ajouter
+                    </button>
+                  </div>
+
+                  <!-- Selected workers list as chips -->
+                  <div *ngIf="editData.travailleurIds.length > 0" class="selected-workers-list">
+                    <div *ngFor="let workerId of editData.travailleurIds" class="worker-chip">
+                      <span class="worker-chip-info">
+                        <i [class]="'bi ' + getSpecialiteIcon(getWorkerSpecialites(workerId))"></i>
+                        {{ getWorkerName(workerId) }}
+                        <span class="worker-specialite">{{ getSpecialiteLabel(getWorkerSpecialites(workerId)) }}</span>
+                      </span>
+                      <button type="button" class="worker-chip-remove" (click)="removeTravailleur(workerId)">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div *ngIf="editData.travailleurIds.length === 0" class="field-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Veuillez ajouter au moins un travailleur
+                  </div>
+                  <div class="field-hint">
+                    <i class="bi bi-info-circle-fill"></i> Sélectionnez un travailleur et cliquez sur "Ajouter"
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- Section: Dates et horaires -->
             <div class="form-section">
@@ -133,7 +212,6 @@
               </div>
             </div>
 
-
             <!-- Section: Observations -->
             <div class="form-section">
               <h3 class="section-title">
@@ -161,7 +239,7 @@
             <!-- Form Actions -->
             <div class="form-actions">
               <button type="button" class="btn-secondary" (click)="loadTournee(tournee.id)">
-                <i class="bi bi-arrow-counterclockwise"></i> Recharger
+                <i class="bi bi-arrow-repeat"></i> Recharger
               </button>
               <button type="button" class="btn-secondary" (click)="goBack()">
                 <i class="bi bi-x-circle"></i> Annuler

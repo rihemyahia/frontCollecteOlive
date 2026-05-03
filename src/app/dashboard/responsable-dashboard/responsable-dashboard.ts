@@ -49,6 +49,14 @@ export class ResponsableDashboardComponent implements OnInit, AfterViewInit {
     this.dashboardService.getResponsableDashboard().subscribe({
       next: (res) => {
         this.data = res;
+        console.log('=== RESPONSABLE DASHBOARD DATA ===');
+        console.log('Total Tournees:', this.data?.totalMesTournees);
+        console.log('Planifiées:', this.data?.mesTourneesPlanifiees);
+        console.log('En Cours:', this.data?.mesTourneesEnCours);
+        console.log('Terminées:', this.data?.mesTourneesTerminees);
+        console.log('Planifiées Percent:', this.getPlanifieesPercent() + '%');
+        console.log('En Cours Percent:', this.getEnCoursPercent() + '%');
+        console.log('Terminées Percent:', this.getTermineesPercent() + '%');
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -59,6 +67,29 @@ export class ResponsableDashboardComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // Helper methods for percentage calculations
+  getPlanifieesPercent(): number {
+    const total = this.data?.totalMesTournees || 0;
+    const planifiees = this.data?.mesTourneesPlanifiees || 0;
+    if (total === 0) return 0;
+    return Math.min(100, Math.round((planifiees / total) * 100));
+  }
+
+  getEnCoursPercent(): number {
+    const total = this.data?.totalMesTournees || 0;
+    const enCours = this.data?.mesTourneesEnCours || 0;
+    if (total === 0) return 0;
+    return Math.min(100, Math.round((enCours / total) * 100));
+  }
+
+  getTermineesPercent(): number {
+    const total = this.data?.totalMesTournees || 0;
+    const terminees = this.data?.mesTourneesTerminees || 0;
+    if (total === 0) return 0;
+    console.log(`Terminees Percent calc: ${terminees} / ${total} = ${(terminees / total) * 100}%`);
+    return Math.min(100, Math.round((terminees / total) * 100));
   }
 
   loadUser(): void {
@@ -87,10 +118,6 @@ export class ResponsableDashboardComponent implements OnInit, AfterViewInit {
 
   navigate(path: string): void { 
     this.router.navigate([path]); 
-  }
-
-  percent(part: number, total: number): number {
-    return total > 0 ? Math.round((part / total) * 100) : 0;
   }
 
   formatKg(kg: number): string {

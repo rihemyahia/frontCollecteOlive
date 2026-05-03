@@ -1,0 +1,169 @@
+<!-- src/app/dashboard/travailleur-dashboard/travailleur-dashboard.html -->
+<div class="app-layout">
+  <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
+
+  <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+
+    <!-- Loading Screen -->
+    <div *ngIf="loading" class="loading-screen">
+      <div class="olive-loader">
+        <div class="olive-leaf"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+        <div class="olive-dot"></div>
+      </div>
+      <p class="loading-text">Chargement de votre tableau de bord...</p>
+      <p class="loading-sub">Vos données se préparent</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error && !loading" class="oh-error">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!loading" class="dashboard-wrapper">
+      <div class="oh-card">
+        <div class="oh-card__header">
+          <div class="oh-header__inner">
+            <div class="oh-header__left">
+              <div class="oh-brand__icon">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">MON ESPACE</p>
+                <h2 class="oh-header__title">Tableau de bord <span class="highlight">Travailleur</span></h2>
+                <p class="header-subtitle">Bienvenue, {{ displayName }} 👋</p>
+              </div>
+            </div>
+            <div class="oh-header__right">
+              <div class="season-chip">
+                <i class="bi bi-calendar-heart"></i>
+                <span>Saison {{ currentSeason }}</span>
+              </div>
+              <div class="user-chip" (click)="navigate('/profile')">
+                <div class="uc-avatar">{{ initials }}</div>
+                <span>{{ displayName }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oh-card__body">
+          <!-- Hero Metrics -->
+          <div class="hero-metrics">
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #2D6A4F, #40916C)">
+                <i class="bi bi-calendar-check"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ totalTournees }}</div>
+                <div class="metric-label">Tournées totales</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>Année en cours</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #0A4A8A, #3B82F6)">
+                <i class="bi bi-calendar-week"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ tourneesPlanifiees }}</div>
+                <div class="metric-label">Planifiées</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>À venir</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24)">
+                <i class="bi bi-play-circle"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ tourneesEnCours }}</div>
+                <div class="metric-label">En cours</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>Actives</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card__icon" style="background: linear-gradient(135deg, #2A6A0A, #4A7A2A)">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <div class="metric-card__content">
+                <div class="metric-value" [class.animate-value]="metricsAnimated">{{ tourneesTerminees }}</div>
+                <div class="metric-label">Terminées</div>
+                <div class="metric-trend up">
+                  <i class="bi bi-arrow-up"></i>
+                  <span>Réalisées</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions">
+            <button class="btn-action" (click)="navigate('/calendrier')">
+              <i class="bi bi-calendar2-event"></i>
+              Voir mon calendrier
+            </button>
+            <button class="btn-action" (click)="navigate('/profile')">
+              <i class="bi bi-person-circle"></i>
+              Mon profil
+            </button>
+          </div>
+
+          <!-- Upcoming Tournees Section -->
+          <div class="upcoming-section">
+            <div class="section-header">
+              <div>
+                <h2><i class="bi bi-calendar"></i> Prochaines tournées</h2>
+                <p>Les quatre prochains événements du mois</p>
+              </div>
+              <button class="btn-secondary" (click)="navigate('/calendrier')">
+                <i class="bi bi-arrow-right"></i> Afficher tout
+              </button>
+            </div>
+
+            <div *ngIf="tourneeEvents.length === 0" class="empty-state">
+              <i class="bi bi-calendar-x"></i>
+              <p>Aucune tournée planifiée pour le moment.</p>
+            </div>
+
+            <div *ngIf="tourneeEvents.length > 0" class="upcoming-list">
+              <div *ngFor="let event of tourneeEvents" class="event-card">
+                <div class="event-date">
+                  <i class="bi bi-calendar3"></i>
+                  {{ formatDate(event.debut) }}
+                </div>
+                <div class="event-meta">
+                  <div class="event-title">
+                    <i class="bi bi-truck-front"></i>
+                    {{ event.titre || 'Tournée' }}
+                  </div>
+                  <div class="event-status" [ngClass]="getStatusClass(event.statut)">
+                    <i class="bi" [class.bi-calendar-check]="event.statut === 'PLANIFIEE'" [class.bi-play-circle]="event.statut === 'EN_COURS'" [class.bi-check-circle]="event.statut === 'TERMINEE'"></i>
+                    {{ getStatusLabel(event.statut) }}
+                  </div>
+                </div>
+                <div class="event-details">
+                  <span><i class="bi bi-tree"></i> <strong>Verger :</strong> {{ event.vergerNom || 'Non précisé' }}</span>
+                  <span *ngIf="event.collecteCode"><i class="bi bi-basket"></i> <strong>Collecte :</strong> {{ event.collecteCode }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

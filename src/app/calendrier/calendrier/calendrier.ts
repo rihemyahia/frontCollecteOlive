@@ -213,6 +213,11 @@ loadTravailleurs() {
           this.currentDateRange.debut, this.currentDateRange.fin
         );
       }
+    } else if (this.userRole === 'AGRICULTEUR' || this.userRole === 'TRAVAILLEUR') {
+      request = this.calendrierService.getMonPlanning(
+        this.currentDateRange.debut,
+        this.currentDateRange.fin
+      );
     } else {
       request = this.calendrierService.getEvenements(this.currentDateRange.debut, this.currentDateRange.fin);
     }
