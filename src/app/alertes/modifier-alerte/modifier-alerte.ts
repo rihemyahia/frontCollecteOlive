@@ -1,4 +1,5 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+// src/app/alertes/modifier-alerte/modifier-alerte.component.ts
+import { Component, HostListener, OnDestroy, OnInit, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,7 +22,7 @@ import { AuthService } from '../../services/auth';
   templateUrl: './modifier-alerte.html',
   styleUrl: './modifier-alerte.css'
 })
-export class ModifierAlerteComponent implements OnInit, OnDestroy {
+export class ModifierAlerteComponent implements OnInit, OnDestroy, AfterViewInit {
   alerte: AlerteResponse | null = null;
   isLoading = true;
   isUpdatingStatus = false;
@@ -40,32 +41,33 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
   treatmentComment = '';
 
   readonly typesAlerte = [
-    { value: 'MATURITE', label: '🫒 Problème de maturité' },
-    { value: 'MATURITE_ACCELEREE', label: '⏱️ Maturité accélérée' },
-    { value: 'MALADIE', label: '🐛 Maladie' },
-    { value: 'METEO', label: '⛈️ Dégât météorologique' },
-    { value: 'RECOLTE', label: '🧺 Problème de récolte' },
-    { value: 'CHUTE_PREMATUREE', label: '📉 Chute prématurée' },
-    { value: 'NUISIBLE', label: '🦗 Ravageur / Nuisible' },
-    { value: 'IRRIGATION', label: '💧 Problème d\'irrigation' },
-    { value: 'QUALITE_HUILE', label: '🫒 Qualité d\'huile' },
-    { value: 'RENDEMENT_ANORMAL', label: '📊 Rendement anormal' },
-    { value: 'LOGISTIQUE_MOULIN', label: '🏭 Logistique moulin' },
-    { value: 'SECURITE_RECOLTE', label: '⚠️ Sécurité récolte' },
-    { value: 'AUTRE', label: '📌 Autre problème' }
+    { value: 'MATURITE', label: 'Maturité', icon: 'bi-droplet' },
+    { value: 'MATURITE_ACCELEREE', label: 'Maturité accélérée', icon: 'bi-speedometer2' },
+    { value: 'MALADIE', label: 'Maladie', icon: 'bi-bug' },
+    { value: 'METEO', label: 'Dégât météorologique', icon: 'bi-cloud-rain' },
+    { value: 'RECOLTE', label: 'Problème de récolte', icon: 'bi-basket' },
+    { value: 'CHUTE_PREMATUREE', label: 'Chute prématurée', icon: 'bi-arrow-down' },
+    { value: 'NUISIBLE', label: 'Ravageur / Nuisible', icon: 'bi-bug' },
+    { value: 'IRRIGATION', label: "Problème d'irrigation", icon: 'bi-droplet' },
+    { value: 'QUALITE_HUILE', label: "Qualité d'huile", icon: 'bi-cup-straw' },
+    { value: 'RENDEMENT_ANORMAL', label: 'Rendement anormal', icon: 'bi-graph-down' },
+    { value: 'LOGISTIQUE_MOULIN', label: 'Logistique moulin', icon: 'bi-building' },
+    { value: 'SECURITE_RECOLTE', label: 'Sécurité récolte', icon: 'bi-shield-exclamation' },
+    { value: 'AUTRE', label: 'Autre problème', icon: 'bi-info-circle' }
   ];
 
   readonly statutOptions = [
-    { value: 'EN_ATTENTE', label: '⏳ En attente', color: '#F59E0B' },
-    { value: 'EN_COURS', label: '🔄 En cours', color: '#3B82F6' },
-    { value: 'TRAITEE', label: '✅ Traitée', color: '#10B981' }
+    { value: 'EN_ATTENTE', label: 'En attente', color: '#F59E0B', icon: 'bi-hourglass-split' },
+    { value: 'EN_COURS', label: 'En cours', color: '#3B82F6', icon: 'bi-arrow-repeat' },
+    { value: 'TRAITEE', label: 'Traitée', color: '#10B981', icon: 'bi-check-circle-fill' },
+    { value: 'IGNOREE', label: 'Ignorée', color: '#6B7280', icon: 'bi-x-circle-fill' }
   ];
 
   readonly urgenceOptions = [
-    { value: 'FAIBLE', label: '🟢 Faible', color: '#10B981' },
-    { value: 'MOYENNE', label: '🟡 Moyenne', color: '#F59E0B' },
-    { value: 'ELEVEE', label: '🔴 Élevée', color: '#EF4444' },
-    { value: 'CRITIQUE', label: '🚨 Critique', color: '#991B1B' }
+    { value: 'FAIBLE', label: 'Faible', color: '#10B981', icon: 'bi-info-circle-fill' },
+    { value: 'MOYENNE', label: 'Moyenne', color: '#F59E0B', icon: 'bi-exclamation-circle-fill' },
+    { value: 'ELEVEE', label: 'Élevée', color: '#EF4444', icon: 'bi-exclamation-triangle-fill' },
+    { value: 'CRITIQUE', label: 'Critique', color: '#991B1B', icon: 'bi-exclamation-octagon-fill' }
   ];
 
   private destroy$ = new Subject<void>();
@@ -74,7 +76,8 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private alerteService: AlerteService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -86,28 +89,40 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
     if (!alerteId) {
       this.errorMessage = 'Identifiant d\'alerte invalide.';
       this.isLoading = false;
+      this.cdr.detectChanges();
       return;
     }
     this.loadAlerte(alerteId);
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 100);
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.cdr.detectChanges();
   }
 
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+    this.cdr.detectChanges();
   }
 
   @HostListener('window:resize')
   handleResize(): void {
     this.isMobile = window.innerWidth < 768;
+    this.cdr.detectChanges();
   }
 
   loadAlerte(id: string): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.cdr.detectChanges();
+
     const endpoint$ = this.isAdmin
       ? this.alerteService.getById(id)
       : this.alerteService.getAlertDetailResponsable(id);
@@ -119,11 +134,13 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
         this.newUrgence = data.niveauUrgence;
         this.treatmentComment = data.commentaireTraitement || '';
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading alerte:', err);
         this.errorMessage = 'Impossible de charger cette alerte.';
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -136,6 +153,8 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
     if (!this.alerte || !this.newStatut || this.newStatut === this.alerte.statut) return;
 
     this.isUpdatingStatus = true;
+    this.cdr.detectChanges();
+
     const endpoint$ = this.isAdmin
       ? this.alerteService.changeStatut(this.alerte.id, this.newStatut as StatutAlerte)
       : this.alerteService.changerStatutResponsable(this.alerte.id, this.newStatut as StatutAlerte);
@@ -145,12 +164,14 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
         this.alerte = updated;
         this.newStatut = updated.statut;
         this.isUpdatingStatus = false;
-        alert('Statut mis à jour avec succès');
+        this.cdr.detectChanges();
+        this.showTemporaryMessage('Statut mis à jour avec succès', 'success');
       },
       error: (err) => {
         console.error('Error changing status:', err);
         this.isUpdatingStatus = false;
-        alert('Erreur lors de la mise à jour du statut');
+        this.cdr.detectChanges();
+        this.showTemporaryMessage('Erreur lors de la mise à jour du statut', 'error');
       }
     });
   }
@@ -159,6 +180,8 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
     if (!this.alerte || !this.newUrgence || this.newUrgence === this.alerte.niveauUrgence) return;
 
     this.isUpdatingCriticality = true;
+    this.cdr.detectChanges();
+
     const endpoint$ = this.isAdmin
       ? this.alerteService.changeUrgence(this.alerte.id, this.newUrgence as NiveauUrgence)
       : this.alerteService.changerUrgenceResponsable(this.alerte.id, this.newUrgence as NiveauUrgence);
@@ -168,23 +191,27 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
         this.alerte = updated;
         this.newUrgence = updated.niveauUrgence;
         this.isUpdatingCriticality = false;
-        alert('Criticité mise à jour avec succès');
+        this.cdr.detectChanges();
+        this.showTemporaryMessage('Criticité mise à jour avec succès', 'success');
       },
       error: (err) => {
         console.error('Error changing urgency:', err);
         this.isUpdatingCriticality = false;
-        alert('Erreur lors de la mise à jour de la criticité');
+        this.cdr.detectChanges();
+        this.showTemporaryMessage('Erreur lors de la mise à jour de la criticité', 'error');
       }
     });
   }
 
   markAsTreated(): void {
     if (!this.alerte || !this.treatmentComment.trim()) {
-      alert('Veuillez entrer un commentaire de traitement');
+      this.showTemporaryMessage('Veuillez entrer un commentaire de traitement', 'error');
       return;
     }
 
     this.isMarkingTreated = true;
+    this.cdr.detectChanges();
+
     const endpoint$ = this.isAdmin
       ? this.alerteService.markAsProcessed(this.alerte.id, this.treatmentComment)
       : this.alerteService.marquerTraiteeResponsable(this.alerte.id, this.treatmentComment);
@@ -195,14 +222,20 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
         this.newStatut = updated.statut;
         this.treatmentComment = updated.commentaireTraitement || '';
         this.isMarkingTreated = false;
-        alert('Alerte marquée comme traitée');
+        this.cdr.detectChanges();
+        this.showTemporaryMessage('Alerte marquée comme traitée', 'success');
       },
       error: (err) => {
         console.error('Error marking as treated:', err);
         this.isMarkingTreated = false;
-        alert('Erreur lors du traitement de l\'alerte');
+        this.cdr.detectChanges();
+        this.showTemporaryMessage('Erreur lors du traitement de l\'alerte', 'error');
       }
     });
+  }
+
+  private showTemporaryMessage(message: string, type: 'success' | 'error'): void {
+    alert(message);
   }
 
   deleteAlerte(): void {
@@ -229,6 +262,11 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
     return item ? item.label : type;
   }
 
+  getTypeIcon(type: TypeAlerte): string {
+    const item = this.typesAlerte.find(t => t.value === type);
+    return item ? item.icon : 'bi-bell';
+  }
+
   getStatutLabel(statut: StatutAlerte): string {
     const item = this.statutOptions.find(s => s.value === statut);
     return item ? item.label : statut;
@@ -239,6 +277,11 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
     return item ? item.color : '#6B7280';
   }
 
+  getStatutIcon(statut: StatutAlerte): string {
+    const item = this.statutOptions.find(s => s.value === statut);
+    return item ? item.icon : 'bi-question-circle';
+  }
+
   getUrgenceLabel(urgence: NiveauUrgence): string {
     const item = this.urgenceOptions.find(u => u.value === urgence);
     return item ? item.label : urgence;
@@ -247,6 +290,11 @@ export class ModifierAlerteComponent implements OnInit, OnDestroy {
   getUrgenceColor(urgence: NiveauUrgence): string {
     const item = this.urgenceOptions.find(u => u.value === urgence);
     return item ? item.color : '#6B7280';
+  }
+
+  getUrgenceIcon(urgence: NiveauUrgence): string {
+    const item = this.urgenceOptions.find(u => u.value === urgence);
+    return item ? item.icon : 'bi-exclamation-circle';
   }
 
   formatCoordinate(value: number | undefined | null): string {

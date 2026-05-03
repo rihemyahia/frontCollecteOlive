@@ -118,3 +118,711 @@
   .form-actions { flex-direction: column-reverse; }
   .btn-primary, .btn-secondary, .btn-danger { justify-content: center; width: 100%; }
 }
+/* ============================================================
+   ADD THESE STYLES TO YOUR EXISTING pressoir.css
+   ============================================================ */
+
+/* Table Wrapper for Tournées Livrées */
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 184, 75, 0.15);
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.alerts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 820px;
+}
+
+@media (max-width: 768px) {
+  .alerts-table {
+    min-width: 700px;
+    font-size: 0.75rem;
+  }
+}
+
+.alerts-table thead {
+  background: #F9F6EB;
+  border-bottom: 2px solid rgba(168, 184, 75, 0.2);
+}
+
+.alerts-table th {
+  padding: 0.9rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #5A6E1A;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.alerts-table td {
+  padding: 0.9rem 0.75rem;
+  border-bottom: 1px solid rgba(168, 184, 75, 0.12);
+  color: #2C2A1A;
+  vertical-align: middle;
+}
+
+.alerts-table tbody tr:hover {
+  background: #F9FAF5;
+}
+
+/* Quantité Cell */
+.quantite-cell {
+  font-weight: 600;
+  color: #4A7A2A;
+}
+
+.quantite-value {
+  background: rgba(74, 122, 42, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+}
+
+/* Transporteur Info */
+.transporteur-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Destination Cell */
+.destination-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 200px;
+}
+
+/* ============================================================
+   MODAL STYLES (Override for pressoir)
+   ============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 42, 26, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-card {
+  width: min(560px, 100%);
+  background: #FFFFF8;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(44, 42, 26, 0.25);
+  overflow: hidden;
+  border: 1px solid rgba(168, 184, 75, 0.2);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #FAF9F5 0%, #F5F0E0 100%);
+  border-bottom: 1px solid #EDE8D2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  color: #5A6E1A;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tournee-code {
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: #A8B84B;
+  background: rgba(168, 184, 75, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #B0A890;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.modal-close:hover {
+  background: rgba(168, 184, 75, 0.1);
+  color: #8A2A1A;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #EDE8D2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #FAF9F5;
+}
+
+@media (max-width: 768px) {
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .modal-footer .btn-primary,
+  .modal-footer .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Info Card inside Modal */
+.info-card {
+  background: #F9FAF5;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(168, 184, 75, 0.15);
+}
+
+.info-card .info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(168, 184, 75, 0.1);
+}
+
+.info-card .info-row:last-child {
+  border-bottom: none;
+}
+
+.info-card .info-label {
+  font-size: 0.8rem;
+  color: #7A6845;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.info-card .info-label i {
+  color: #A8B84B;
+  font-size: 0.9rem;
+}
+
+.info-card .info-value {
+  font-size: 0.85rem;
+  color: #3A4A12;
+  font-weight: 600;
+}
+
+/* ============================================================
+   TOURNÉES TABLE SPECIFIC STYLES
+   ============================================================ */
+.alerts-table td .btn-primary {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .alerts-table td .btn-primary {
+    width: auto;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+  }
+  
+  .destination-cell {
+    max-width: none;
+  }
+}
+
+/* Responsive Table for Mobile */
+@media (max-width: 768px) {
+  .alerts-table thead {
+    display: none;
+  }
+
+  .alerts-table tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #E8ECDC;
+    border-radius: 16px;
+    padding: 1rem;
+    background: white;
+  }
+
+  .alerts-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border: none;
+    border-bottom: 1px solid #F0F2E8;
+  }
+
+  .alerts-table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .alerts-table tbody td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #4A5A3A;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
+}
+
+/* Empty State Icon */
+.empty-state .empty-icon {
+  font-size: 3.5rem;
+  color: #D4D0C0;
+  margin-bottom: 1rem;
+}
+
+/* Utility Classes */
+.d-flex {
+  display: flex;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.gap-1 {
+  gap: 0.5rem;
+}
+
+.gap-2 {
+  gap: 1rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-2 {
+  margin-bottom: 1rem;
+}
+
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 1rem;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.w-100 {
+  width: 100%;
+}
+/* ============================================================
+   COLLECTES HUILE - CARD BASED DESIGN
+   ============================================================ */
+
+/* Stats Cards */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card-summary {
+  background: linear-gradient(135deg, #FAF9F5, #FFFFF8);
+  border-radius: 20px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(168, 184, 75, 0.15);
+  transition: all 0.3s ease;
+}
+
+.stat-card-summary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 42, 26, 0.1);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(168, 184, 75, 0.15);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #5A6E1A;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #3A4A12;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #7A6845;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Collectes Cards Grid */
+.collectes-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .collectes-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.collecte-card-item {
+  background: #FFFFF8;
+  border-radius: 20px;
+  border: 1px solid rgba(168, 184, 75, 0.15);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collecte-card-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(44, 42, 26, 0.18);
+}
+
+.collecte-card-header {
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #FAF9F5, #FFFFF8);
+  border-bottom: 1px solid rgba(168, 184, 75, 0.15);
+  border-left: 4px solid;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.collecte-code {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #3A4A12;
+  font-size: 1rem;
+}
+
+.collecte-code i {
+  color: #A8B84B;
+  font-size: 1.1rem;
+}
+
+.rendement-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.rendement-indicator.rendement-low {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.rendement-indicator.rendement-medium {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.rendement-indicator.rendement-high {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.collecte-card-body {
+  padding: 1.25rem;
+}
+
+/* Info Row */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(168, 184, 75, 0.1);
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: #7A6845;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.info-label i {
+  color: #A8B84B;
+}
+
+.info-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3A4A12;
+}
+
+/* Stats Row */
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.75rem;
+  background: #F9FAF5;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.stat-box {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.stat-value i {
+  font-size: 1rem;
+  color: #A8B84B;
+}
+
+.stat-label-small {
+  font-size: 0.65rem;
+  color: #7A6845;
+  margin-top: 0.25rem;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(168, 184, 75, 0.3);
+}
+
+/* Tournees Progress */
+.tournees-progress {
+  margin-bottom: 1rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+  color: #7A6845;
+}
+
+.progress-header i {
+  color: #A8B84B;
+}
+
+.progress-bar-track {
+  height: 6px;
+  background: #E8ECDC;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5A6E1A, #A8B84B);
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+/* Extractions Section */
+.extractions-section {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(168, 184, 75, 0.1);
+}
+
+.extractions-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #5A6E1A;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.extractions-header i {
+  font-size: 0.8rem;
+}
+
+.extractions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.extraction-item {
+  background: #F9FAF5;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.extraction-item:hover {
+  border-color: rgba(168, 184, 75, 0.3);
+  background: #FFFFFF;
+}
+
+.extraction-code {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3A4A12;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.4rem;
+}
+
+.extraction-code i {
+  color: #A8B84B;
+}
+
+.extraction-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.extraction-stats .huile {
+  font-size: 0.7rem;
+  color: #F59E0B;
+  font-weight: 600;
+}
+
+.extraction-stats .rendement {
+  font-size: 0.7rem;
+  color: #DC2626;
+  font-weight: 600;
+}
+
+.extraction-stats .rendement.high {
+  color: #10B981;
+}
+
+.extraction-progress-mini {
+  margin-top: 0.25rem;
+}
+
+.progress-bar-mini {
+  height: 3px;
+  background: #E8ECDC;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill-mini {
+  height: 100%;
+  background: linear-gradient(90deg, #5A6E1A, #A8B84B);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  color: #D4D0C0;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.2rem;
+  color: #3A4A12;
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.empty-state p {
+  color: #7A6845;
+  margin: 0;
+  font-size: 0.9rem;
+}

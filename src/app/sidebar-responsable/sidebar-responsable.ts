@@ -179,33 +179,17 @@ export class SideBarResponsable implements OnInit {
     },
     {
       id: 'alertes',
-      label: 'Alertes',
+      label: 'Gestion des alertes',
       icon: 'alert',
-      route: '/alertes',
-      roles: ['AGRICULTEUR', 'ADMIN', 'RESPONSABLE'],
-      children: [
-        {
-          id: 'mes-alerte',
-          label: 'Mes alertes',
-          icon: '',
-          route: '/alertes/mes-alertes',
-          roles: ['AGRICULTEUR']
-        },
-        {
-          id: 'creer-alerte',
-          label: 'Créer une alerte',
-          icon: '',
-          route: '/alertes/creer',
-          roles: ['AGRICULTEUR']
-        },
-        {
-          id: 'gestion-alertes',
-          label: 'Gestion des alertes',
-          icon: '',
-          route: '/alertes/gestion',
-          roles: ['ADMIN', 'RESPONSABLE']
-        }
-      ]
+      route: '/alertes/gestion',
+      roles: ['ADMIN', 'RESPONSABLE'],
+    },
+    {
+      id: 'mes-alerte',
+      label: 'Signaler verger',
+      icon: 'user',
+      route: '/alertes/mes-alertes',
+      roles: ['AGRICULTEUR']
     },
     {
       id: 'profile',

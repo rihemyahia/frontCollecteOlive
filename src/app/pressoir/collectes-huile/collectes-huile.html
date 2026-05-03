@@ -1,106 +1,153 @@
+<!-- src/app/pressoir/collectes-huile/collectes-huile.component.html -->
 <div class="app-layout">
   <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
     <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
       <div class="oh-card">
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand__icon"><i class="bi bi-collection-fill"></i></div>
-              <div>
-                <p class="oh-header__eyebrow">COLLECTES HUILE</p>
-                <h2 class="oh-header__title">Huile par collecte</h2>
-                <p class="header-subtitle">Vue calculee depuis les extractions groupees par collecte</p>
+              <div class="oh-brand__icon">
+                <i class="bi bi-droplet-half"></i>
+              </div>
+              <div class="oh-header__text">
+                <p class="oh-header__eyebrow">SUIVI PRESSOIR</p>
+                <h2 class="oh-header__title">Collectes <span class="highlight">d'huile</span></h2>
+                <p class="header-subtitle">Vue calculée depuis les extractions groupées par collecte</p>
               </div>
             </div>
-            <button class="btn-secondary" (click)="loadCollectes()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
           </div>
         </div>
 
         <div class="oh-card__body">
-          <div *ngIf="errorMessage" class="oh-error"><i class="bi bi-exclamation-triangle-fill"></i>{{ errorMessage }}</div>
-          <div *ngIf="isLoading" class="loading-state"><div class="spinner"></div><p>Chargement des collectes huile...</p></div>
+          <!-- Messages -->
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
 
-          <div class="dashboard-grid" *ngIf="!isLoading && collectes.length">
-            <div class="panel-card">
-              <div class="panel-header"><h3 class="panel-title"><i class="bi bi-bar-chart-fill"></i> Volume huile</h3></div>
-              <div class="panel-body bar-list">
-                <div class="bar-row" *ngFor="let c of collectes">
-                  <span>{{ c.collecteCode }}</span>
-                  <div class="bar-track"><div class="bar-fill" [style.width.%]="(c.totalHuileExtraiteL / maxOil()) * 100"></div></div>
-                  <strong>{{ c.totalHuileExtraiteL || 0 | number:'1.0-2' }} L</strong>
-                </div>
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement des collectes d'huile...</p>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="stats-cards" *ngIf="!isLoading && collectes.length">
+            <div class="stat-card-summary">
+              <div class="stat-icon"><i class="bi bi-collection"></i></div>
+              <div class="stat-content">
+                <div class="stat-number">{{ collectes.length }}</div>
+                <div class="stat-label">Collectes totales</div>
               </div>
             </div>
-            <div class="panel-card">
-              <div class="panel-header"><h3 class="panel-title"><i class="bi bi-percent"></i> Rendement</h3></div>
-              <div class="panel-body bar-list">
-                <div class="bar-row" *ngFor="let c of collectes">
-                  <span>{{ c.collecteCode }}</span>
-                  <div class="bar-track"><div class="bar-fill" [style.width.%]="c.rendementMoyenPourcentage"></div></div>
-                  <strong>{{ c.rendementMoyenPourcentage || 0 | number:'1.0-2' }}%</strong>
-                </div>
+            <div class="stat-card-summary">
+              <div class="stat-icon"><i class="bi bi-cup-straw"></i></div>
+              <div class="stat-content">
+                <div class="stat-number">{{ totalHuile() | number:'1.0-0' }}</div>
+                <div class="stat-label">Huile totale (L)</div>
+              </div>
+            </div>
+            <div class="stat-card-summary">
+              <div class="stat-icon"><i class="bi bi-basket"></i></div>
+              <div class="stat-content">
+                <div class="stat-number">{{ totalOlives() | number:'1.0-0' }}</div>
+                <div class="stat-label">Olives totales (kg)</div>
+              </div>
+            </div>
+            <div class="stat-card-summary">
+              <div class="stat-icon"><i class="bi bi-percent"></i></div>
+              <div class="stat-content">
+                <div class="stat-number">{{ rendementMoyenGlobal() | number:'1.0-2' }}%</div>
+                <div class="stat-label">Rendement moyen</div>
               </div>
             </div>
           </div>
 
-          <div class="table-wrapper" *ngIf="!isLoading && collectes.length" style="margin-top: 1.25rem;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Collecte</th>
-                  <th>Type olive</th>
-                  <th>Olives recues kg</th>
-                  <th>Huile extraite L</th>
-                  <th>Rendement moyen</th>
-                  <th>Tournees recues</th>
-                  <th>Tournees extraites</th>
-                  <th>Progression</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <ng-container *ngFor="let c of collectes">
-                  <tr>
-                    <td><strong>{{ c.collecteCode }}</strong></td>
-                    <td>{{ c.vergerTypeOlive || '-' }}</td>
-                    <td>{{ c.totalOlivesRecuesKg || 0 | number:'1.0-2' }}</td>
-                    <td>{{ c.totalHuileExtraiteL || 0 | number:'1.0-2' }}</td>
-                    <td><span class="yield-badge yield-good">{{ c.rendementMoyenPourcentage || 0 | number:'1.0-2' }}%</span></td>
-                    <td>{{ c.nombreTourneesRecues }}</td>
-                    <td>{{ c.nombreTourneesExtraites }}</td>
-                    <td class="progress-cell">
-                      <div class="progress-bar"><div class="progress-fill" [style.width.%]="progress(c)"></div></div>
-                      <small>{{ progress(c) }}%</small>
-                    </td>
-                    <td><button class="btn-secondary" (click)="toggleExpanded(c.collecteId)"><i class="bi" [ngClass]="isExpanded(c.collecteId) ? 'bi-chevron-up' : 'bi-chevron-down'"></i></button></td>
-                  </tr>
-                  <tr *ngIf="isExpanded(c.collecteId)">
-                    <td colspan="9">
-                      <div class="panel-card">
-                        <div class="panel-body">
-                          <strong>Extractions de la collecte</strong>
-                          <div *ngIf="!c.extractions?.length" class="empty-state">Aucun detail extraction retourne par l API.</div>
-                          <div class="bar-list" *ngIf="c.extractions?.length">
-                            <div class="bar-row" *ngFor="let e of c.extractions">
-                              <span>{{ e.tourneeCode }}</span>
-                              <div class="bar-track"><div class="bar-fill" [style.width.%]="e.rendementPourcentage || 0"></div></div>
-                              <strong>{{ e.quantiteHuileExtraiteL || 0 }} L</strong>
-                            </div>
-                          </div>
+          <!-- Cards Grid (instead of table) -->
+          <div class="collectes-cards-grid" *ngIf="!isLoading && collectes.length">
+            <div class="collecte-card-item" *ngFor="let c of collectes">
+              <div class="collecte-card-header" [style.border-left-color]="getRendementColor(c.rendementMoyenPourcentage)">
+                <div class="collecte-code">
+                  <i class="bi bi-upc-scan"></i>
+                  <span>{{ c.collecteCode }}</span>
+                </div>
+                <div class="rendement-indicator" [ngClass]="getRendementClass(c.rendementMoyenPourcentage)">
+                  <i class="bi bi-percent"></i> {{ (c.rendementMoyenPourcentage || 0) | number:'1.0-2' }}%
+                </div>
+              </div>
+              
+              <div class="collecte-card-body">
+                <div class="info-row">
+                  <div class="info-label"><i class="bi bi-tree-fill"></i> Type d'olive</div>
+                  <div class="info-value">{{ c.vergerTypeOlive || '-' }}</div>
+                </div>
+                
+                <div class="stats-row">
+                  <div class="stat-box">
+                    <div class="stat-value"><i class="bi bi-basket"></i> {{ (c.totalOlivesRecuesKg || 0) | number:'1.0-0' }}</div>
+                    <div class="stat-label-small">Olives (kg)</div>
+                  </div>
+                  <div class="stat-divider"></div>
+                  <div class="stat-box">
+                    <div class="stat-value"><i class="bi bi-droplet-fill"></i> {{ (c.totalHuileExtraiteL || 0) | number:'1.0-0' }}</div>
+                    <div class="stat-label-small">Huile (L)</div>
+                  </div>
+                </div>
+
+                <div class="tournees-progress">
+                  <div class="progress-header">
+                    <span><i class="bi bi-truck"></i> Tournées</span>
+                    <span>{{ c.nombreTourneesExtraites || 0 }} / {{ c.nombreTourneesRecues || 0 }}</span>
+                  </div>
+                  <div class="progress-bar-track">
+                    <div class="progress-fill" [style.width.%]="progress(c)"></div>
+                  </div>
+                </div>
+
+                <!-- Extractions (directly visible, no toggle) -->
+                <div class="extractions-section" *ngIf="c.extractions?.length">
+                  <div class="extractions-header">
+                    <i class="bi bi-list-ul"></i>
+                    <span>Extractions</span>
+                  </div>
+                  <div class="extractions-list">
+                    <div class="extraction-item" *ngFor="let e of c.extractions">
+                      <div class="extraction-code">
+                        <i class="bi bi-tag"></i>
+                        {{ e.tourneeCode || e.tourneeId }}
+                      </div>
+                      <div class="extraction-stats">
+                        <span class="huile">📊 {{ (e.quantiteHuileExtraiteL || 0) | number:'1.0-2' }} L</span>
+                        <span class="rendement" *ngIf="e.rendementPourcentage" [class.high]="e.rendementPourcentage >= 15">
+                          🎯 {{ e.rendementPourcentage | number:'1.0-2' }}%
+                        </span>
+                      </div>
+                      <div class="extraction-progress-mini">
+                        <div class="progress-bar-mini">
+                          <div class="progress-fill-mini" [style.width.%]="e.rendementPourcentage || 0"></div>
                         </div>
                       </div>
-                    </td>
-                  </tr>
-                </ng-container>
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
+          <!-- Empty State -->
           <div *ngIf="!isLoading && !collectes.length" class="empty-state">
-            <i class="bi bi-inbox"></i>
-            <p>Aucune collecte huile calculee pour le moment.</p>
+            <div class="empty-icon">
+              <i class="bi bi-inbox"></i>
+            </div>
+            <h3>Aucune collecte d'huile</h3>
+            <p>Aucune collecte d'huile n'a été calculée pour le moment.</p>
           </div>
         </div>
       </div>

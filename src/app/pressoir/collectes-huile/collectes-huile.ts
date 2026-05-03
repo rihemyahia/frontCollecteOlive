@@ -1,3 +1,4 @@
+// src/app/pressoir/collectes-huile/collectes-huile.component.ts
 import { AfterViewInit, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
@@ -13,11 +14,11 @@ import { SideBarResponsable } from '../../sidebar-responsable/sidebar-responsabl
 })
 export class PressoirCollectesHuileComponent implements OnInit, AfterViewInit {
   isSidebarCollapsed = false;
+  isMobile = false;
   userRole = 'RESPONSABLE_PRESSOIR';
   isLoading = false;
   errorMessage = '';
   collectes: CollecteHuile[] = [];
-  expandedIds = new Set<string>();
   private wasMobile = false;
 
   constructor(
@@ -47,6 +48,7 @@ export class PressoirCollectesHuileComponent implements OnInit, AfterViewInit {
     }
 
     this.wasMobile = isMobile;
+    this.isMobile = isMobile;
   }
 
   toggleSidebar(collapsed?: boolean): void {
@@ -70,21 +72,38 @@ export class PressoirCollectesHuileComponent implements OnInit, AfterViewInit {
     });
   }
 
-  toggleExpanded(id: string): void {
-    this.expandedIds.has(id) ? this.expandedIds.delete(id) : this.expandedIds.add(id);
-    this.refreshLayout();
-  }
-
-  isExpanded(id: string): boolean {
-    return this.expandedIds.has(id);
-  }
-
   progress(c: CollecteHuile): number {
-    return c.nombreTourneesRecues ? Math.round((c.nombreTourneesExtraites / c.nombreTourneesRecues) * 100) : 0;
+    if (!c.nombreTourneesRecues || c.nombreTourneesRecues === 0) return 0;
+    return Math.min(100, Math.round((c.nombreTourneesExtraites / c.nombreTourneesRecues) * 100));
   }
 
-  maxOil(): number {
-    return Math.max(...this.collectes.map(c => c.totalHuileExtraiteL || 0), 1);
+  totalHuile(): number {
+    return this.collectes.reduce((sum, c) => sum + (c.totalHuileExtraiteL || 0), 0);
+  }
+
+  totalOlives(): number {
+    return this.collectes.reduce((sum, c) => sum + (c.totalOlivesRecuesKg || 0), 0);
+  }
+
+  rendementMoyenGlobal(): number {
+    const totalHuile = this.totalHuile();
+    const totalOlives = this.totalOlives();
+    if (totalOlives === 0) return 0;
+    return (totalHuile / totalOlives) * 100;
+  }
+
+  getRendementClass(rendement: number): string {
+    if (!rendement) return 'rendement-low';
+    if (rendement < 10) return 'rendement-low';
+    if (rendement < 15) return 'rendement-medium';
+    return 'rendement-high';
+  }
+
+  getRendementColor(rendement: number): string {
+    if (!rendement) return '#DC2626';
+    if (rendement < 10) return '#DC2626';
+    if (rendement < 15) return '#F59E0B';
+    return '#10B981';
   }
 
   private refreshLayout(): void {

@@ -1,51 +1,91 @@
+<!-- src/app/pressoir/tournees-livrees/tournees-livrees.component.html -->
 <div class="app-layout">
   <app-sidebar [isCollapsed]="isSidebarCollapsed" (toggleSidebar)="toggleSidebar($event)" [userRole]="userRole"></app-sidebar>
 
   <main class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
     <div class="oh-scene">
+      <div class="oh-ambient" aria-hidden="true">
+        <div class="amb-orb amb-orb--1"></div>
+        <div class="amb-orb amb-orb--2"></div>
+        <div class="amb-orb amb-orb--3"></div>
+      </div>
+
       <div class="oh-card">
         <div class="oh-card__header">
           <div class="oh-header__inner">
             <div class="oh-header__left">
-              <div class="oh-brand__icon"><i class="bi bi-truck"></i></div>
-              <div>
+              <div class="oh-brand__icon">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="oh-header__text">
                 <p class="oh-header__eyebrow">RECEPTION PRESSOIR</p>
-                <h2 class="oh-header__title">Tournees livrees</h2>
-                <p class="header-subtitle">Olives livrees en attente de reception</p>
+                <h2 class="oh-header__title">Tournées <span class="highlight">livrées</span></h2>
+                <p class="header-subtitle">Olives livrées en attente de réception</p>
               </div>
             </div>
-            <button class="btn-secondary" (click)="loadTournees()"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+            <div class="oh-header__right">
+              <button class="btn-primary" (click)="loadTournees()">
+                <i class="bi bi-arrow-repeat"></i> Actualiser
+              </button>
+            </div>
           </div>
         </div>
 
         <div class="oh-card__body">
-          <div *ngIf="successMessage" class="oh-success"><i class="bi bi-check-circle-fill"></i>{{ successMessage }}</div>
-          <div *ngIf="errorMessage" class="oh-error"><i class="bi bi-exclamation-triangle-fill"></i>{{ errorMessage }}</div>
-          <div *ngIf="isLoading" class="loading-state"><div class="spinner"></div><p>Chargement des tournees livrees...</p></div>
+          <!-- Messages -->
+          <div *ngIf="successMessage" class="oh-success">
+            <i class="bi bi-check-circle-fill"></i> {{ successMessage }}
+          </div>
+          <div *ngIf="errorMessage" class="oh-error">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+          </div>
 
-          <div class="table-wrapper" *ngIf="!isLoading && tournees.length">
-            <table class="data-table">
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Chargement des tournées livrées...</p>
+          </div>
+
+          <!-- Tournées Table -->
+          <div class="table-wrapper" *ngIf="!isLoading && tournees.length > 0">
+            <table class="alerts-table">
               <thead>
                 <tr>
-                  <th>Code tournee</th>
+                  <th>Code tournée</th>
                   <th>Collecte</th>
                   <th>Verger / olive</th>
-                  <th>Quantite kg</th>
+                  <th>Quantité kg</th>
                   <th>Transporteur</th>
-                  <th>Livraison</th>
+                  <th>Date livraison</th>
                   <th>Destination</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let t of tournees">
-                  <td><strong>{{ t.code || t.id }}</strong></td>
-                  <td>{{ t.collecteCode || '-' }}</td>
-                  <td>{{ t.vergerTypeOlive || '-' }}</td>
-                  <td>{{ t.quantiteCollecteeKg || 0 | number:'1.0-2' }}</td>
-                  <td>{{ t.transporteurNom || '-' }}</td>
-                  <td>{{ formatDate(t.livraisonCompletedAt) }}</td>
-                  <td>{{ t.livraisonDestinationNom || t.livraisonDestinationAdresse || '-' }}</td>
+                  <td><strong><i class="bi bi-tag"></i> {{ t.code || t.id }}</strong></td>
+                  <td>
+                    <i class="bi bi-basket"></i> {{ t.displayCollecteCode }}
+                  </td>
+                  <td>
+                    <i class="bi bi-tree-fill"></i> {{ t.displayVergerTypeOlive }}
+                  </td>
+                  <td class="quantite-cell">
+                    <span class="quantite-value">{{ t.displayQuantite | number:'1.0-2' }} kg</span>
+                  </td>
+                  <td>
+                    <span class="transporteur-info">
+                      <i class="bi bi-person-badge"></i> {{ t.displayTransporteurNom }}
+                    </span>
+                  </td>
+                  <td>
+                    <i class="bi bi-calendar3"></i> {{ formatDate(t.livraisonCompletedAt) }}
+                  </td>
+                  <td>
+                    <div class="destination-cell">
+                      <i class="bi bi-geo-alt"></i> {{ t.displayDestination }}
+                    </div>
+                  </td>
                   <td>
                     <button class="btn-primary" (click)="openReceptionModal(t)">
                       <i class="bi bi-box-arrow-in-down"></i> Recevoir olives
@@ -56,38 +96,80 @@
             </table>
           </div>
 
-          <div *ngIf="!isLoading && !tournees.length" class="empty-state">
-            <i class="bi bi-inbox"></i>
-            <p>Aucune tournee livree en attente de reception.</p>
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && tournees.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <i class="bi bi-inbox"></i>
+            </div>
+            <h3>Aucune tournée</h3>
+            <p>Aucune tournée livrée en attente de réception.</p>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <div class="modal-backdrop" *ngIf="selectedTournee">
-    <div class="modal-card">
+  <!-- Reception Modal -->
+  <div class="modal-overlay" *ngIf="selectedTournee" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3 class="modal-title">Recevoir les olives - {{ selectedTournee.code || selectedTournee.id }}</h3>
-        <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+        <h3 class="modal-title">
+          <i class="bi bi-box-arrow-in-down"></i> Recevoir les olives
+          <span class="tournee-code">{{ selectedTournee.code }}</span>
+        </h3>
+        <button class="modal-close" (click)="closeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
+      
       <div class="modal-body">
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <label>Quantite olives recue kg</label>
-            <input class="form-control" type="number" min="0" step="0.01" [(ngModel)]="receptionForm.quantiteOlivesRecueKg" name="quantiteOlivesRecueKg">
+        <div class="info-card">
+          <div class="info-row">
+            <span class="info-label"><i class="bi bi-tree-fill"></i> Verger:</span>
+            <span class="info-value">{{ selectedTournee.displayVergerTypeOlive }}</span>
           </div>
-          <div class="form-group full-width">
-            <label>Observations</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="receptionForm.observations" name="observations" placeholder="Livraison conforme..."></textarea>
+          <div class="info-row">
+            <span class="info-label"><i class="bi bi-truck"></i> Transporteur:</span>
+            <span class="info-value">{{ selectedTournee.displayTransporteurNom }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label"><i class="bi bi-cup-straw"></i> Quantité livrée:</span>
+            <span class="info-value">{{ selectedTournee.displayQuantite | number:'1.0-2' }} kg</span>
           </div>
         </div>
-        <div class="form-actions">
-          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
-          <button class="btn-primary" [disabled]="isSubmitting" (click)="submitReception()">
-            <i class="bi bi-check2-circle"></i> {{ isSubmitting ? 'Reception...' : 'Confirmer' }}
-          </button>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="bi bi-cup-straw"></i> Quantité olives reçue (kg)
+            <span class="required">*</span>
+          </label>
+          <input class="form-control" 
+                 type="number" 
+                 min="0" 
+                 step="0.01" 
+                 [(ngModel)]="receptionForm.quantiteOlivesRecueKg" 
+                 placeholder="Ex: {{ selectedTournee.displayQuantite }}">
         </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="bi bi-chat-text"></i> Observations
+          </label>
+          <textarea class="form-control" 
+                    rows="3" 
+                    [(ngModel)]="receptionForm.observations" 
+                    placeholder="Livraison conforme, état des olives, remarques..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">
+          <i class="bi bi-x-circle"></i> Annuler
+        </button>
+        <button class="btn-primary" [disabled]="isSubmitting" (click)="submitReception()">
+          <i class="bi bi-check2-circle"></i> 
+          {{ isSubmitting ? 'Réception...' : 'Confirmer réception' }}
+        </button>
       </div>
     </div>
   </div>

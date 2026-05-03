@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+// src/app/alertes/gestion-alertes/gestion-alertes.component.ts
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlerteService, AlerteResponse, TypeAlerte, StatutAlerte, NiveauUrgence } from '../../services/alerte';
@@ -15,8 +16,7 @@ import { takeUntil } from 'rxjs/operators';
   templateUrl: './gestion-alertes.html',
   styleUrl: './gestion-alertes.css'
 })
-export class GestionAlertesComponent implements OnInit, OnDestroy {
-
+export class GestionAlertesComponent implements OnInit, OnDestroy, AfterViewInit {
   alertes: AlerteResponse[] = [];
   filteredAlertes: AlerteResponse[] = [];
   isLoading = true;
@@ -36,34 +36,34 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
   currentPage = 1;
   itemsPerPage = 10;
 
-  // Alert type mapping
+  // Alert type mapping with icons
   readonly typesAlerte = [
-    { value: 'MATURITE', label: '🫒 Problème de maturité' },
-    { value: 'MATURITE_ACCELEREE', label: '⏱️ Maturité accélérée' },
-    { value: 'MALADIE', label: '🐛 Maladie' },
-    { value: 'METEO', label: '⛈️ Dégât météorologique' },
-    { value: 'RECOLTE', label: '🧺 Problème de récolte' },
-    { value: 'CHUTE_PREMATUREE', label: '📉 Chute prématurée' },
-    { value: 'NUISIBLE', label: '🦗 Ravageur / Nuisible' },
-    { value: 'IRRIGATION', label: '💧 Problème d\'irrigation' },
-    { value: 'QUALITE_HUILE', label: '🫒 Qualité d\'huile' },
-    { value: 'RENDEMENT_ANORMAL', label: '📊 Rendement anormal' },
-    { value: 'LOGISTIQUE_MOULIN', label: '🏭 Logistique moulin' },
-    { value: 'SECURITE_RECOLTE', label: '⚠️ Sécurité récolte' },
-    { value: 'AUTRE', label: '📌 Autre problème' }
+    { value: 'MATURITE', label: 'Maturité', icon: 'bi-droplet' },
+    { value: 'MATURITE_ACCELEREE', label: 'Maturité accélérée', icon: 'bi-speedometer2' },
+    { value: 'MALADIE', label: 'Maladie', icon: 'bi-bug' },
+    { value: 'METEO', label: 'Dégât météorologique', icon: 'bi-cloud-rain' },
+    { value: 'RECOLTE', label: 'Problème de récolte', icon: 'bi-basket' },
+    { value: 'CHUTE_PREMATUREE', label: 'Chute prématurée', icon: 'bi-arrow-down' },
+    { value: 'NUISIBLE', label: 'Ravageur / Nuisible', icon: 'bi-bug' },
+    { value: 'IRRIGATION', label: "Problème d'irrigation", icon: 'bi-droplet' },
+    { value: 'QUALITE_HUILE', label: "Qualité d'huile", icon: 'bi-cup-straw' },
+    { value: 'RENDEMENT_ANORMAL', label: 'Rendement anormal', icon: 'bi-graph-down' },
+    { value: 'LOGISTIQUE_MOULIN', label: 'Logistique moulin', icon: 'bi-building' },
+    { value: 'SECURITE_RECOLTE', label: 'Sécurité récolte', icon: 'bi-shield-exclamation' },
+    { value: 'AUTRE', label: 'Autre problème', icon: 'bi-info-circle' }
   ];
 
   readonly statutOptions = [
-    { value: 'EN_ATTENTE', label: '⏳ En attente', color: '#F59E0B' },
-    { value: 'EN_COURS', label: '🔄 En cours', color: '#3B82F6' },
-    { value: 'TRAITEE', label: '✅ Traitée', color: '#10B981' }
+    { value: 'EN_ATTENTE', label: 'En attente', color: '#F59E0B', icon: 'bi-hourglass-split' },
+    { value: 'EN_COURS', label: 'En cours', color: '#3B82F6', icon: 'bi-arrow-repeat' },
+    { value: 'TRAITEE', label: 'Traitée', color: '#10B981', icon: 'bi-check-circle-fill' }
   ];
 
   readonly urgenceOptions = [
-    { value: 'FAIBLE', label: '🟢 Faible', color: '#10B981' },
-    { value: 'MOYENNE', label: '🟡 Moyenne', color: '#F59E0B' },
-    { value: 'ELEVEE', label: '🔴 Élevée', color: '#EF4444' },
-    { value: 'CRITIQUE', label: '🚨 Critique', color: '#991B1B' }
+    { value: 'FAIBLE', label: 'Faible', color: '#10B981', icon: 'bi-info-circle-fill' },
+    { value: 'MOYENNE', label: 'Moyenne', color: '#F59E0B', icon: 'bi-exclamation-circle-fill' },
+    { value: 'ELEVEE', label: 'Élevée', color: '#EF4444', icon: 'bi-exclamation-triangle-fill' },
+    { value: 'CRITIQUE', label: 'Critique', color: '#991B1B', icon: 'bi-exclamation-octagon-fill' }
   ];
 
   private destroy$ = new Subject<void>();
@@ -77,14 +77,27 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkUserRole();
-    this.handleResize();
-    window.addEventListener('resize', () => this.handleResize());
+    this.checkMobile();
     this.loadAlertes();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 100);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  @HostListener('window:resize')
+  checkMobile(): void {
+    this.isMobile = window.innerWidth < 768;
+    if (!this.isMobile && this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = false;
+    }
   }
 
   checkUserRole(): void {
@@ -93,23 +106,21 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     this.isAdmin = role === 'ADMIN';
   }
 
-  handleResize(): void {
-    this.isMobile = window.innerWidth < 768;
-  }
-
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   loadAlertes(): void {
     this.isLoading = true;
+    this.cdr.detectChanges();
+
     const endpoint$ = this.isAdmin 
       ? this.alerteService.getAll() 
       : this.alerteService.getAlertesResponsable();
 
     endpoint$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => {
-        this.alertes = data;
+        this.alertes = data || [];
         this.applyFilters();
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -117,6 +128,7 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error loading alerts:', err);
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -128,11 +140,10 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
       result = result.filter(a =>
-        a.description.toLowerCase().includes(q) ||
-        a.agriculteurNom.toLowerCase().includes(q) ||
-        a.vergerTypeOlive?.toLowerCase().includes(q) ||
-        a.type.toLowerCase().includes(q) ||
-        a.id.toLowerCase().includes(q)
+        (a.description || '').toLowerCase().includes(q) ||
+        (a.agriculteurNom || '').toLowerCase().includes(q) ||
+        (a.vergerTypeOlive || '').toLowerCase().includes(q) ||
+        (a.type || '').toLowerCase().includes(q)
       );
     }
 
@@ -159,13 +170,14 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
         'MOYENNE': 2,
         'FAIBLE': 3
       };
-      const urgenceDiff = urgenceOrder[a.niveauUrgence] - urgenceOrder[b.niveauUrgence];
+      const urgenceDiff = (urgenceOrder[a.niveauUrgence] || 4) - (urgenceOrder[b.niveauUrgence] || 4);
       if (urgenceDiff !== 0) return urgenceDiff;
       return new Date(b.dateSignalement).getTime() - new Date(a.dateSignalement).getTime();
     });
 
     this.filteredAlertes = result;
     this.currentPage = 1;
+    this.cdr.detectChanges();
   }
 
   onFilterChange(): void {
@@ -220,6 +232,11 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     return item ? item.label : type;
   }
 
+  getTypeIcon(type: TypeAlerte): string {
+    const item = this.typesAlerte.find(t => t.value === type);
+    return item ? item.icon : 'bi-bell';
+  }
+
   getStatutLabel(statut: StatutAlerte): string {
     const item = this.statutOptions.find(s => s.value === statut);
     return item ? item.label : statut;
@@ -228,6 +245,11 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
   getStatutColor(statut: StatutAlerte): string {
     const item = this.statutOptions.find(s => s.value === statut);
     return item ? item.color : '#6B7280';
+  }
+
+  getStatutIcon(statut: StatutAlerte): string {
+    const item = this.statutOptions.find(s => s.value === statut);
+    return item ? item.icon : 'bi-question-circle';
   }
 
   getUrgenceLabel(urgence: NiveauUrgence): string {
@@ -240,4 +262,8 @@ export class GestionAlertesComponent implements OnInit, OnDestroy {
     return item ? item.color : '#6B7280';
   }
 
+  getUrgenceIcon(urgence: NiveauUrgence): string {
+    const item = this.urgenceOptions.find(u => u.value === urgence);
+    return item ? item.icon : 'bi-exclamation-circle';
+  }
 }

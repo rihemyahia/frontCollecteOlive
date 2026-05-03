@@ -1,3 +1,4 @@
+// src/app/pressoir/tournees-livrees/tournees-livrees.component.ts
 import { AfterViewInit, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,8 +20,8 @@ export class PressoirTourneesLivreesComponent implements OnInit, AfterViewInit {
   isSubmitting = false;
   errorMessage = '';
   successMessage = '';
-  tournees: TourneeLivree[] = [];
-  selectedTournee: TourneeLivree | null = null;
+  tournees: any[] = []; // Changed to any[] to handle nested objects
+  selectedTournee: any = null;
   receptionForm = { quantiteOlivesRecueKg: null as number | null, observations: '' };
   private wasMobile = false;
 
@@ -63,20 +64,44 @@ export class PressoirTourneesLivreesComponent implements OnInit, AfterViewInit {
     this.errorMessage = '';
     this.pressoirService.getTourneesLivrees().subscribe({
       next: data => {
-        this.tournees = data || [];
+        console.log('Tournées reçues:', data);
+        this.tournees = (data || []).map(t => this.enrichTournee(t));
         this.isLoading = false;
         this.refreshLayout();
       },
       error: err => {
+        console.error('Error loading tournees:', err);
         this.errorMessage = this.getError(err, 'Erreur lors du chargement des tournees livrees');
         this.isLoading = false;
       }
     });
   }
 
-  openReceptionModal(tournee: TourneeLivree): void {
+  private enrichTournee(t: any): any {
+    // Extract data from nested objects
+    const collecteCode = t.collecte?.code || t.collecteCode;
+    const vergerTypeOlive = t.verger?.typeOlive || t.vergerTypeOlive || t.vergerSnapshot?.typeOlive;
+    const transporteurNom = t.transporteur?.nom 
+      ? `${t.transporteur.prenom || ''} ${t.transporteur.nom}`.trim() 
+      : t.transporteurNom;
+    const quantiteCollecteeKg = t.quantiteCollecteeKg || 0;
+    
+    return {
+      ...t,
+      displayCollecteCode: collecteCode || '-',
+      displayVergerTypeOlive: vergerTypeOlive || '-',
+      displayTransporteurNom: transporteurNom || 'Non assigné',
+      displayQuantite: quantiteCollecteeKg,
+      displayDestination: t.livraisonDestinationNom || t.livraisonDestinationAdresse || '-'
+    };
+  }
+
+  openReceptionModal(tournee: any): void {
     this.selectedTournee = tournee;
-    this.receptionForm = { quantiteOlivesRecueKg: tournee.quantiteCollecteeKg || null, observations: '' };
+    this.receptionForm = { 
+      quantiteOlivesRecueKg: tournee.displayQuantite || null, 
+      observations: '' 
+    };
   }
 
   closeModal(): void {
@@ -100,6 +125,7 @@ export class PressoirTourneesLivreesComponent implements OnInit, AfterViewInit {
         this.successMessage = 'Olives receptionnees avec succes';
         this.closeModal();
         this.refreshLayout();
+        setTimeout(() => this.successMessage = '', 3000);
       },
       error: err => {
         this.errorMessage = this.getError(err, 'Erreur lors de la reception des olives');
@@ -109,7 +135,16 @@ export class PressoirTourneesLivreesComponent implements OnInit, AfterViewInit {
   }
 
   formatDate(value?: string | Date): string {
-    return value ? new Date(value).toLocaleString('fr-FR') : '-';
+    if (!value) return '-';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   private getError(err: any, fallback: string): string {
