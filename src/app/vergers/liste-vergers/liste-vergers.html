@@ -91,6 +91,8 @@
                 <thead>
                   <tr>
                     <th>Agriculteur</th>
+                          <th>Responsable</th>  <!-- NOUVELLE COLONNE -->
+
                     <th>Type</th>
                     <th>Superficie</th>
                     <th>Nb Arbres</th>
@@ -114,6 +116,16 @@
                         </div>
                       </div>
                     </td>
+                     <td>
+        <!-- AFFICHAGE DU RESPONSABLE -->
+        <div class="responsable-info">
+          <span class="responsable-nom">{{ v.responsableNom || 'Non assigné' }}</span>
+
+          <span class="responsable-email" *ngIf="v.responsableEmail">
+            <small>{{ v.responsableEmail }}</small>
+          </span>
+        </div>
+      </td>
                     <td class="type-cell">
                       <span class="badge-olive">{{ v.typeOlive }}</span>
                     </td>

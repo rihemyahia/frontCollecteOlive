@@ -93,6 +93,13 @@ export class ListeVergersComponent implements OnInit {
     obs.subscribe({
       next: data => {
         this.vergers = [...data];
+          console.log('Vergers avec responsables:', this.vergers.map(v => ({
+      id: v.id,
+      nom: v.agriculteurNom,
+      responsableNom: v.responsableNom,
+      responsableEmail: v.responsableEmail,
+      responsableFonction: v.responsableFonction
+    })));
         this.applyFilter();
         this.isLoading = false;
         this.cdr.detectChanges();
