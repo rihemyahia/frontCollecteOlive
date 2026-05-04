@@ -184,7 +184,6 @@
         <th>Date Début</th>
         <th>Date Fin</th>
         <th>Quantité</th>
-        <th>Efficacité</th>
         <th>Responsable</th>
         <th>Actions</th>
       </tr>
@@ -210,15 +209,6 @@
           <div class="quantity-cell">
             <span class="quantity-value">{{ (t.quantiteCollecteeKg || 0) | number:'1.0-0' }} kg</span>
           </div>
-        </td>
-        <td>
-          <div class="efficiency-cell" *ngIf="t.efficacite">
-            <div class="progress-bar small">
-              <div class="progress-fill" [style.width.%]="t.efficacite"></div>
-            </div>
-            <span>{{ t.efficacite | number:'1.0-0' }}%</span>
-          </div>
-          <span *ngIf="!t.efficacite">N/A</span>
         </td>
   <td>
   <div class="responsable-cell">
@@ -336,15 +326,6 @@
               Total verger: {{ t.totalCollecteVergerKg | number:'1.0-0' }} kg
             </small>
           </div>
-        </td>
-        <td>
-          <div class="efficiency-cell" *ngIf="t.efficacite">
-            <div class="progress-bar small">
-              <div class="progress-fill" [style.width.%]="t.efficacite"></div>
-            </div>
-            <span>{{ t.efficacite | number:'1.0-0' }}%</span>
-          </div>
-          <span *ngIf="!t.efficacite">N/A</span>
         </td>
 
         <td class="actions-cell">

@@ -201,37 +201,6 @@
           </div>
         </div>
 
-        <!-- ===== LOCALISATION ===== -->
-        <div class="profile-card">
-          <div class="card-header">
-            <i class="bi bi-geo-alt-fill"></i>
-            <h3>Localisation du pressoir</h3>
-          </div>
-
-          <div class="card-body">
-            <div class="form-row">
-              <div class="form-group">
-                <label><i class="bi bi-crosshair"></i> Latitude</label>
-                <input type="number" step="0.000001" [(ngModel)]="formData.latitude" class="form-control" placeholder="Ex: 34.773584">
-              </div>
-              <div class="form-group">
-                <label><i class="bi bi-crosshair"></i> Longitude</label>
-                <input type="number" step="0.000001" [(ngModel)]="formData.longitude" class="form-control" placeholder="Ex: 10.763346">
-              </div>
-            </div>
-            <div class="info-box">
-              <i class="bi bi-info-circle"></i>
-              <p>Les coordonnées GPS permettent de localiser votre pressoir sur la carte pour optimiser les tournées de livraison.</p>
-            </div>
-          </div>
-
-          <div class="card-footer">
-            <button class="btn btn-primary" (click)="save()" [disabled]="isSaving">
-              <i class="bi bi-save"></i>
-              {{ isSaving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-            </button>
-          </div>
-        </div>
 
       </div>
     </div>
