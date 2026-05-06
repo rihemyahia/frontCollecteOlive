@@ -82,7 +82,6 @@ export class TransporteurDashboardComponent implements OnInit {
   readonly weatherValue = signal('Chargement...');
 
   readonly routeConditions = computed(() => [
-    { label: 'Zone', value: this.areaValue(), icon: 'bi-geo-alt' },
     { label: 'Température', value: this.temperatureValue(), icon: 'bi-thermometer-half' },
     { label: 'Météo', value: this.weatherValue(), icon: 'bi-sun' }
   ]);
